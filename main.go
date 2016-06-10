@@ -11,6 +11,7 @@ import (
 )
 
 var n *nats.Conn
+var secret string
 
 func setup() {
 	var err error
@@ -23,21 +24,48 @@ func setup() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	secret = os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("No JWT secret was set!")
+	}
 }
 
 func main() {
-	log.Println("starting")
+	log.Println("starting gateway")
 	setup()
 
 	e := echo.New()
-	e.Use(middleware.JWT([]byte("test")))
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
-	// Setup users routes
-	e.GET("/users/", getUsersHander)
-	e.GET("/users/:user", getUserHander)
-	e.Post("/users/", createUserHander)
-	e.Put("/users/:user", updateUserHander)
-	e.Delete("/users/:user", deleteUserHander)
+	// login
+	e.Post("/auth", authenticate)
+
+	// Setup JWT auth
+	api := e.Group("/api")
+	api.Use(middleware.JWT([]byte(secret)))
+
+	// Setup user routes
+	api.GET("/users/", getUsersHandler)
+	api.GET("/users/:user", getUserHandler)
+	api.Post("/users/", createUserHandler)
+	api.Put("/users/:user", updateUserHandler)
+	api.Delete("/users/:user", deleteUserHandler)
+
+	// Setup group routes
+	api.GET("/groups/", getGroupsHandler)
+	api.GET("/groups/:group", getGroupHandler)
+	api.Post("/groups/", createGroupHandler)
+	api.Put("/groups/:group", updateGroupHandler)
+	api.Delete("/groups/:group", deleteGroupHandler)
+
+	// Setup datacenter routes
+	api.GET("/datacenters/", getDatacentersHandler)
+	api.GET("/datacenters/:datacenter", getDatacenterHandler)
+	api.Post("/datacenters/", createDatacenterHandler)
+	api.Put("/datacenters/:datacenter", updateDatacenterHandler)
+	api.Delete("/datacenters/:datacenter", deleteDatacenterHandler)
 
 	e.Run(standard.New(":8080"))
 }
