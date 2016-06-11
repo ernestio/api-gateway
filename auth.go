@@ -28,6 +28,10 @@ func authenticate(c echo.Context) error {
 		return badReqBody
 	}
 
+	if u.ID == "" {
+		return echo.ErrUnauthorized
+	}
+
 	if u.Username == username && u.Password == password {
 		// Create token
 		token := jwt.New(jwt.SigningMethodHS256)

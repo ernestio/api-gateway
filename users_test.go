@@ -21,12 +21,16 @@ import (
 var (
 	mockUsers = []User{
 		User{
-			ID:   "1",
-			Name: "test",
+			ID:       "1",
+			Name:     "test",
+			Username: "test",
+			Password: "test",
 		},
 		User{
-			ID:   "2",
-			Name: "test",
+			ID:       "2",
+			Name:     "test2",
+			Username: "test2",
+			Password: "test2",
 		},
 	}
 )
@@ -41,6 +45,23 @@ func getUsersSubcriber() {
 func getUserSubcriber() {
 	n.Subscribe("users.get.1", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockUsers[0])
+		n.Publish(msg.Reply, data)
+	})
+}
+
+func findUserSubcriber() {
+	n.Subscribe("users.find", func(msg *nats.Msg) {
+		var u User
+		json.Unmarshal(msg.Data, &u)
+
+		for _, user := range mockUsers {
+			if user.Name == u.Name || user.Username == u.Username {
+				u = user
+				break
+			}
+		}
+
+		data, _ := json.Marshal(u)
 		n.Publish(msg.Reply, data)
 	})
 }
