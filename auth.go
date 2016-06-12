@@ -40,7 +40,7 @@ func authenticate(c echo.Context) error {
 		token.Claims["name"] = u.Name
 		token.Claims["username"] = u.Username
 		token.Claims["admin"] = u.Admin
-		token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+		token.Claims["exp"] = time.Now().Add(time.Hour * 867240).Unix()
 
 		// Generate encoded token and send it as response.
 		t, err := token.SignedString([]byte(secret))

@@ -5,6 +5,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -17,6 +18,8 @@ import (
 	"github.com/labstack/echo/middleware"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cCI6NDU4NzgyOTc4MSwibmFtZSI6InRlc3QyIiwidXNlcm5hbWUiOiJ0ZXN0MiJ9.mRYxkFlLrjJkV49EAQ4wnkk4diNUwl3yJxWpZLXEHFE"
 
 func TestAuth(t *testing.T) {
 	Convey("Given the auth handler", t, func() {
@@ -34,11 +37,11 @@ func TestAuth(t *testing.T) {
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"test2"}}
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/auth/")
+				err := authenticate(c)
+				resp := rec.Body.String()
 
 				Convey("It should return a jwt token", func() {
-					err := authenticate(c)
 					So(err, ShouldBeNil)
-					resp := rec.Body.String()
 					So(rec.Code, ShouldEqual, http.StatusOK)
 					So(strings.Contains(resp, "token"), ShouldBeTrue)
 				})
@@ -51,11 +54,11 @@ func TestAuth(t *testing.T) {
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong"}}
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/auth/")
+				err := authenticate(c)
+				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {
-					err := authenticate(c)
 					So(err, ShouldNotBeNil)
-					resp := rec.Body.String()
 					So(strings.Contains(resp, "token"), ShouldBeFalse)
 				})
 			})
@@ -70,7 +73,6 @@ func TestAuth(t *testing.T) {
 				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {
-
 					So(err, ShouldNotBeNil)
 					So(strings.Contains(resp, "token"), ShouldBeFalse)
 				})
@@ -89,18 +91,18 @@ func TestAuth(t *testing.T) {
 
 			Convey("With valid credentials", func() {
 				e := echo.New()
-				e.Use(middleware.JWT([]byte(secret)))
 				req := new(http.Request)
+				authHeader := fmt.Sprintf("Bearer %s", mockToken)
+				req.Header = http.Header{}
+				req.Header.Add("Authorization", authHeader)
 				rec := httptest.NewRecorder()
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/users/")
-				err := getUsersHandler(c)
+				h := middleware.JWT([]byte(secret))(getUsersHandler)
+				err := h(c)
 				resp := rec.Body.String()
 
 				Convey("It should return the correct data", func() {
-					// These test should fail as we arent supplying a token, fix this
-					So(true, ShouldBeTrue)
-
 					So(err, ShouldBeNil)
 					So(rec.Code, ShouldEqual, http.StatusOK)
 					So(strings.Contains(resp, "name"), ShouldBeTrue)
@@ -112,12 +114,12 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-				c.SetPath("/auth/")
+				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 				err := h(c).(*echo.HTTPError)
 				resp := rec.Body.String()
 
-				Convey("It should not return an unauthorized error", func() {
+				Convey("It should return an unauthorized error", func() {
 					So(err, ShouldNotBeNil)
 					So(strings.Contains(resp, "id"), ShouldBeFalse)
 				})
@@ -128,12 +130,12 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-				c.SetPath("/auth/")
+				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 				err := h(c).(*echo.HTTPError)
 				resp := rec.Body.String()
 
-				Convey("It should not return an unauthorized error", func() {
+				Convey("It should return an unauthorized error", func() {
 					So(err, ShouldNotBeNil)
 					So(strings.Contains(resp, "id"), ShouldBeFalse)
 				})
