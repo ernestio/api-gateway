@@ -28,7 +28,7 @@ func (d *Datacenter) Validate() error {
 func getDatacentersHandler(c echo.Context) error {
 	msg, err := n.Request("datacenters.get", nil, 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	return c.JSONBlob(http.StatusOK, msg.Data)
@@ -38,11 +38,11 @@ func getDatacenterHandler(c echo.Context) error {
 	subject := fmt.Sprintf("datacenters.get.%s", c.Param("datacenter"))
 	msg, err := n.Request(subject, nil, 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	if len(msg.Data) == 0 {
-		return notFound
+		return ErrNotFound
 	}
 
 	return c.JSONBlob(http.StatusOK, msg.Data)
@@ -52,12 +52,12 @@ func createDatacenterHandler(c echo.Context) error {
 	body := c.Request().Body()
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return badReqBody
+		return ErrBadReqBody
 	}
 
 	msg, err := n.Request("datacenters.create", data, 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	return c.JSONBlob(http.StatusAccepted, msg.Data)
@@ -67,12 +67,12 @@ func updateDatacenterHandler(c echo.Context) error {
 	body := c.Request().Body()
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return badReqBody
+		return ErrBadReqBody
 	}
 
 	msg, err := n.Request("datacenters.update", data, 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	return c.JSONBlob(http.StatusAccepted, msg.Data)
@@ -82,7 +82,7 @@ func deleteDatacenterHandler(c echo.Context) error {
 	subject := fmt.Sprintf("datacenters.delete.%s", c.Param("datacenter"))
 	_, err := n.Request(subject, nil, 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	return c.String(http.StatusOK, "")

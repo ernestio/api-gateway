@@ -3,11 +3,25 @@ package main
 import (
 	"net/http"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
 var (
-	notFound       = echo.NewHTTPError(http.StatusNotFound, "")
-	badReqBody     = echo.NewHTTPError(http.StatusBadRequest, "")
-	gatewayTimeout = echo.NewHTTPError(http.StatusGatewayTimeout, "")
+	ErrUnauthorized   = echo.NewHTTPError(http.StatusForbidden, "")
+	ErrNotFound       = echo.NewHTTPError(http.StatusNotFound, "")
+	ErrBadReqBody     = echo.NewHTTPError(http.StatusBadRequest, "")
+	ErrGatewayTimeout = echo.NewHTTPError(http.StatusGatewayTimeout, "")
+	ErrInternal       = echo.NewHTTPError(http.StatusInternalServerError, "")
 )
+
+// Get the authenticated user from the JWT Token
+func authenticatedUser(c echo.Context) User {
+	var u User
+
+	user := c.Get("user").(*jwt.Token)
+	u.Username = user.Claims["username"].(string)
+	u.Admin = user.Claims["admin"].(bool)
+
+	return u
+}

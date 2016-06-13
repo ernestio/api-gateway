@@ -20,16 +20,16 @@ func authenticate(c echo.Context) error {
 	req := fmt.Sprintf(`{"username": "%s"}`, username)
 	msg, err := n.Request("users.find", []byte(req), 5*time.Second)
 	if err != nil {
-		return gatewayTimeout
+		return ErrGatewayTimeout
 	}
 
 	err = json.Unmarshal(msg.Data, &u)
 	if err != nil {
-		return badReqBody
+		return ErrBadReqBody
 	}
 
 	if u.ID == "" {
-		return echo.ErrUnauthorized
+		return ErrUnauthorized
 	}
 
 	if u.Username == username && u.Password == password {
@@ -37,10 +37,9 @@ func authenticate(c echo.Context) error {
 		token := jwt.New(jwt.SigningMethodHS256)
 
 		// Set claims
-		token.Claims["name"] = u.Name
 		token.Claims["username"] = u.Username
 		token.Claims["admin"] = u.Admin
-		token.Claims["exp"] = time.Now().Add(time.Hour * 867240).Unix()
+		token.Claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
 
 		// Generate encoded token and send it as response.
 		t, err := token.SignedString([]byte(secret))
@@ -52,5 +51,5 @@ func authenticate(c echo.Context) error {
 		})
 	}
 
-	return echo.ErrUnauthorized
+	return ErrUnauthorized
 }

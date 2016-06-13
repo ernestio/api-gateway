@@ -12,6 +12,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/nats-io/nats"
@@ -22,13 +23,11 @@ var (
 	mockUsers = []User{
 		User{
 			ID:       "1",
-			Name:     "test",
 			Username: "test",
 			Password: "test",
 		},
 		User{
 			ID:       "2",
-			Name:     "test2",
 			Username: "test2",
 			Password: "test2",
 		},
@@ -55,7 +54,7 @@ func findUserSubcriber() {
 		json.Unmarshal(msg.Data, &u)
 
 		for _, user := range mockUsers {
-			if user.Name == u.Name || user.Username == u.Username {
+			if user.Username == u.Username {
 				u = user
 				break
 			}
@@ -111,7 +110,7 @@ func TestUsers(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(len(u), ShouldEqual, 2)
 				So(u[0].ID, ShouldEqual, "1")
-				So(u[0].Name, ShouldEqual, "test")
+				So(u[0].Username, ShouldEqual, "test")
 			})
 
 		})
@@ -139,7 +138,7 @@ func TestUsers(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(u.ID, ShouldEqual, "1")
-				So(u.Name, ShouldEqual, "test")
+				So(u.Username, ShouldEqual, "test")
 			})
 
 		})
@@ -147,27 +146,80 @@ func TestUsers(t *testing.T) {
 		Convey("When creating a user", func() {
 			createUserSubcriber()
 
-			data, _ := json.Marshal(User{Name: "new-test"})
+			Convey("With a valid payload", func() {
+				data, _ := json.Marshal(User{GroupID: "1", Username: "new-test", Password: "test"})
 
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				Convey("As an admin user", func() {
+					e := echo.New()
+					req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
+					rec := httptest.NewRecorder()
+					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-			c.SetPath("/users/")
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = true
 
-			Convey("It should create the user and return the correct set of data", func() {
-				var u User
+					c.SetPath("/users/")
+					c.Set("user", ft)
 
-				err := createUserHandler(c)
-				So(err, ShouldBeNil)
+					Convey("It should create the user and return the correct set of data", func() {
+						var u User
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &u)
+						err := createUserHandler(c)
+						So(err, ShouldBeNil)
 
-				So(err, ShouldBeNil)
-				So(u.ID, ShouldEqual, "3")
-				So(u.Name, ShouldEqual, "new-test")
+						resp := rec.Body.Bytes()
+						err = json.Unmarshal(resp, &u)
+
+						So(err, ShouldBeNil)
+						So(u.ID, ShouldEqual, "3")
+						So(u.Username, ShouldEqual, "new-test")
+					})
+
+				})
+
+				Convey("As an non-admin user", func() {
+					e := echo.New()
+					req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
+					rec := httptest.NewRecorder()
+					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = false
+
+					c.SetPath("/users/")
+					c.Set("user", ft)
+
+					Convey("It should return with 403 unauthorized", func() {
+						err := createUserHandler(c)
+						So(err, ShouldNotBeNil)
+						So(rec.Code, ShouldEqual, http.StatusUnauthorized)
+					})
+				})
+
+			})
+
+			Convey("With an invalid payload", func() {
+				data := []byte(`{"group_id": 1, "username": "fail"}`)
+
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "test"
+				ft.Claims["admin"] = true
+
+				c.Set("user", ft)
+				c.SetPath("/users/")
+
+				Convey("It should error with 401 bad request", func() {
+					err := createUserHandler(c).(*echo.HTTPError)
+					So(err, ShouldNotBeNil)
+					So(rec.Code, ShouldEqual, http.StatusBadRequest)
+				})
 			})
 
 		})
@@ -189,7 +241,6 @@ func TestUsers(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(rec.Code, ShouldEqual, http.StatusOK)
 			})
-
 		})
 
 	})
