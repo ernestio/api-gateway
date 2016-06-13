@@ -37,6 +37,7 @@ func (u *User) Validate() error {
 	return nil
 }
 
+// Map : maps a user from a request's body and validates the input
 func (u *User) Map(c echo.Context) *echo.HTTPError {
 	body := c.Request().Body()
 	data, err := ioutil.ReadAll(body)

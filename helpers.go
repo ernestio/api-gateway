@@ -10,7 +10,7 @@ import (
 var (
 	ErrUnauthorized   = echo.NewHTTPError(http.StatusForbidden, "")
 	ErrNotFound       = echo.NewHTTPError(http.StatusNotFound, "")
-	ErrBadReqBody     = echo.NewHTTPError(http.StatusBadRequest, "")
+	ErrBadReqBody     = echo.NewHTTPError(http.StatusBadRequest, "something")
 	ErrGatewayTimeout = echo.NewHTTPError(http.StatusGatewayTimeout, "")
 	ErrInternal       = echo.NewHTTPError(http.StatusInternalServerError, "")
 )
