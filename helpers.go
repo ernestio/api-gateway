@@ -17,6 +17,7 @@ var (
 	ErrBadReqBody     = echo.NewHTTPError(http.StatusBadRequest, "")
 	ErrGatewayTimeout = echo.NewHTTPError(http.StatusGatewayTimeout, "")
 	ErrInternal       = echo.NewHTTPError(http.StatusInternalServerError, "")
+	ErrNotImplemented = echo.NewHTTPError(http.StatusNotImplemented, "")
 )
 
 // Get the authenticated user from the JWT Token

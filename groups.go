@@ -1,6 +1,11 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -25,8 +30,29 @@ func (g *Group) Validate() error {
 	return nil
 }
 
+// Map : maps a group from a request's body and validates the input
+func (g *Group) Map(c echo.Context) *echo.HTTPError {
+	body := c.Request().Body()
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	err = json.Unmarshal(data, &g)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	err = g.Validate()
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	return nil
+}
+
 func getGroupsHandler(c echo.Context) error {
-	msg, err := n.Request("group.get", nil, 5*time.Second)
+	msg, err := n.Request("group.find", nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -35,7 +61,7 @@ func getGroupsHandler(c echo.Context) error {
 }
 
 func getGroupHandler(c echo.Context) error {
-	query := fmt.Sprintf(`{"id": "%s"}`, c.Param("group"))
+	query := fmt.Sprintf(`{"name": "%s"}`, c.Param("group"))
 	msg, err := n.Request("group.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
@@ -49,13 +75,22 @@ func getGroupHandler(c echo.Context) error {
 }
 
 func createGroupHandler(c echo.Context) error {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
+	var g Group
+
+	if authenticatedUser(c).Admin != true {
+		return ErrUnauthorized
+	}
+
+	if g.Map(c) != nil {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("group.create", data, 5*time.Second)
+	data, err := json.Marshal(g)
+	if err != nil {
+		return ErrInternal
+	}
+
+	msg, err := n.Request("group.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -64,26 +99,9 @@ func createGroupHandler(c echo.Context) error {
 }
 
 func updateGroupHandler(c echo.Context) error {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	msg, err := n.Request("group.update", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return ErrNotImplemented
 }
 
 func deleteGroupHandler(c echo.Context) error {
-	subject := fmt.Sprintf("group.delete.%s", c.Param("group"))
-	_, err := n.Request(subject, nil, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	return c.String(http.StatusOK, "")
+	return ErrNotImplemented
 }

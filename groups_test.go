@@ -12,6 +12,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/nats-io/nats"
@@ -33,38 +34,68 @@ var (
 
 func getGroupSubcriber() {
 	n.Subscribe("group.get", func(msg *nats.Msg) {
-		if len(msg.Data) != 0 {
-			qg := Group{}
-			json.Unmarshal(msg.Data, &qg)
+		var qu Group
+
+		if len(msg.Data) > 0 {
+			json.Unmarshal(msg.Data, &qu)
+
 			for _, group := range mockGroups {
-				if group.ID == qg.ID || group.Name == qg.Name {
+				if group.ID == qu.ID || group.Name == qu.Name {
 					data, _ := json.Marshal(group)
 					n.Publish(msg.Reply, data)
 					return
 				}
 			}
-			n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 		}
 
-		data, _ := json.Marshal(mockGroups)
+		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
+	})
+}
+
+func findGroupSubcriber() {
+	n.Subscribe("group.find", func(msg *nats.Msg) {
+		var qu Group
+		var ur []Group
+
+		if len(msg.Data) == 0 {
+			data, _ := json.Marshal(mockGroups)
+			n.Publish(msg.Reply, data)
+			return
+		}
+
+		json.Unmarshal(msg.Data, &qu)
+
+		for _, group := range mockGroups {
+			if group.Name == qu.Name || group.ID == qu.ID {
+				ur = append(ur, group)
+			}
+		}
+
+		data, _ := json.Marshal(ur)
 		n.Publish(msg.Reply, data)
 	})
 }
 
-func createGroupSubcriber() {
-	n.Subscribe("group.create", func(msg *nats.Msg) {
+func setGroupSubcriber() {
+	n.Subscribe("group.set", func(msg *nats.Msg) {
 		var u Group
 
 		json.Unmarshal(msg.Data, &u)
-		u.ID = "3"
-		data, _ := json.Marshal(u)
+		if u.ID == "" {
+			u.ID = "3"
+		}
 
+		data, _ := json.Marshal(u)
 		n.Publish(msg.Reply, data)
 	})
 }
 
 func deleteGroupSubcriber() {
-	n.Subscribe("group.delete.1", func(msg *nats.Msg) {
+	n.Subscribe("group.del", func(msg *nats.Msg) {
+		var u Datacenter
+
+		json.Unmarshal(msg.Data, &u)
+
 		n.Publish(msg.Reply, []byte{})
 	})
 }
@@ -76,7 +107,7 @@ func TestGroups(t *testing.T) {
 		setup()
 
 		Convey("When getting a list of groups", func() {
-			getGroupSubcriber()
+			findGroupSubcriber()
 
 			e := echo.New()
 			req := new(http.Request)
@@ -85,18 +116,19 @@ func TestGroups(t *testing.T) {
 			c.SetPath("/groups/")
 
 			Convey("It should return the correct set of data", func() {
-				var g []Group
+				var u []Group
 
 				err := getGroupsHandler(c)
 				So(err, ShouldBeNil)
 
 				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &g)
+				err = json.Unmarshal(resp, &u)
 
 				So(err, ShouldBeNil)
-				So(len(g), ShouldEqual, 2)
-				So(g[0].ID, ShouldEqual, "1")
-				So(g[0].Name, ShouldEqual, "test")
+				So(rec.Code, ShouldEqual, 200)
+				So(len(u), ShouldEqual, 2)
+				So(u[0].ID, ShouldEqual, "1")
+				So(u[0].Name, ShouldEqual, "test")
 			})
 
 		})
@@ -111,70 +143,103 @@ func TestGroups(t *testing.T) {
 
 			c.SetPath("/groups/:group")
 			c.SetParamNames("group")
-			c.SetParamValues("1")
+			c.SetParamValues("test")
 
 			Convey("It should return the correct set of data", func() {
-				var g Group
+				var u Group
 
 				err := getGroupHandler(c)
 				So(err, ShouldBeNil)
 
 				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &g)
+				err = json.Unmarshal(resp, &u)
 
 				So(err, ShouldBeNil)
-				So(g.ID, ShouldEqual, "1")
-				So(g.Name, ShouldEqual, "test")
+				So(rec.Code, ShouldEqual, 200)
+				So(u.ID, ShouldEqual, "1")
+				So(u.Name, ShouldEqual, "test")
 			})
-
 		})
 
 		Convey("When creating a group", func() {
-			createGroupSubcriber()
+			setGroupSubcriber()
 
-			data, _ := json.Marshal(Group{Name: "new-test"})
+			Convey("With a valid payload", func() {
+				data, _ := json.Marshal(Group{Name: "new-test"})
 
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				Convey("As an admin user", func() {
+					e := echo.New()
+					req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
+					rec := httptest.NewRecorder()
+					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-			c.SetPath("/groups/")
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = true
+					ft.Claims["group_id"] = "1"
 
-			Convey("It should create the group and return the correct set of data", func() {
-				var g Group
+					c.SetPath("/groups/")
+					c.Set("user", ft)
 
-				err := createGroupHandler(c)
-				So(err, ShouldBeNil)
+					Convey("It should create the group and return the correct set of data", func() {
+						var u Group
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &g)
+						err := createGroupHandler(c)
+						So(err, ShouldBeNil)
 
-				So(err, ShouldBeNil)
-				So(g.ID, ShouldEqual, "3")
-				So(g.Name, ShouldEqual, "new-test")
+						resp := rec.Body.Bytes()
+						err = json.Unmarshal(resp, &u)
+
+						So(err, ShouldBeNil)
+						So(u.ID, ShouldEqual, "3")
+						So(u.Name, ShouldEqual, "new-test")
+					})
+				})
+
+				Convey("As an non-admin user", func() {
+					e := echo.New()
+					req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
+					rec := httptest.NewRecorder()
+					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = false
+					ft.Claims["group_id"] = "1"
+
+					c.SetPath("/groups/")
+					c.Set("user", ft)
+
+					Convey("It should return with 403 unauthorized", func() {
+						err := createGroupHandler(c)
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					})
+				})
 			})
 
-		})
+			Convey("With an invalid payload", func() {
+				data := []byte(`{"incorrect_name": "fail"}`)
 
-		Convey("When deleting a group", func() {
-			deleteGroupSubcriber()
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-			e := echo.New()
-			req := http.Request{Method: "DELETE"}
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(&req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "test"
+				ft.Claims["admin"] = true
+				ft.Claims["group_id"] = "1"
 
-			c.SetPath("/groups/:group")
-			c.SetParamNames("group")
-			c.SetParamValues("1")
+				c.Set("user", ft)
+				c.SetPath("/groups/")
 
-			Convey("It should delete the group and return ok", func() {
-				err := deleteGroupHandler(c)
-				So(err, ShouldBeNil)
-				So(rec.Code, ShouldEqual, http.StatusOK)
+				Convey("It should error with 400 bad request", func() {
+					err := createGroupHandler(c)
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+				})
 			})
-
 		})
 
 	})
