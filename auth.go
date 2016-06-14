@@ -18,7 +18,7 @@ func authenticate(c echo.Context) error {
 
 	// Find user, sending the auth request as payload
 	req := fmt.Sprintf(`{"username": "%s"}`, username)
-	msg, err := n.Request("users.find", []byte(req), 5*time.Second)
+	msg, err := n.Request("user.find", []byte(req), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}

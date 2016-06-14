@@ -59,7 +59,7 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 }
 
 func getUsersHandler(c echo.Context) error {
-	msg, err := n.Request("users.get", nil, 5*time.Second)
+	msg, err := n.Request("user.get", nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -68,7 +68,7 @@ func getUsersHandler(c echo.Context) error {
 }
 
 func getUserHandler(c echo.Context) error {
-	subject := fmt.Sprintf("users.get.%s", c.Param("user"))
+	subject := fmt.Sprintf("user.get.%s", c.Param("user"))
 	msg, err := n.Request(subject, nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
@@ -97,7 +97,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("users.create", data, 5*time.Second)
+	msg, err := n.Request("user.create", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -114,7 +114,7 @@ func updateUserHandler(c echo.Context) error {
 
 	// Check if authenticated user is admin or updating itself
 	au := authenticatedUser(c)
-	if au.Username != u.Username || au.Admin != true {
+	if au.Username != u.Username && au.Admin != true {
 		return ErrUnauthorized
 	}
 
@@ -123,7 +123,7 @@ func updateUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("users.update", data, 5*time.Second)
+	msg, err := n.Request("user.update", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -132,7 +132,7 @@ func updateUserHandler(c echo.Context) error {
 }
 
 func deleteUserHandler(c echo.Context) error {
-	subject := fmt.Sprintf("users.delete.%s", c.Param("user"))
+	subject := fmt.Sprintf("user.delete.%s", c.Param("user"))
 	_, err := n.Request(subject, nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout

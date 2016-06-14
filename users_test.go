@@ -37,21 +37,21 @@ var (
 )
 
 func getUsersSubcriber() {
-	n.Subscribe("users.get", func(msg *nats.Msg) {
+	n.Subscribe("user.get", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockUsers)
 		n.Publish(msg.Reply, data)
 	})
 }
 
 func getUserSubcriber() {
-	n.Subscribe("users.get.1", func(msg *nats.Msg) {
+	n.Subscribe("user.get.1", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockUsers[0])
 		n.Publish(msg.Reply, data)
 	})
 }
 
 func findUserSubcriber() {
-	n.Subscribe("users.find", func(msg *nats.Msg) {
+	n.Subscribe("user.find", func(msg *nats.Msg) {
 		var u User
 		json.Unmarshal(msg.Data, &u)
 
@@ -68,7 +68,7 @@ func findUserSubcriber() {
 }
 
 func createUserSubcriber() {
-	n.Subscribe("users.create", func(msg *nats.Msg) {
+	n.Subscribe("user.create", func(msg *nats.Msg) {
 		var u User
 
 		json.Unmarshal(msg.Data, &u)
@@ -79,8 +79,24 @@ func createUserSubcriber() {
 	})
 }
 
+func updateUserSubcriber() {
+	n.Subscribe("user.update", func(msg *nats.Msg) {
+		var u User
+
+		json.Unmarshal(msg.Data, &u)
+		for _, user := range mockUsers {
+			if user.ID == u.ID {
+				n.Publish(msg.Reply, msg.Data)
+				return
+			}
+		}
+
+		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
+	})
+}
+
 func deleteUserSubcriber() {
-	n.Subscribe("users.delete.1", func(msg *nats.Msg) {
+	n.Subscribe("user.delete.1", func(msg *nats.Msg) {
 		n.Publish(msg.Reply, []byte{})
 	})
 }
@@ -228,13 +244,46 @@ func TestUsers(t *testing.T) {
 
 		})
 
-		Convey("When updating a user", func() {
-			// TODO : Uncomment this
-			// updateUserSubcriber()
+		Convey("When updating a user that exists", func() {
+			updateUserSubcriber()
 
-			Convey("Thats exists", func() {
-				Convey("As an admin user", func() {
-					data, _ := json.Marshal(User{GroupID: "1", Username: "test2", Password: "test"})
+			Convey("As an admin user", func() {
+				data, _ := json.Marshal(User{GroupID: "1", ID: "1", Username: "test2", Password: "test"})
+
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/users/1", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "admin"
+				ft.Claims["admin"] = true
+
+				c.SetPath("/users/:user")
+				c.SetParamNames("user")
+				c.SetParamValues("1")
+				c.Set("user", ft)
+
+				Convey("It should update the user and return the correct set of data", func() {
+					var u User
+
+					err := updateUserHandler(c)
+					So(err, ShouldBeNil)
+
+					resp := rec.Body.Bytes()
+					err = json.Unmarshal(resp, &u)
+
+					So(err, ShouldBeNil)
+					So(u.ID, ShouldEqual, "1")
+					So(u.GroupID, ShouldEqual, "1")
+					So(u.Username, ShouldEqual, "test2")
+				})
+
+			})
+
+			Convey("As an non-admin user", func() {
+				Convey("Where a user updates itself", func() {
+					data, _ := json.Marshal(User{GroupID: "1", ID: "1", Username: "test", Password: "test2"})
 
 					e := echo.New()
 					req, _ := http.NewRequest("POST", "/users/1", bytes.NewReader(data))
@@ -242,8 +291,8 @@ func TestUsers(t *testing.T) {
 					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
 					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "admin"
-					ft.Claims["admin"] = true
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = false
 
 					c.SetPath("/users/:user")
 					c.SetParamNames("user")
@@ -260,74 +309,37 @@ func TestUsers(t *testing.T) {
 						err = json.Unmarshal(resp, &u)
 
 						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, "2")
+						So(u.ID, ShouldEqual, "1")
 						So(u.GroupID, ShouldEqual, "1")
-						So(u.Username, ShouldEqual, "test2")
-					})
-
-				})
-
-				Convey("As an non-admin user", func() {
-					Convey("Where a user updates itself", func() {
-						data, _ := json.Marshal(User{GroupID: "1", Username: "test", Password: "test2"})
-
-						e := echo.New()
-						req, _ := http.NewRequest("POST", "/users/1", bytes.NewReader(data))
-						rec := httptest.NewRecorder()
-						c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-						ft := jwt.New(jwt.SigningMethodHS256)
-						ft.Claims["username"] = "test"
-						ft.Claims["admin"] = false
-
-						c.SetPath("/users/:user")
-						c.SetParamNames("user")
-						c.SetParamValues("1")
-						c.Set("user", ft)
-
-						Convey("It should update the user and return the correct set of data", func() {
-							var u User
-
-							err := updateUserHandler(c)
-							So(err, ShouldBeNil)
-
-							resp := rec.Body.Bytes()
-							err = json.Unmarshal(resp, &u)
-
-							So(err, ShouldBeNil)
-							So(u.ID, ShouldEqual, "2")
-							So(u.GroupID, ShouldEqual, "1")
-							So(u.Username, ShouldEqual, "test2")
-						})
-					})
-					Convey("Where a user updates another user", func() {
-						data, _ := json.Marshal(User{GroupID: "1", Username: "test2", Password: "test2"})
-
-						e := echo.New()
-						req, _ := http.NewRequest("POST", "/users/1", bytes.NewReader(data))
-						rec := httptest.NewRecorder()
-						c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-						ft := jwt.New(jwt.SigningMethodHS256)
-						ft.Claims["username"] = "test"
-						ft.Claims["admin"] = false
-
-						c.SetPath("/users/:user")
-						c.SetParamNames("user")
-						c.SetParamValues("1")
-						c.Set("user", ft)
-
-						Convey("It should return with 403 unauthorized", func() {
-							err := updateUserHandler(c).(*echo.HTTPError)
-							So(err, ShouldNotBeNil)
-							So(err.Code, ShouldEqual, 403)
-						})
+						So(u.Username, ShouldEqual, "test")
 					})
 				})
+				Convey("Where a user updates another user", func() {
+					data, _ := json.Marshal(User{GroupID: "1", Username: "test2", Password: "test2"})
 
+					e := echo.New()
+					req, _ := http.NewRequest("POST", "/users/1", bytes.NewReader(data))
+					rec := httptest.NewRecorder()
+					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = false
+
+					c.SetPath("/users/:user")
+					c.SetParamNames("user")
+					c.SetParamValues("1")
+					c.Set("user", ft)
+
+					Convey("It should return with 403 unauthorized", func() {
+						err := updateUserHandler(c).(*echo.HTTPError)
+						So(err, ShouldNotBeNil)
+						So(err.Code, ShouldEqual, 403)
+					})
+				})
 			})
 
-			Convey("That doesn't exist", func() {
+			Convey("When updating a user that doesn't exist", func() {
 				data := []byte(`{"group_id": 1, "username": "fail"}`)
 
 				e := echo.New()
