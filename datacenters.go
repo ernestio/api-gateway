@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -26,7 +25,7 @@ func (d *Datacenter) Validate() error {
 }
 
 func getDatacentersHandler(c echo.Context) error {
-	msg, err := n.Request("datacenters.get", nil, 5*time.Second)
+	msg, err := n.Request("datacenter.find", nil, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -35,8 +34,9 @@ func getDatacentersHandler(c echo.Context) error {
 }
 
 func getDatacenterHandler(c echo.Context) error {
-	subject := fmt.Sprintf("datacenters.get.%s", c.Param("datacenter"))
-	msg, err := n.Request(subject, nil, 5*time.Second)
+	// TODO : Validate the datacenter is owned by this user
+	body := []byte(`{"name":"` + c.Param("datacenter") + `"}`)
+	msg, err := n.Request("datacenter.get", body, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -55,7 +55,7 @@ func createDatacenterHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("datacenters.create", data, 5*time.Second)
+	msg, err := n.Request("datacenter.set", data, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -70,7 +70,7 @@ func updateDatacenterHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("datacenters.update", data, 5*time.Second)
+	msg, err := n.Request("datacenter.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -79,8 +79,9 @@ func updateDatacenterHandler(c echo.Context) error {
 }
 
 func deleteDatacenterHandler(c echo.Context) error {
-	subject := fmt.Sprintf("datacenters.delete.%s", c.Param("datacenter"))
-	_, err := n.Request(subject, nil, 5*time.Second)
+	// TODO : Validate the datacenter is owned by this user
+	body := []byte(`{"name":"` + c.Param("datacenter") + `"}`)
+	_, err := n.Request("datacenter.del", body, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}

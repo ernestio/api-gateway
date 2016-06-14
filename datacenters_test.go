@@ -31,22 +31,22 @@ var (
 	}
 )
 
-func getDatacentersSubcriber() {
-	n.Subscribe("datacenters.get", func(msg *nats.Msg) {
-		data, _ := json.Marshal(mockDatacenters)
-		n.Publish(msg.Reply, data)
-	})
-}
-
 func getDatacenterSubcriber() {
-	n.Subscribe("datacenters.get.1", func(msg *nats.Msg) {
+	n.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockDatacenters[0])
 		n.Publish(msg.Reply, data)
 	})
 }
 
+func findDatacenterSubcriber() {
+	n.Subscribe("datacenter.find", func(msg *nats.Msg) {
+		data, _ := json.Marshal(mockDatacenters)
+		n.Publish(msg.Reply, data)
+	})
+}
+
 func createDatacenterSubcriber() {
-	n.Subscribe("datacenters.create", func(msg *nats.Msg) {
+	n.Subscribe("datacenter.set", func(msg *nats.Msg) {
 		var u Datacenter
 
 		json.Unmarshal(msg.Data, &u)
@@ -58,7 +58,7 @@ func createDatacenterSubcriber() {
 }
 
 func deleteDatacenterSubcriber() {
-	n.Subscribe("datacenters.delete.1", func(msg *nats.Msg) {
+	n.Subscribe("datacenter.del", func(msg *nats.Msg) {
 		n.Publish(msg.Reply, []byte{})
 	})
 }
@@ -70,7 +70,7 @@ func TestDatacenters(t *testing.T) {
 		setup()
 
 		Convey("When getting a list of datacenters", func() {
-			getDatacentersSubcriber()
+			findDatacenterSubcriber()
 
 			e := echo.New()
 			req := new(http.Request)

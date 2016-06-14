@@ -229,7 +229,8 @@ func TestUsers(t *testing.T) {
 		})
 
 		Convey("When updating a user", func() {
-			updateUserSubcriber()
+			// TODO : Uncomment this
+			// updateUserSubcriber()
 
 			Convey("Thats exists", func() {
 				Convey("As an admin user", func() {
