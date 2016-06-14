@@ -8,7 +8,7 @@ lint:
 test:
 	go test -v ./... --cover
 
-deps:
+deps: dev-deps
 	go get github.com/nats-io/nats
 	go get github.com/labstack/echo
 	go get github.com/dgrijalva/jwt-go
