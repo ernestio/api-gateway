@@ -28,15 +28,17 @@ func TestAuth(t *testing.T) {
 		setup()
 
 		Convey("When attempting to login", func() {
-			findUserSubcriber()
+			getUserSubcriber()
 
 			Convey("With valid credentials", func() {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"test2"}}
+
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/auth/")
+
 				err := authenticate(c)
 				resp := rec.Body.String()
 
@@ -51,9 +53,11 @@ func TestAuth(t *testing.T) {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
+
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong"}}
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/auth/")
+
 				err := authenticate(c)
 				resp := rec.Body.String()
 
@@ -67,8 +71,10 @@ func TestAuth(t *testing.T) {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
+
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/auth/")
+
 				err := authenticate(c)
 				resp := rec.Body.String()
 
@@ -86,8 +92,8 @@ func TestAuth(t *testing.T) {
 		setup()
 
 		Convey("When attempting to retrieve data", func() {
+			getUserSubcriber()
 			findUserSubcriber()
-			getUsersSubcriber()
 
 			Convey("With valid credentials", func() {
 				e := echo.New()
@@ -96,16 +102,16 @@ func TestAuth(t *testing.T) {
 				req.Header = http.Header{}
 				req.Header.Add("Authorization", authHeader)
 				rec := httptest.NewRecorder()
+
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
-				err := h(c)
-				resp := rec.Body.String()
 
 				Convey("It should return the correct data", func() {
+					err := h(c)
 					So(err, ShouldBeNil)
 					So(rec.Code, ShouldEqual, http.StatusOK)
-					So(strings.Contains(resp, "name"), ShouldBeTrue)
+					So(strings.Contains(rec.Body.String(), "name"), ShouldBeTrue)
 				})
 			})
 
@@ -113,14 +119,18 @@ func TestAuth(t *testing.T) {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
+
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/users/")
+
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
-				err := h(c).(*echo.HTTPError)
+
+				err := h(c)
 				resp := rec.Body.String()
 
-				Convey("It should return an unauthorized error", func() {
+				Convey("It should return an 400 bad request", func() {
 					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 					So(strings.Contains(resp, "id"), ShouldBeFalse)
 				})
 			})
@@ -129,14 +139,17 @@ func TestAuth(t *testing.T) {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
+
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
-				err := h(c).(*echo.HTTPError)
+
+				err := h(c)
 				resp := rec.Body.String()
 
-				Convey("It should return an unauthorized error", func() {
+				Convey("It should return an 400 bad request", func() {
 					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 					So(strings.Contains(resp, "id"), ShouldBeFalse)
 				})
 			})

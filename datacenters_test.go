@@ -12,6 +12,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/nats-io/nats"
@@ -21,20 +22,37 @@ import (
 var (
 	mockDatacenters = []Datacenter{
 		Datacenter{
-			ID:   "1",
-			Name: "test",
+			ID:      "1",
+			Name:    "test",
+			GroupID: "1",
 		},
 		Datacenter{
-			ID:   "2",
-			Name: "test",
+			ID:      "2",
+			Name:    "test2",
+			GroupID: "2",
 		},
 	}
 )
 
 func getDatacenterSubcriber() {
 	n.Subscribe("datacenter.get", func(msg *nats.Msg) {
-		data, _ := json.Marshal(mockDatacenters[0])
-		n.Publish(msg.Reply, data)
+		if len(msg.Data) != 0 {
+			qd := Datacenter{}
+			json.Unmarshal(msg.Data, &qd)
+
+			for _, datacenter := range mockDatacenters {
+				if qd.GroupID != "" && datacenter.GroupID == qd.GroupID && datacenter.Name == qd.Name {
+					data, _ := json.Marshal(datacenter)
+					n.Publish(msg.Reply, data)
+					return
+				} else if qd.GroupID == "" && datacenter.Name == qd.Name {
+					data, _ := json.Marshal(datacenter)
+					n.Publish(msg.Reply, data)
+					return
+				}
+			}
+		}
+		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 	})
 }
 
@@ -47,11 +65,11 @@ func findDatacenterSubcriber() {
 
 func createDatacenterSubcriber() {
 	n.Subscribe("datacenter.set", func(msg *nats.Msg) {
-		var u Datacenter
+		var d Datacenter
 
-		json.Unmarshal(msg.Data, &u)
-		u.ID = "3"
-		data, _ := json.Marshal(u)
+		json.Unmarshal(msg.Data, &d)
+		d.ID = "3"
+		data, _ := json.Marshal(d)
 
 		n.Publish(msg.Reply, data)
 	})
@@ -59,6 +77,10 @@ func createDatacenterSubcriber() {
 
 func deleteDatacenterSubcriber() {
 	n.Subscribe("datacenter.del", func(msg *nats.Msg) {
+		var u Datacenter
+
+		json.Unmarshal(msg.Data, &u)
+
 		n.Publish(msg.Reply, []byte{})
 	})
 }
@@ -98,57 +120,184 @@ func TestDatacenters(t *testing.T) {
 		Convey("When getting a single datacenter", func() {
 			getDatacenterSubcriber()
 
-			e := echo.New()
-			req := new(http.Request)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+			Convey("Where the authenticated user is an admin", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-			c.SetPath("/datacenters/:datacenter")
-			c.SetParamNames("datacenter")
-			c.SetParamValues("1")
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "admin"
+				ft.Claims["admin"] = true
+				ft.Claims["group_id"] = "2"
 
-			Convey("It should return the correct set of data", func() {
-				var d Datacenter
+				c.SetPath("/datacenters/:datacenter")
+				c.SetParamNames("datacenter")
+				c.SetParamValues("test")
+				c.Set("user", ft)
 
-				err := getDatacenterHandler(c)
-				So(err, ShouldBeNil)
+				Convey("It should return the correct set of data", func() {
+					var d Datacenter
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &d)
+					err := getDatacenterHandler(c)
+					So(err, ShouldBeNil)
 
-				So(err, ShouldBeNil)
-				So(d.ID, ShouldEqual, "1")
-				So(d.Name, ShouldEqual, "test")
+					resp := rec.Body.Bytes()
+					err = json.Unmarshal(resp, &d)
+
+					So(err, ShouldBeNil)
+					So(d.ID, ShouldEqual, "1")
+					So(d.Name, ShouldEqual, "test")
+				})
 			})
 
+			Convey("Where the datacenter group matches the authenticated users group", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "admin"
+				ft.Claims["admin"] = false
+				ft.Claims["group_id"] = "1"
+
+				c.SetPath("/datacenters/:datacenter")
+				c.SetParamNames("datacenter")
+				c.SetParamValues("test")
+				c.Set("user", ft)
+
+				Convey("It should return the correct set of data", func() {
+					var d Datacenter
+
+					err := getDatacenterHandler(c)
+					So(err, ShouldBeNil)
+
+					resp := rec.Body.Bytes()
+					err = json.Unmarshal(resp, &d)
+
+					So(err, ShouldBeNil)
+					So(d.ID, ShouldEqual, "1")
+					So(d.Name, ShouldEqual, "test")
+				})
+			})
+
+			Convey("Where the datacenter group does not match the authenticated users group", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "test2"
+				ft.Claims["admin"] = false
+				ft.Claims["group_id"] = "2"
+
+				c.SetPath("/datacenters/:datacenter")
+				c.SetParamNames("datacenter")
+				c.SetParamValues("test")
+				c.Set("user", ft)
+
+				Convey("It should return an 404 doesn't exist", func() {
+					err := getDatacenterHandler(c)
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+				})
+			})
 		})
 
 		Convey("When creating a datacenter", func() {
 			createDatacenterSubcriber()
 
-			data, _ := json.Marshal(Datacenter{Name: "new-test"})
+			mockDC := Datacenter{
+				GroupID:   "1",
+				Name:      "new-test",
+				Type:      "vcloud",
+				Username:  "test",
+				Password:  "test",
+				VCloudURL: "test",
+			}
 
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/datacenters/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+			data, _ := json.Marshal(mockDC)
 
-			c.SetPath("/datacenters/")
+			Convey("Where the authenticated user is an admin", func() {
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/datacenters/", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-			Convey("It should create the datacenter and return the correct set of data", func() {
-				var d Datacenter
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "admin"
+				ft.Claims["admin"] = true
+				ft.Claims["group_id"] = "2"
 
-				err := createDatacenterHandler(c)
-				So(err, ShouldBeNil)
+				c.SetPath("/datacenters/")
+				c.Set("user", ft)
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &d)
+				Convey("It should create the datacenter and return the correct set of data", func() {
+					var d Datacenter
 
-				So(err, ShouldBeNil)
-				So(d.ID, ShouldEqual, "3")
-				So(d.Name, ShouldEqual, "new-test")
+					err := createDatacenterHandler(c)
+					So(err, ShouldBeNil)
+
+					resp := rec.Body.Bytes()
+					err = json.Unmarshal(resp, &d)
+
+					So(err, ShouldBeNil)
+					So(d.ID, ShouldEqual, "3")
+					So(d.Name, ShouldEqual, "new-test")
+				})
 			})
 
+			Convey("Where the datacenter group matches the authenticated users group", func() {
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/datacenters/", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "test"
+				ft.Claims["admin"] = true
+				ft.Claims["group_id"] = "1"
+
+				c.SetPath("/datacenters/")
+				c.Set("user", ft)
+
+				Convey("It should create the datacenter and return the correct set of data", func() {
+					var d Datacenter
+
+					err := createDatacenterHandler(c)
+					So(err, ShouldBeNil)
+
+					resp := rec.Body.Bytes()
+					err = json.Unmarshal(resp, &d)
+
+					So(err, ShouldBeNil)
+					So(d.ID, ShouldEqual, "3")
+					So(d.Name, ShouldEqual, "new-test")
+				})
+			})
+
+			Convey("Where the datacenter group does not match the authenticated users group", func() {
+				e := echo.New()
+				req, _ := http.NewRequest("POST", "/datacenters/", bytes.NewReader(data))
+				rec := httptest.NewRecorder()
+				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+
+				ft := jwt.New(jwt.SigningMethodHS256)
+				ft.Claims["username"] = "admin"
+				ft.Claims["admin"] = false
+				ft.Claims["group_id"] = "2"
+
+				c.SetPath("/datacenters/")
+				c.Set("user", ft)
+
+				Convey("It should return an 403 unauthorized error", func() {
+					err := createDatacenterHandler(c)
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+				})
+			})
 		})
 
 		Convey("When deleting a datacenter", func() {
@@ -159,9 +308,15 @@ func TestDatacenters(t *testing.T) {
 			rec := httptest.NewRecorder()
 			c := e.NewContext(standard.NewRequest(&req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
+			ft := jwt.New(jwt.SigningMethodHS256)
+			ft.Claims["username"] = "test"
+			ft.Claims["admin"] = false
+			ft.Claims["group_id"] = "1"
+
 			c.SetPath("/datacenters/:datacenter")
 			c.SetParamNames("datacenter")
-			c.SetParamValues("1")
+			c.SetParamValues("test")
+			c.Set("user", ft)
 
 			Convey("It should delete the datacenter and return ok", func() {
 				err := deleteDatacenterHandler(c)

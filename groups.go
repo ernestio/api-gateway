@@ -26,7 +26,7 @@ func (g *Group) Validate() error {
 }
 
 func getGroupsHandler(c echo.Context) error {
-	msg, err := n.Request("groups.get", nil, 5*time.Second)
+	msg, err := n.Request("group.get", nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -35,14 +35,14 @@ func getGroupsHandler(c echo.Context) error {
 }
 
 func getGroupHandler(c echo.Context) error {
-	subject := fmt.Sprintf("groups.get.%s", c.Param("group"))
-	msg, err := n.Request(subject, nil, 5*time.Second)
+	query := fmt.Sprintf(`{"id": "%s"}`, c.Param("group"))
+	msg, err := n.Request("group.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
 
-	if len(msg.Data) == 0 {
-		return ErrNotFound
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
 	}
 
 	return c.JSONBlob(http.StatusOK, msg.Data)
@@ -55,7 +55,7 @@ func createGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("groups.create", data, 5*time.Second)
+	msg, err := n.Request("group.create", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -70,7 +70,7 @@ func updateGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("groups.update", data, 5*time.Second)
+	msg, err := n.Request("group.update", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -79,7 +79,7 @@ func updateGroupHandler(c echo.Context) error {
 }
 
 func deleteGroupHandler(c echo.Context) error {
-	subject := fmt.Sprintf("groups.delete.%s", c.Param("group"))
+	subject := fmt.Sprintf("group.delete.%s", c.Param("group"))
 	_, err := n.Request(subject, nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout

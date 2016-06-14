@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package main
 
 import (
@@ -59,7 +63,7 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 }
 
 func getUsersHandler(c echo.Context) error {
-	msg, err := n.Request("user.get", nil, 5*time.Second)
+	msg, err := n.Request("user.find", nil, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -68,14 +72,14 @@ func getUsersHandler(c echo.Context) error {
 }
 
 func getUserHandler(c echo.Context) error {
-	subject := fmt.Sprintf("user.get.%s", c.Param("user"))
-	msg, err := n.Request(subject, nil, 5*time.Second)
+	query := fmt.Sprintf(`{"username": "%s"}`, c.Param("user"))
+	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
 
-	if len(msg.Data) == 0 {
-		return ErrNotFound
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
 	}
 
 	return c.JSONBlob(http.StatusOK, msg.Data)
@@ -97,7 +101,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("user.create", data, 5*time.Second)
+	msg, err := n.Request("user.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -107,9 +111,15 @@ func createUserHandler(c echo.Context) error {
 
 func updateUserHandler(c echo.Context) error {
 	var u User
+	var qu User
 
 	if u.Map(c) != nil {
 		return ErrBadReqBody
+	}
+
+	data, err := json.Marshal(u)
+	if err != nil {
+		return ErrInternal
 	}
 
 	// Check if authenticated user is admin or updating itself
@@ -118,24 +128,47 @@ func updateUserHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	data, err := json.Marshal(u)
+	// Check user exists
+	msg, err := n.Request("user.get", data, 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	err = json.Unmarshal(msg.Data, &qu)
 	if err != nil {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("user.update", data, 5*time.Second)
+	if qu.ID == "" {
+		return ErrNotFound
+	}
+
+	// update the user
+	msg, err = n.Request("user.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
 	}
 
 	return c.JSONBlob(http.StatusAccepted, msg.Data)
 }
 
 func deleteUserHandler(c echo.Context) error {
-	subject := fmt.Sprintf("user.delete.%s", c.Param("user"))
-	_, err := n.Request(subject, nil, 5*time.Second)
+	query := fmt.Sprintf(`{"username": "%s"}`, c.Param("user"))
+	msg, err := n.Request("user.del", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
 	}
 
 	return c.String(http.StatusOK, "")

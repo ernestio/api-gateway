@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package main
 
 import (
@@ -18,14 +22,18 @@ func authenticate(c echo.Context) error {
 
 	// Find user, sending the auth request as payload
 	req := fmt.Sprintf(`{"username": "%s"}`, username)
-	msg, err := n.Request("user.find", []byte(req), 5*time.Second)
+	msg, err := n.Request("user.get", []byte(req), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
 
+	if responseErr(msg) != nil {
+		return ErrUnauthorized
+	}
+
 	err = json.Unmarshal(msg.Data, &u)
 	if err != nil {
-		return ErrBadReqBody
+		return ErrInternal
 	}
 
 	if u.ID == "" {

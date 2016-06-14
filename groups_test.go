@@ -31,22 +31,28 @@ var (
 	}
 )
 
-func getGroupsSubcriber() {
-	n.Subscribe("groups.get", func(msg *nats.Msg) {
+func getGroupSubcriber() {
+	n.Subscribe("group.get", func(msg *nats.Msg) {
+		if len(msg.Data) != 0 {
+			qg := Group{}
+			json.Unmarshal(msg.Data, &qg)
+			for _, group := range mockGroups {
+				if group.ID == qg.ID || group.Name == qg.Name {
+					data, _ := json.Marshal(group)
+					n.Publish(msg.Reply, data)
+					return
+				}
+			}
+			n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
+		}
+
 		data, _ := json.Marshal(mockGroups)
 		n.Publish(msg.Reply, data)
 	})
 }
 
-func getGroupSubcriber() {
-	n.Subscribe("groups.get.1", func(msg *nats.Msg) {
-		data, _ := json.Marshal(mockGroups[0])
-		n.Publish(msg.Reply, data)
-	})
-}
-
 func createGroupSubcriber() {
-	n.Subscribe("groups.create", func(msg *nats.Msg) {
+	n.Subscribe("group.create", func(msg *nats.Msg) {
 		var u Group
 
 		json.Unmarshal(msg.Data, &u)
@@ -58,7 +64,7 @@ func createGroupSubcriber() {
 }
 
 func deleteGroupSubcriber() {
-	n.Subscribe("groups.delete.1", func(msg *nats.Msg) {
+	n.Subscribe("group.delete.1", func(msg *nats.Msg) {
 		n.Publish(msg.Reply, []byte{})
 	})
 }
@@ -70,7 +76,7 @@ func TestGroups(t *testing.T) {
 		setup()
 
 		Convey("When getting a list of groups", func() {
-			getGroupsSubcriber()
+			getGroupSubcriber()
 
 			e := echo.New()
 			req := new(http.Request)
