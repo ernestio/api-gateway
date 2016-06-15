@@ -51,4 +51,11 @@ func setupRoutes(api *echo.Group) {
 	api.Post("/datacenters/", createDatacenterHandler)
 	api.Put("/datacenters/:datacenter", updateDatacenterHandler)
 	api.Delete("/datacenters/:datacenter", deleteDatacenterHandler)
+
+	// Setup service routes
+	api.GET("/services/", getServicesHandler)
+	api.GET("/services/:service", getServiceHandler)
+	api.Post("/services/", createServiceHandler)
+	api.Put("/services/:service", updateServiceHandler)
+	api.Delete("/services/:service", deleteServiceHandler)
 }
