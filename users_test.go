@@ -31,7 +31,8 @@ var (
 			ID:       "2",
 			GroupID:  "2",
 			Username: "test2",
-			Password: "test2",
+			Password: "b3nBt+fHNNSaP2SDeJzNNFfEOiMkqgLh8M7Bajfj2jZZtLp36vAhDMH6i3GXp/EMWTBuBIfQJIA3kgOFqfra0w==",
+			Salt:     "psDFaNEE5D9IqCeRrlOmNsRuCKQplicvvXtFhX5S4oE=",
 		},
 	}
 )

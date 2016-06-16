@@ -23,7 +23,6 @@ var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cC
 
 func TestAuth(t *testing.T) {
 	Convey("Given the auth handler", t, func() {
-		// setup nats connection
 		os.Setenv("JWT_SECRET", "test")
 		setup()
 
@@ -87,7 +86,6 @@ func TestAuth(t *testing.T) {
 	})
 
 	Convey("Given a protected route", t, func() {
-		// setup nats connection
 		os.Setenv("JWT_SECRET", "test")
 		setup()
 

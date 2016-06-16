@@ -40,7 +40,7 @@ func authenticate(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	if u.Username == username && u.Password == password {
+	if u.Username == username && u.ValidPassword(password) {
 		// Create token
 		token := jwt.New(jwt.SigningMethodHS256)
 
