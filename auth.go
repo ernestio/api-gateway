@@ -47,6 +47,7 @@ func authenticate(c echo.Context) error {
 		// Set claims
 		token.Claims["username"] = u.Username
 		token.Claims["admin"] = u.Admin
+		token.Claims["group_id"] = u.GroupID
 		token.Claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
 
 		// Generate encoded token and send it as response.

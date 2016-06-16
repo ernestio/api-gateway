@@ -25,9 +25,13 @@ func authenticatedUser(c echo.Context) User {
 	var u User
 
 	user := c.Get("user").(*jwt.Token)
+
+	// JSON token stores group_id as float instead of an int
+	groupval := user.Claims["group_id"].(float64)
+
 	u.Username = user.Claims["username"].(string)
 	u.Admin = user.Claims["admin"].(bool)
-	u.GroupID = user.Claims["group_id"].(int)
+	u.GroupID = int(groupval)
 
 	return u
 }
