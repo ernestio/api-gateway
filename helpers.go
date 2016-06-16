@@ -27,7 +27,7 @@ func authenticatedUser(c echo.Context) User {
 	user := c.Get("user").(*jwt.Token)
 	u.Username = user.Claims["username"].(string)
 	u.Admin = user.Claims["admin"].(bool)
-	u.GroupID = user.Claims["group_id"].(string)
+	u.GroupID = user.Claims["group_id"].(int)
 
 	return u
 }

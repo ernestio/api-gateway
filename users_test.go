@@ -22,14 +22,14 @@ import (
 var (
 	mockUsers = []User{
 		User{
-			ID:       "1",
-			GroupID:  "1",
+			ID:       1,
+			GroupID:  1,
 			Username: "test",
 			Password: "test",
 		},
 		User{
-			ID:       "2",
-			GroupID:  "2",
+			ID:       2,
+			GroupID:  2,
 			Username: "test2",
 			Password: "b3nBt+fHNNSaP2SDeJzNNFfEOiMkqgLh8M7Bajfj2jZZtLp36vAhDMH6i3GXp/EMWTBuBIfQJIA3kgOFqfra0w==",
 			Salt:     "psDFaNEE5D9IqCeRrlOmNsRuCKQplicvvXtFhX5S4oE=",
@@ -86,8 +86,8 @@ func setUserSubcriber() {
 		var u User
 
 		json.Unmarshal(msg.Data, &u)
-		if u.ID == "" {
-			u.ID = "3"
+		if u.ID == 0 {
+			u.ID = 3
 		}
 
 		data, _ := json.Marshal(u)
@@ -132,7 +132,7 @@ func TestUsers(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(rec.Code, ShouldEqual, 200)
 				So(len(u), ShouldEqual, 2)
-				So(u[0].ID, ShouldEqual, "1")
+				So(u[0].ID, ShouldEqual, 1)
 				So(u[0].Username, ShouldEqual, "test")
 			})
 
@@ -161,7 +161,7 @@ func TestUsers(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(rec.Code, ShouldEqual, 200)
-				So(u.ID, ShouldEqual, "1")
+				So(u.ID, ShouldEqual, 1)
 				So(u.Username, ShouldEqual, "test")
 			})
 		})
@@ -170,7 +170,7 @@ func TestUsers(t *testing.T) {
 			setUserSubcriber()
 
 			Convey("With a valid payload", func() {
-				data, _ := json.Marshal(User{GroupID: "1", Username: "new-test", Password: "test"})
+				data, _ := json.Marshal(User{GroupID: 1, Username: "new-test", Password: "test"})
 
 				Convey("As an admin user", func() {
 					e := echo.New()
@@ -181,7 +181,7 @@ func TestUsers(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/users/")
 					c.Set("user", ft)
@@ -196,7 +196,7 @@ func TestUsers(t *testing.T) {
 						err = json.Unmarshal(resp, &u)
 
 						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, "3")
+						So(u.ID, ShouldEqual, 3)
 						So(u.Username, ShouldEqual, "new-test")
 					})
 				})
@@ -210,7 +210,7 @@ func TestUsers(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/users/")
 					c.Set("user", ft)
@@ -234,7 +234,7 @@ func TestUsers(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.Set("user", ft)
 				c.SetPath("/users/")
@@ -251,7 +251,7 @@ func TestUsers(t *testing.T) {
 			setUserSubcriber()
 
 			Convey("As an admin user", func() {
-				data, _ := json.Marshal(User{GroupID: "1", ID: "1", Username: "test2", Password: "test"})
+				data, _ := json.Marshal(User{GroupID: 1, ID: 1, Username: "test2", Password: "test"})
 
 				e := echo.New()
 				req, _ := http.NewRequest("POST", "/users/test", bytes.NewReader(data))
@@ -261,7 +261,7 @@ func TestUsers(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.SetPath("/users/:user")
 				c.SetParamNames("user")
@@ -278,15 +278,15 @@ func TestUsers(t *testing.T) {
 					err = json.Unmarshal(resp, &u)
 
 					So(err, ShouldBeNil)
-					So(u.ID, ShouldEqual, "1")
-					So(u.GroupID, ShouldEqual, "1")
+					So(u.ID, ShouldEqual, 1)
+					So(u.GroupID, ShouldEqual, 1)
 					So(u.Username, ShouldEqual, "test2")
 				})
 			})
 
 			Convey("As an non-admin user", func() {
 				Convey("Where a user updates itself", func() {
-					data, _ := json.Marshal(User{GroupID: "1", ID: "1", Username: "test", Password: "test2"})
+					data, _ := json.Marshal(User{GroupID: 1, ID: 1, Username: "test", Password: "test2"})
 
 					e := echo.New()
 					req, _ := http.NewRequest("POST", "/users/test", bytes.NewReader(data))
@@ -296,7 +296,7 @@ func TestUsers(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/users/:user")
 					c.SetParamNames("user")
@@ -313,14 +313,14 @@ func TestUsers(t *testing.T) {
 						err = json.Unmarshal(resp, &u)
 
 						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, "1")
-						So(u.GroupID, ShouldEqual, "1")
+						So(u.ID, ShouldEqual, 1)
+						So(u.GroupID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
 					})
 				})
 
 				Convey("Where a user updates another user", func() {
-					data, _ := json.Marshal(User{GroupID: "1", Username: "test2", Password: "test2"})
+					data, _ := json.Marshal(User{GroupID: 1, Username: "test2", Password: "test2"})
 
 					e := echo.New()
 					req, _ := http.NewRequest("POST", "/users/test2", bytes.NewReader(data))
@@ -330,7 +330,7 @@ func TestUsers(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/users/:user")
 					c.SetParamNames("user")
@@ -346,7 +346,7 @@ func TestUsers(t *testing.T) {
 			})
 
 			Convey("When updating a user that doesn't exist", func() {
-				data := []byte(`{"group_id": "1", "username": "fake-user", "password": "fake"}`)
+				data := []byte(`{"group_id": 1, "username": "fake-user", "password": "fake"}`)
 
 				e := echo.New()
 				req, _ := http.NewRequest("POST", "/users/fake-user", bytes.NewReader(data))
@@ -356,7 +356,7 @@ func TestUsers(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.Set("user", ft)
 				c.SetPath("/users/")

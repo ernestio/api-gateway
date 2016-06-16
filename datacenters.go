@@ -17,8 +17,8 @@ import (
 
 // Datacenter holds the datacenter response from datacenter-store
 type Datacenter struct {
-	ID              string `json:"id"`
-	GroupID         string `json:"group_id"`
+	ID              int    `json:"id"`
+	GroupID         int    `json:"group_id"`
 	Name            string `json:"name"`
 	Type            string `json:"type"`
 	Region          string `json:"region"`
@@ -35,7 +35,7 @@ func (d *Datacenter) Validate() error {
 		return errors.New("Datacenter name is empty")
 	}
 
-	if d.GroupID == "" {
+	if d.GroupID == 0 {
 		return errors.New("Datacenter group is empty")
 	}
 
@@ -95,7 +95,7 @@ func getDatacenterHandler(c echo.Context) error {
 	if au.Admin {
 		query = fmt.Sprintf(`{"name": "%s"}`, c.Param("datacenter"))
 	} else {
-		query = fmt.Sprintf(`{"name": "%s", "group_id": "%s"}`, c.Param("datacenter"), au.GroupID)
+		query = fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("datacenter"), au.GroupID)
 	}
 
 	msg, err := n.Request("datacenter.get", []byte(query), 1*time.Second)
@@ -169,7 +169,7 @@ func updateDatacenterHandler(c echo.Context) error {
 func deleteDatacenterHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
-	query := fmt.Sprintf(`{"name": "%s", "group_id": "%s"}`, au.GroupID, c.Param("user"))
+	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, au.GroupID, c.Param("user"))
 	msg, err := n.Request("datacenter.del", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout

@@ -21,16 +21,16 @@ import (
 var (
 	mockServices = []Service{
 		Service{
-			ID:           "1",
+			ID:           1,
 			Name:         "test",
-			GroupID:      "1",
-			DatacenterID: "1",
+			GroupID:      1,
+			DatacenterID: 1,
 		},
 		Service{
-			ID:           "2",
+			ID:           2,
 			Name:         "test2",
-			GroupID:      "2",
-			DatacenterID: "3",
+			GroupID:      2,
+			DatacenterID: 3,
 		},
 	}
 )
@@ -42,11 +42,11 @@ func getServiceSubcriber() {
 			json.Unmarshal(msg.Data, &qs)
 
 			for _, service := range mockServices {
-				if qs.GroupID != "" && service.GroupID == qs.GroupID && service.Name == qs.Name {
+				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.Name == qs.Name {
 					data, _ := json.Marshal(service)
 					n.Publish(msg.Reply, data)
 					return
-				} else if qs.GroupID == "" && service.Name == qs.Name {
+				} else if qs.GroupID == 0 && service.Name == qs.Name {
 					data, _ := json.Marshal(service)
 					n.Publish(msg.Reply, data)
 					return
@@ -69,7 +69,7 @@ func createServiceSubcriber() {
 		var s Service
 
 		json.Unmarshal(msg.Data, &s)
-		s.ID = "3"
+		s.ID = 3
 		data, _ := json.Marshal(s)
 
 		n.Publish(msg.Reply, data)
@@ -112,9 +112,9 @@ func TestServices(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(len(s), ShouldEqual, 2)
-				So(s[0].ID, ShouldEqual, "1")
+				So(s[0].ID, ShouldEqual, 1)
 				So(s[0].Name, ShouldEqual, "test")
-				So(s[0].GroupID, ShouldEqual, "1")
+				So(s[0].GroupID, ShouldEqual, 1)
 			})
 
 		})
@@ -131,7 +131,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")
@@ -148,7 +148,7 @@ func TestServices(t *testing.T) {
 					err = json.Unmarshal(resp, &s)
 
 					So(err, ShouldBeNil)
-					So(s.ID, ShouldEqual, "1")
+					So(s.ID, ShouldEqual, 1)
 					So(s.Name, ShouldEqual, "test")
 				})
 			})
@@ -162,7 +162,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")
@@ -179,7 +179,7 @@ func TestServices(t *testing.T) {
 					err = json.Unmarshal(resp, &s)
 
 					So(err, ShouldBeNil)
-					So(s.ID, ShouldEqual, "1")
+					So(s.ID, ShouldEqual, 1)
 					So(s.Name, ShouldEqual, "test")
 				})
 			})
@@ -193,7 +193,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test2"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")

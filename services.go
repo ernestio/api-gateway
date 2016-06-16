@@ -17,9 +17,9 @@ import (
 
 // Service holds the service response from service-store
 type Service struct {
-	ID           string                 `json:"id"`
-	GroupID      string                 `json:"group_id"`
-	DatacenterID string                 `json:"datacenter_id"`
+	ID           int                    `json:"id"`
+	GroupID      int                    `json:"group_id"`
+	DatacenterID int                    `json:"datacenter_id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
 	Version      string                 `json:"version"`
@@ -35,11 +35,11 @@ func (d *Service) Validate() error {
 		return errors.New("Service name is empty")
 	}
 
-	if d.GroupID == "" {
+	if d.GroupID == 0 {
 		return errors.New("Service group is empty")
 	}
 
-	if d.DatacenterID == "" {
+	if d.DatacenterID == 0 {
 		return errors.New("Service group is empty")
 	}
 
@@ -87,7 +87,7 @@ func getServiceHandler(c echo.Context) error {
 	if au.Admin {
 		query = fmt.Sprintf(`{"name": "%s"}`, c.Param("service"))
 	} else {
-		query = fmt.Sprintf(`{"name": "%s", "group_id": "%s"}`, c.Param("service"), au.GroupID)
+		query = fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("service"), au.GroupID)
 	}
 
 	msg, err := n.Request("service.get", []byte(query), 1*time.Second)

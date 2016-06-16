@@ -22,14 +22,14 @@ import (
 var (
 	mockDatacenters = []Datacenter{
 		Datacenter{
-			ID:      "1",
+			ID:      1,
 			Name:    "test",
-			GroupID: "1",
+			GroupID: 1,
 		},
 		Datacenter{
-			ID:      "2",
+			ID:      2,
 			Name:    "test2",
-			GroupID: "2",
+			GroupID: 2,
 		},
 	}
 )
@@ -41,11 +41,11 @@ func getDatacenterSubcriber() {
 			json.Unmarshal(msg.Data, &qd)
 
 			for _, datacenter := range mockDatacenters {
-				if qd.GroupID != "" && datacenter.GroupID == qd.GroupID && datacenter.Name == qd.Name {
+				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.Name == qd.Name {
 					data, _ := json.Marshal(datacenter)
 					n.Publish(msg.Reply, data)
 					return
-				} else if qd.GroupID == "" && datacenter.Name == qd.Name {
+				} else if qd.GroupID == 0 && datacenter.Name == qd.Name {
 					data, _ := json.Marshal(datacenter)
 					n.Publish(msg.Reply, data)
 					return
@@ -68,7 +68,7 @@ func createDatacenterSubcriber() {
 		var d Datacenter
 
 		json.Unmarshal(msg.Data, &d)
-		d.ID = "3"
+		d.ID = 3
 		data, _ := json.Marshal(d)
 
 		n.Publish(msg.Reply, data)
@@ -111,7 +111,7 @@ func TestDatacenters(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(len(d), ShouldEqual, 2)
-				So(d[0].ID, ShouldEqual, "1")
+				So(d[0].ID, ShouldEqual, 1)
 				So(d[0].Name, ShouldEqual, "test")
 			})
 
@@ -129,7 +129,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/datacenters/:datacenter")
 				c.SetParamNames("datacenter")
@@ -146,7 +146,7 @@ func TestDatacenters(t *testing.T) {
 					err = json.Unmarshal(resp, &d)
 
 					So(err, ShouldBeNil)
-					So(d.ID, ShouldEqual, "1")
+					So(d.ID, ShouldEqual, 1)
 					So(d.Name, ShouldEqual, "test")
 				})
 			})
@@ -160,7 +160,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.SetPath("/datacenters/:datacenter")
 				c.SetParamNames("datacenter")
@@ -177,7 +177,7 @@ func TestDatacenters(t *testing.T) {
 					err = json.Unmarshal(resp, &d)
 
 					So(err, ShouldBeNil)
-					So(d.ID, ShouldEqual, "1")
+					So(d.ID, ShouldEqual, 1)
 					So(d.Name, ShouldEqual, "test")
 				})
 			})
@@ -191,7 +191,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test2"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/datacenters/:datacenter")
 				c.SetParamNames("datacenter")
@@ -210,7 +210,7 @@ func TestDatacenters(t *testing.T) {
 			createDatacenterSubcriber()
 
 			mockDC := Datacenter{
-				GroupID:   "1",
+				GroupID:   1,
 				Name:      "new-test",
 				Type:      "vcloud",
 				Username:  "test",
@@ -229,7 +229,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/datacenters/")
 				c.Set("user", ft)
@@ -244,7 +244,7 @@ func TestDatacenters(t *testing.T) {
 					err = json.Unmarshal(resp, &d)
 
 					So(err, ShouldBeNil)
-					So(d.ID, ShouldEqual, "3")
+					So(d.ID, ShouldEqual, 3)
 					So(d.Name, ShouldEqual, "new-test")
 				})
 			})
@@ -258,7 +258,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.SetPath("/datacenters/")
 				c.Set("user", ft)
@@ -273,7 +273,7 @@ func TestDatacenters(t *testing.T) {
 					err = json.Unmarshal(resp, &d)
 
 					So(err, ShouldBeNil)
-					So(d.ID, ShouldEqual, "3")
+					So(d.ID, ShouldEqual, 3)
 					So(d.Name, ShouldEqual, "new-test")
 				})
 			})
@@ -287,7 +287,7 @@ func TestDatacenters(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = "2"
+				ft.Claims["group_id"] = 2
 
 				c.SetPath("/datacenters/")
 				c.Set("user", ft)
@@ -311,7 +311,7 @@ func TestDatacenters(t *testing.T) {
 			ft := jwt.New(jwt.SigningMethodHS256)
 			ft.Claims["username"] = "test"
 			ft.Claims["admin"] = false
-			ft.Claims["group_id"] = "1"
+			ft.Claims["group_id"] = 1
 
 			c.SetPath("/datacenters/:datacenter")
 			c.SetParamNames("datacenter")

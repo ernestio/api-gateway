@@ -28,8 +28,8 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID       string `json:"id"`
-	GroupID  string `json:"group_id"`
+	ID       int    `json:"id"`
+	GroupID  int    `json:"group_id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Salt     string `json:"salt"`
@@ -46,7 +46,7 @@ func (u *User) Validate() error {
 		return errors.New("User password is empty")
 	}
 
-	if u.GroupID == "" {
+	if u.GroupID == 0 {
 		return errors.New("User group is empty")
 	}
 
@@ -206,7 +206,7 @@ func updateUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	if qu.ID == "" {
+	if qu.ID == 0 {
 		return ErrNotFound
 	}
 

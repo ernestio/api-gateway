@@ -22,11 +22,11 @@ import (
 var (
 	mockGroups = []Group{
 		Group{
-			ID:   "1",
+			ID:   1,
 			Name: "test",
 		},
 		Group{
-			ID:   "2",
+			ID:   1,
 			Name: "test",
 		},
 	}
@@ -81,8 +81,8 @@ func setGroupSubcriber() {
 		var u Group
 
 		json.Unmarshal(msg.Data, &u)
-		if u.ID == "" {
-			u.ID = "3"
+		if u.ID == 0 {
+			u.ID = 3
 		}
 
 		data, _ := json.Marshal(u)
@@ -127,7 +127,7 @@ func TestGroups(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(rec.Code, ShouldEqual, 200)
 				So(len(u), ShouldEqual, 2)
-				So(u[0].ID, ShouldEqual, "1")
+				So(u[0].ID, ShouldEqual, 1)
 				So(u[0].Name, ShouldEqual, "test")
 			})
 
@@ -156,7 +156,7 @@ func TestGroups(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(rec.Code, ShouldEqual, 200)
-				So(u.ID, ShouldEqual, "1")
+				So(u.ID, ShouldEqual, 1)
 				So(u.Name, ShouldEqual, "test")
 			})
 		})
@@ -176,7 +176,7 @@ func TestGroups(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -191,7 +191,7 @@ func TestGroups(t *testing.T) {
 						err = json.Unmarshal(resp, &u)
 
 						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, "3")
+						So(u.ID, ShouldEqual, 3)
 						So(u.Name, ShouldEqual, "new-test")
 					})
 				})
@@ -205,7 +205,7 @@ func TestGroups(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = "1"
+					ft.Claims["group_id"] = 1
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -229,7 +229,7 @@ func TestGroups(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = "1"
+				ft.Claims["group_id"] = 1
 
 				c.Set("user", ft)
 				c.SetPath("/groups/")

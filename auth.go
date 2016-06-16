@@ -36,7 +36,7 @@ func authenticate(c echo.Context) error {
 		return ErrInternal
 	}
 
-	if u.ID == "" {
+	if u.ID == 0 {
 		return ErrUnauthorized
 	}
 

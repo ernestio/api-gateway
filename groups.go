@@ -17,7 +17,7 @@ import (
 
 // Group holds the group response from group-store
 type Group struct {
-	ID   string `json:"id"`
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
