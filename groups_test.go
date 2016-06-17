@@ -176,7 +176,7 @@ func TestGroups(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = 1
+					ft.Claims["group_id"] = 1.0
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -205,7 +205,7 @@ func TestGroups(t *testing.T) {
 					ft := jwt.New(jwt.SigningMethodHS256)
 					ft.Claims["username"] = "test"
 					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 1
+					ft.Claims["group_id"] = 1.0
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -229,7 +229,7 @@ func TestGroups(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = 1
+				ft.Claims["group_id"] = 1.0
 
 				c.Set("user", ft)
 				c.SetPath("/groups/")

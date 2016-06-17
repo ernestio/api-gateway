@@ -131,7 +131,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = 2
+				ft.Claims["group_id"] = 2.0
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")
@@ -162,7 +162,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "admin"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = 1
+				ft.Claims["group_id"] = 1.0
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")
@@ -193,7 +193,7 @@ func TestServices(t *testing.T) {
 				ft := jwt.New(jwt.SigningMethodHS256)
 				ft.Claims["username"] = "test2"
 				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = 2
+				ft.Claims["group_id"] = 2.0
 
 				c.SetPath("/services/:service")
 				c.SetParamNames("service")

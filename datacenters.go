@@ -169,7 +169,7 @@ func updateDatacenterHandler(c echo.Context) error {
 func deleteDatacenterHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
-	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, au.GroupID, c.Param("user"))
+	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("datacenter"), au.GroupID)
 	msg, err := n.Request("datacenter.del", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
