@@ -13,13 +13,13 @@ import (
 var (
 	mockServices = []Service{
 		Service{
-			ID:           1,
+			ID:           "1",
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
 		},
 		Service{
-			ID:           2,
+			ID:           "2",
 			Name:         "test2",
 			GroupID:      2,
 			DatacenterID: 3,
@@ -34,11 +34,11 @@ func getServiceSubcriber() {
 			json.Unmarshal(msg.Data, &qs)
 
 			for _, service := range mockServices {
-				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.Name == qs.Name {
+				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
 					n.Publish(msg.Reply, data)
 					return
-				} else if qs.GroupID == 0 && service.Name == qs.Name {
+				} else if qs.GroupID == 0 && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
 					n.Publish(msg.Reply, data)
 					return
@@ -61,7 +61,7 @@ func createServiceSubcriber() {
 		var s Service
 
 		json.Unmarshal(msg.Data, &s)
-		s.ID = 3
+		s.ID = "3"
 		data, _ := json.Marshal(s)
 
 		n.Publish(msg.Reply, data)

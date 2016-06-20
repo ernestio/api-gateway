@@ -6,137 +6,179 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestServices(t *testing.T) {
-	Convey("Given service handler", t, func() {
-		// setup nats connection
-		os.Setenv("JWT_SECRET", "test")
-		setup()
+	os.Setenv("JWT_SECRET", "test")
+	setup()
 
-		Convey("When getting a list of services", func() {
+	Convey("Scenario: getting a list of services", t, func() {
+		Convey("Given services exist on the store", func() {
 			findServiceSubcriber()
-
-			e := echo.New()
-			req := new(http.Request)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-			c.SetPath("/services/")
-
-			Convey("It should return the correct set of data", func() {
-				var s []Service
-
-				err := getServicesHandler(c)
-				So(err, ShouldBeNil)
-
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &s)
-
-				So(err, ShouldBeNil)
-				So(len(s), ShouldEqual, 2)
-				So(s[0].ID, ShouldEqual, 1)
-				So(s[0].Name, ShouldEqual, "test")
-				So(s[0].GroupID, ShouldEqual, 1)
-			})
-
-		})
-
-		Convey("When getting a single service", func() {
-			getServiceSubcriber()
-
-			Convey("Where the authenticated user is an admin", func() {
-				e := echo.New()
-				req := new(http.Request)
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "admin"
-				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = 2.0
-
-				c.SetPath("/services/:service")
-				c.SetParamNames("service")
-				c.SetParamValues("test")
-				c.Set("user", ft)
+			Convey("When I call GET /services/", func() {
+				resp, err := doRequest("GET", "/services/", nil, nil, getServicesHandler, nil)
 
 				Convey("It should return the correct set of data", func() {
-					var s Service
-
-					err := getServiceHandler(c)
+					var s []Service
 					So(err, ShouldBeNil)
-
-					resp := rec.Body.Bytes()
 					err = json.Unmarshal(resp, &s)
-
 					So(err, ShouldBeNil)
-					So(s.ID, ShouldEqual, 1)
-					So(s.Name, ShouldEqual, "test")
+					So(len(s), ShouldEqual, 2)
+					So(s[0].ID, ShouldEqual, "1")
+					So(s[0].Name, ShouldEqual, "test")
+					So(s[0].GroupID, ShouldEqual, 1)
+				})
+
+			})
+		})
+	})
+
+	Convey("Scenario: getting a single services", t, func() {
+		Convey("Given the service exists on the store", func() {
+			getServiceSubcriber()
+			Convey("And I call /service/:service on the api", func() {
+				params := make(map[string]string)
+				params["service"] = "1"
+				resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, nil)
+
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should get the existing service", func() {
+						var d Service
+
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &d)
+
+						So(err, ShouldBeNil)
+						So(d.ID, ShouldEqual, "1")
+						So(d.Name, ShouldEqual, "test")
+					})
+				})
+
+				Convey("When the service group matches the authenticated users group", func() {
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "admin"
+					ft.Claims["admin"] = false
+					ft.Claims["group_id"] = 1.0
+
+					params := make(map[string]string)
+					params["service"] = "1"
+					resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, ft)
+
+					Convey("Then I should get the existing service", func() {
+						var d Service
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &d)
+						So(err, ShouldBeNil)
+						So(d.ID, ShouldEqual, "1")
+						So(d.Name, ShouldEqual, "test")
+					})
+				})
+
+				Convey("When the service group does not match the authenticated users group", func() {
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test2"
+					ft.Claims["admin"] = false
+					ft.Claims["group_id"] = 2.0
+
+					params := make(map[string]string)
+					params["service"] = "1"
+					_, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, ft)
+
+					Convey("Then I should get a 404 error as it doesn't exist", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+					})
 				})
 			})
+		})
+	})
 
-			Convey("Where the service group matches the authenticated users group", func() {
-				e := echo.New()
-				req := new(http.Request)
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+	SkipConvey("Scenario: creating a service", t, func() {
+		Convey("Given the service does not exist on the store ", func() {
+			createServiceSubcriber()
 
+			mockDC := Service{
+				GroupID: 1,
+				Name:    "new-test",
+				Type:    "vcloud",
+			}
+
+			data, _ := json.Marshal(mockDC)
+
+			Convey("When I do a post to /services/", func() {
+				params := make(map[string]string)
+				params["service"] = "test"
+				Convey("And I am logged in as an admin", func() {
+					resp, err := doRequest("POST", "/services/", params, data, createServiceHandler, nil)
+
+					Convey("Then a service should be created", func() {
+						var d Service
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &d)
+						So(err, ShouldBeNil)
+						So(d.ID, ShouldEqual, 3)
+						So(d.Name, ShouldEqual, "new-test")
+					})
+				})
+
+				Convey("And the service group matches the authenticated users group", func() {
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "test"
+					ft.Claims["admin"] = true
+					ft.Claims["group_id"] = 1.0
+					resp, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
+
+					Convey("It should create the service and return the correct set of data", func() {
+						var d Service
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &d)
+						So(err, ShouldBeNil)
+						So(d.ID, ShouldEqual, 3)
+						So(d.Name, ShouldEqual, "new-test")
+					})
+				})
+
+				Convey("And the service group does not match the authenticated users group", func() {
+					ft := jwt.New(jwt.SigningMethodHS256)
+					ft.Claims["username"] = "admin"
+					ft.Claims["admin"] = false
+					ft.Claims["group_id"] = 2.0
+					_, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
+
+					Convey("It should return an 403 unauthorized error", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					})
+				})
+			})
+		})
+	})
+
+	SkipConvey("Scenario: deleting a service", t, func() {
+		Convey("Given a service exists on the store", func() {
+			deleteServiceSubcriber()
+
+			Convey("When I call DELETE /services/:service", func() {
 				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "admin"
+				ft.Claims["username"] = "test"
 				ft.Claims["admin"] = false
 				ft.Claims["group_id"] = 1.0
 
-				c.SetPath("/services/:service")
-				c.SetParamNames("service")
-				c.SetParamValues("test")
-				c.Set("user", ft)
+				params := make(map[string]string)
+				params["service"] = "test"
+				_, err := doRequest("DELETE", "/services/:service", params, nil, deleteServiceHandler, ft)
 
-				Convey("It should return the correct set of data", func() {
-					var s Service
-
-					err := getServiceHandler(c)
+				Convey("It should delete the service and return ok", func() {
 					So(err, ShouldBeNil)
-
-					resp := rec.Body.Bytes()
-					err = json.Unmarshal(resp, &s)
-
-					So(err, ShouldBeNil)
-					So(s.ID, ShouldEqual, 1)
-					So(s.Name, ShouldEqual, "test")
 				})
 			})
 
-			Convey("Where the service group does not match the authenticated users group", func() {
-				e := echo.New()
-				req := new(http.Request)
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "test2"
-				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = 2.0
-
-				c.SetPath("/services/:service")
-				c.SetParamNames("service")
-				c.SetParamValues("test")
-				c.Set("user", ft)
-
-				Convey("It should return an 404 doesn't exist", func() {
-					err := getServiceHandler(c)
-					So(err, ShouldNotBeNil)
-					So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
-				})
-			})
 		})
 
 	})

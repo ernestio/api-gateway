@@ -17,7 +17,7 @@ import (
 
 // Service holds the service response from service-store
 type Service struct {
-	ID           int                    `json:"id"`
+	ID           string                 `json:"id"`
 	GroupID      int                    `json:"group_id"`
 	DatacenterID int                    `json:"datacenter_id"`
 	Name         string                 `json:"name"`
@@ -85,9 +85,9 @@ func getServiceHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
 	if au.Admin {
-		query = fmt.Sprintf(`{"name": "%s"}`, c.Param("service"))
+		query = fmt.Sprintf(`{"id": "%s"}`, c.Param("service"))
 	} else {
-		query = fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("service"), au.GroupID)
+		query = fmt.Sprintf(`{"id": "%s", "group_id": %d}`, c.Param("service"), au.GroupID)
 	}
 
 	msg, err := n.Request("service.get", []byte(query), 1*time.Second)

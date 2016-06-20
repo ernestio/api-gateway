@@ -15,10 +15,10 @@ import (
 )
 
 func TestDatacenters(t *testing.T) {
-	os.Setenv("JWT_SECRET", "[Ma<]test")
+	os.Setenv("JWT_SECRET", "test")
 	setup()
 
-	Convey("Scenario: getting a l[Ma<]ist of datacenters", t, func() {
+	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
 			findDatacenterSubcriber()
 			Convey("When I call /datacenters/", func() {
