@@ -2,10 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 package main
 
 import (
@@ -50,7 +46,7 @@ func TestDatacenters(t *testing.T) {
 			getDatacenterSubcriber()
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				params := make(map[string]string)
-				params["datacenter"] = "test"
+				params["datacenter"] = "1"
 				resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, nil)
 
 				Convey("When I'm authenticated as an admin user", func() {
@@ -73,7 +69,7 @@ func TestDatacenters(t *testing.T) {
 					ft.Claims["group_id"] = 1.0
 
 					params := make(map[string]string)
-					params["datacenter"] = "test"
+					params["datacenter"] = "1"
 					resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
 
 					Convey("Then I should get the existing datacenter", func() {
@@ -93,7 +89,7 @@ func TestDatacenters(t *testing.T) {
 					ft.Claims["group_id"] = 2.0
 
 					params := make(map[string]string)
-					params["datacenter"] = "test"
+					params["datacenter"] = "1"
 					_, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
 
 					Convey("Then I should get a 404 error as it doesn't exist", func() {

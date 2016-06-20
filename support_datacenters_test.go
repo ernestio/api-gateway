@@ -32,11 +32,11 @@ func getDatacenterSubcriber() {
 			json.Unmarshal(msg.Data, &qd)
 
 			for _, datacenter := range mockDatacenters {
-				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.Name == qd.Name {
+				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
 					n.Publish(msg.Reply, data)
 					return
-				} else if qd.GroupID == 0 && datacenter.Name == qd.Name {
+				} else if qd.GroupID == 0 && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
 					n.Publish(msg.Reply, data)
 					return

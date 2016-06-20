@@ -2,10 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 package main
 
 import (
@@ -83,6 +79,7 @@ func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
+// getDatacentersHandler : get all datacenters
 func getDatacentersHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 	query := fmt.Sprintf(`{"group_id": %d}`, au.GroupID)
@@ -94,14 +91,15 @@ func getDatacentersHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
+// getDatacenterHandler : get a datancenter by id
 func getDatacenterHandler(c echo.Context) error {
 	var query string
 	au := authenticatedUser(c)
 
 	if au.Admin {
-		query = fmt.Sprintf(`{"name": "%s"}`, c.Param("datacenter"))
+		query = fmt.Sprintf(`{"id": %s}`, c.Param("datacenter"))
 	} else {
-		query = fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("datacenter"), au.GroupID)
+		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("datacenter"), au.GroupID)
 	}
 
 	msg, err := n.Request("datacenter.get", []byte(query), 1*time.Second)
@@ -145,6 +143,7 @@ func createDatacenterHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusAccepted, msg.Data)
 }
 
+// updateDatacenterHandler : Updates a datacenter through its store
 func updateDatacenterHandler(c echo.Context) error {
 	var d Datacenter
 	if d.Map(c) != nil {
@@ -173,10 +172,11 @@ func updateDatacenterHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusAccepted, msg.Data)
 }
 
+// deleteDatacenterHandler : Deletes a datancenter though its store
 func deleteDatacenterHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
-	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, c.Param("datacenter"), au.GroupID)
+	query := fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("datacenter"), au.GroupID)
 	msg, err := n.Request("datacenter.del", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
