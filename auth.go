@@ -14,6 +14,14 @@ import (
 	"github.com/labstack/echo"
 )
 
+// ErnestClaims stores all the data associated with a user
+type ErnestClaims struct {
+	GroupID  int    `json:"group_id"`
+	Username string `json:"username"`
+	Admin    bool   `json:"admin"`
+	jwt.StandardClaims
+}
+
 func authenticate(c echo.Context) error {
 	var u User
 
@@ -41,14 +49,17 @@ func authenticate(c echo.Context) error {
 	}
 
 	if u.Username == username && u.ValidPassword(password) {
-		// Create token
-		token := jwt.New(jwt.SigningMethodHS256)
-
 		// Set claims
-		token.Claims["username"] = u.Username
-		token.Claims["admin"] = u.Admin
-		token.Claims["group_id"] = u.GroupID
-		token.Claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
+		claims := ErnestClaims{
+			GroupID:  u.GroupID,
+			Username: u.Username,
+			Admin:    u.Admin,
+		}
+
+		claims.ExpiresAt = time.Now().Add(time.Hour * 48).Unix()
+
+		// Create token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 		// Generate encoded token and send it as response.
 		t, err := token.SignedString([]byte(secret))

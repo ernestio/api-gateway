@@ -12,93 +12,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
-	"github.com/nats-io/nats"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-var (
-	mockGroups = []Group{
-		Group{
-			ID:   1,
-			Name: "test",
-		},
-		Group{
-			ID:   1,
-			Name: "test",
-		},
-	}
-)
-
-func getGroupSubcriber() {
-	n.Subscribe("group.get", func(msg *nats.Msg) {
-		var qu Group
-
-		if len(msg.Data) > 0 {
-			json.Unmarshal(msg.Data, &qu)
-
-			for _, group := range mockGroups {
-				if group.ID == qu.ID || group.Name == qu.Name {
-					data, _ := json.Marshal(group)
-					n.Publish(msg.Reply, data)
-					return
-				}
-			}
-		}
-
-		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
-	})
-}
-
-func findGroupSubcriber() {
-	n.Subscribe("group.find", func(msg *nats.Msg) {
-		var qu Group
-		var ur []Group
-
-		if len(msg.Data) == 0 {
-			data, _ := json.Marshal(mockGroups)
-			n.Publish(msg.Reply, data)
-			return
-		}
-
-		json.Unmarshal(msg.Data, &qu)
-
-		for _, group := range mockGroups {
-			if group.Name == qu.Name || group.ID == qu.ID {
-				ur = append(ur, group)
-			}
-		}
-
-		data, _ := json.Marshal(ur)
-		n.Publish(msg.Reply, data)
-	})
-}
-
-func setGroupSubcriber() {
-	n.Subscribe("group.set", func(msg *nats.Msg) {
-		var u Group
-
-		json.Unmarshal(msg.Data, &u)
-		if u.ID == 0 {
-			u.ID = 3
-		}
-
-		data, _ := json.Marshal(u)
-		n.Publish(msg.Reply, data)
-	})
-}
-
-func deleteGroupSubcriber() {
-	n.Subscribe("group.del", func(msg *nats.Msg) {
-		var u Datacenter
-
-		json.Unmarshal(msg.Data, &u)
-
-		n.Publish(msg.Reply, []byte{})
-	})
-}
 
 func TestGroups(t *testing.T) {
 	Convey("Given group handler", t, func() {
@@ -173,10 +90,7 @@ func TestGroups(t *testing.T) {
 					rec := httptest.NewRecorder()
 					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test"
-					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "test", true)
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -202,10 +116,7 @@ func TestGroups(t *testing.T) {
 					rec := httptest.NewRecorder()
 					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "test", false)
 
 					c.SetPath("/groups/")
 					c.Set("user", ft)
@@ -226,10 +137,7 @@ func TestGroups(t *testing.T) {
 				rec := httptest.NewRecorder()
 				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
-				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "test"
-				ft.Claims["admin"] = true
-				ft.Claims["group_id"] = 1.0
+				ft := generateTestToken(1, "test", true)
 
 				c.Set("user", ft)
 				c.SetPath("/groups/")

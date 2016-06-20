@@ -23,10 +23,7 @@ func doRequest(method string, path string, params map[string]string, data []byte
 	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
 
 	if ft == nil {
-		ft = jwt.New(jwt.SigningMethodHS256)
-		ft.Claims["username"] = "admin"
-		ft.Claims["admin"] = true
-		ft.Claims["group_id"] = 2.0
+		ft = generateTestToken(1, "admin", true)
 	}
 	c.Set("user", ft)
 
@@ -38,8 +35,8 @@ func doRequest(method string, path string, params map[string]string, data []byte
 	c.SetPath(path)
 	if err := fn(c); err != nil {
 		return []byte(""), err
-	} else {
-		resp := rec.Body.Bytes()
-		return resp, nil
 	}
+
+	resp := rec.Body.Bytes()
+	return resp, nil
 }

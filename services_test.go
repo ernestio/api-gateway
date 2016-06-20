@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -61,10 +60,7 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("When the service group matches the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "admin"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "test", false)
 
 					params := make(map[string]string)
 					params["service"] = "1"
@@ -81,10 +77,7 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("When the service group does not match the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test2"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 2.0
+					ft := generateTestToken(2, "test2", false)
 
 					params := make(map[string]string)
 					params["service"] = "1"
@@ -128,10 +121,7 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("And the service group matches the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test"
-					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "test", false)
 					resp, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
 
 					Convey("It should create the service and return the correct set of data", func() {
@@ -145,10 +135,7 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("And the service group does not match the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "admin"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 2.0
+					ft := generateTestToken(2, "test2", false)
 					_, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
 
 					Convey("It should return an 403 unauthorized error", func() {
@@ -165,10 +152,7 @@ func TestServices(t *testing.T) {
 			deleteServiceSubcriber()
 
 			Convey("When I call DELETE /services/:service", func() {
-				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "test"
-				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = 1.0
+				ft := generateTestToken(1, "test", false)
 
 				params := make(map[string]string)
 				params["service"] = "test"

@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -63,10 +62,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				Convey("When the datacenter group matches the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "admin"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "admin", true)
 
 					params := make(map[string]string)
 					params["datacenter"] = "1"
@@ -83,11 +79,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				Convey("When the datacenter group does not match the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test2"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 2.0
-
+					ft := generateTestToken(2, "test2", false)
 					params := make(map[string]string)
 					params["datacenter"] = "1"
 					_, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
@@ -133,10 +125,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				Convey("And the datacenter group matches the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "test"
-					ft.Claims["admin"] = true
-					ft.Claims["group_id"] = 1.0
+					ft := generateTestToken(1, "test", false)
 					resp, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
 
 					Convey("It should create the datacenter and return the correct set of data", func() {
@@ -150,10 +139,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				Convey("And the datacenter group does not match the authenticated users group", func() {
-					ft := jwt.New(jwt.SigningMethodHS256)
-					ft.Claims["username"] = "admin"
-					ft.Claims["admin"] = false
-					ft.Claims["group_id"] = 2.0
+					ft := generateTestToken(2, "test", false)
 					_, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
 
 					Convey("It should return an 403 unauthorized error", func() {
@@ -170,10 +156,7 @@ func TestDatacenters(t *testing.T) {
 			deleteDatacenterSubcriber()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
-				ft := jwt.New(jwt.SigningMethodHS256)
-				ft.Claims["username"] = "test"
-				ft.Claims["admin"] = false
-				ft.Claims["group_id"] = 1.0
+				ft := generateTestToken(1, "test", false)
 
 				params := make(map[string]string)
 				params["datacenter"] = "test"
