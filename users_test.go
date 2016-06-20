@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -18,133 +17,182 @@ import (
 )
 
 func TestUsers(t *testing.T) {
+	os.Setenv("JWT_SECRET", "test")
+	setup()
+
 	Convey("Scenario: getting a list of users", t, func() {
-		// setup nats connection
-		os.Setenv("JWT_SECRET", "test")
-		setup()
-
 		findUserSubcriber()
+		Convey("When calling /users/ on the api", func() {
+			Convey("And I'm authenticated as an admin user", func() {
+				params := make(map[string]string)
+				ft := generateTestToken(1, "admin", true)
+				resp, err := doRequest("GET", "/users/", params, nil, getUsersHandler, ft)
+				Convey("It should show all users", func() {
+					var u []User
 
-		e := echo.New()
-		req := new(http.Request)
-		rec := httptest.NewRecorder()
-		c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-		c.SetPath("/users/")
+					So(err, ShouldBeNil)
 
-		Convey("It should return the correct set of data", func() {
-			var u []User
+					err = json.Unmarshal(resp, &u)
 
-			err := getUsersHandler(c)
-			So(err, ShouldBeNil)
+					So(err, ShouldBeNil)
+					So(len(u), ShouldEqual, 2)
+					So(u[0].ID, ShouldEqual, 1)
+					So(u[0].Username, ShouldEqual, "test")
+				})
+			})
+			Convey("And I'm authenticated as a non-admin user", func() {
+				params := make(map[string]string)
+				ft := generateTestToken(1, "test", false)
+				resp, err := doRequest("GET", "/users/", params, nil, getUsersHandler, ft)
 
-			resp := rec.Body.Bytes()
-			err = json.Unmarshal(resp, &u)
+				Convey("It should return only the users in the same group", func() {
+					var u []User
 
-			So(err, ShouldBeNil)
-			So(rec.Code, ShouldEqual, 200)
-			So(len(u), ShouldEqual, 2)
-			So(u[0].ID, ShouldEqual, 1)
-			So(u[0].Username, ShouldEqual, "test")
+					So(err, ShouldBeNil)
+
+					err = json.Unmarshal(resp, &u)
+
+					So(err, ShouldBeNil)
+					So(len(u), ShouldEqual, 1)
+					So(u[0].ID, ShouldEqual, 1)
+					So(u[0].Username, ShouldEqual, "test")
+				})
+			})
 		})
-
 	})
 
 	Convey("Scenario: getting a single user", t, func() {
 		getUserSubcriber()
+		Convey("Given a user exists on the store", func() {
+			Convey("And I call /users/:user on the api", func() {
+				Convey("When I'm authenticated as an admin user", func() {
+					params := make(map[string]string)
+					params["user"] = "1"
+					ft := generateTestToken(1, "admin", true)
+					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
 
-		e := echo.New()
-		req := new(http.Request)
-		rec := httptest.NewRecorder()
-		c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+					Convey("It should return the correct set of data", func() {
+						var u User
 
-		c.SetPath("/users/:user")
-		c.SetParamNames("user")
-		c.SetParamValues("test")
+						So(err, ShouldBeNil)
 
-		Convey("It should return the correct set of data", func() {
-			var u User
+						err = json.Unmarshal(resp, &u)
 
-			err := getUserHandler(c)
-			So(err, ShouldBeNil)
+						So(err, ShouldBeNil)
+						So(u.ID, ShouldEqual, 1)
+						So(u.Username, ShouldEqual, "test")
+					})
+				})
+				Convey("When the user is in the same group as a normal user", func() {
+					params := make(map[string]string)
+					params["user"] = "1"
+					ft := generateTestToken(1, "test", false)
+					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
 
-			resp := rec.Body.Bytes()
-			err = json.Unmarshal(resp, &u)
+					Convey("It should return the correct set of data", func() {
+						var u User
 
-			So(err, ShouldBeNil)
-			So(rec.Code, ShouldEqual, 200)
-			So(u.ID, ShouldEqual, 1)
-			So(u.Username, ShouldEqual, "test")
+						So(err, ShouldBeNil)
+
+						err = json.Unmarshal(resp, &u)
+
+						So(err, ShouldBeNil)
+						So(u.ID, ShouldEqual, 1)
+						So(u.Username, ShouldEqual, "test")
+					})
+				})
+				Convey("And the user is not in the same group as a normal user", func() {
+					params := make(map[string]string)
+					params["user"] = "1"
+					ft := generateTestToken(2, "test2", false)
+					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+
+					Convey("It should return a 404", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+						So(len(resp), ShouldEqual, 0)
+					})
+				})
+			})
+		})
+
+		Convey("Given a user doesn't exist", func() {
+			Convey("When calling /users/:user on the api", func() {
+				params := make(map[string]string)
+				params["user"] = "99"
+				ft := generateTestToken(2, "test2", false)
+				resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+
+				Convey("It should return a 404", func() {
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+					So(len(resp), ShouldEqual, 0)
+				})
+			})
 		})
 	})
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubcriber()
+		Convey("Given no existing users on the store", func() {
+			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
 
-		data, _ := json.Marshal(User{GroupID: 1, Username: "new-test", Password: "test"})
+			Convey("And I create a user by calling /users/ on the api", func() {
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("With a valid payload", func() {
+						ft := generateTestToken(1, "test2", true)
+						resp, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
 
-		Convey("As an admin user", func() {
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+						Convey("It should create the user and return the correct set of data", func() {
+							var u User
 
-			ft := generateTestToken(1, "test", true)
+							So(err, ShouldBeNil)
 
-			c.SetPath("/users/")
-			c.Set("user", ft)
+							err = json.Unmarshal(resp, &u)
 
-			Convey("It should create the user and return the correct set of data", func() {
-				var u User
+							So(err, ShouldBeNil)
+							So(u.ID, ShouldEqual, 3)
+							So(u.Username, ShouldEqual, "new-test")
+						})
+					})
+					Convey("With an invalid payload", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "fail"}`)
+						ft := generateTestToken(1, "test2", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, createUserHandler, ft)
 
-				err := createUserHandler(c)
-				So(err, ShouldBeNil)
+						Convey("It should error with 400 bad request", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+						})
+					})
+				})
+				Convey("When I'm authenticated as a non-admin user", func() {
+					ft := generateTestToken(1, "test2", false)
+					_, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &u)
+					Convey("It should return with 403 unauthorized", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					})
+				})
 
-				So(err, ShouldBeNil)
-				So(u.ID, ShouldEqual, 3)
-				So(u.Username, ShouldEqual, "new-test")
 			})
+
 		})
 
-		Convey("As an non-admin user", func() {
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+		Convey("Given an existing user on the store", func() {
+			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test"}`)
+			Convey("And I create a user by calling /users/ on the api", func() {
+				Convey("Where the user already exists", func() {
+					ft := generateTestToken(1, "admin", true)
+					_, err := doRequest("POST", "/users/", nil, existingData, createUserHandler, ft)
 
-			ft := generateTestToken(1, "test", false)
-
-			c.SetPath("/users/")
-			c.Set("user", ft)
-
-			Convey("It should return with 403 unauthorized", func() {
-				err := createUserHandler(c)
-				So(err, ShouldNotBeNil)
-				So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					Convey("It should return with 303 see other", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 303)
+					})
+				})
 			})
-		})
-
-		Convey("With an invalid payload", func() {
-			data := []byte(`{"group_id": 1, "username": "fail"}`)
-
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-			ft := generateTestToken(1, "test", true)
-
-			c.Set("user", ft)
-			c.SetPath("/users/")
-
-			Convey("It should error with 400 bad request", func() {
-				err := createUserHandler(c)
-				So(err, ShouldNotBeNil)
-				So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
-			})
-
 		})
 
 	})
@@ -152,113 +200,92 @@ func TestUsers(t *testing.T) {
 	Convey("Scenario: updating a user", t, func() {
 		setUserSubcriber()
 
-		Convey("As an admin user", func() {
-			data, _ := json.Marshal(User{GroupID: 1, ID: 1, Username: "test2", Password: "test"})
+		Convey("Given existing users on the store", func() {
+			data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/test", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+			Convey("And I update a user by calling /users/ on the api", func() {
+				Convey("When I'm authenticated as an admin user", func() {
+					params := make(map[string]string)
+					params["user"] = "1"
+					ft := generateTestToken(1, "admin", true)
+					Convey("With a valid payload", func() {
+						resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+						Convey("It should update the user and return the correct set of data", func() {
+							var u User
 
-			ft := generateTestToken(1, "admin", true)
+							So(err, ShouldBeNil)
 
-			c.SetPath("/users/:user")
-			c.SetParamNames("user")
-			c.SetParamValues("test")
-			c.Set("user", ft)
+							err = json.Unmarshal(resp, &u)
 
-			Convey("It should update the user and return the correct set of data", func() {
-				var u User
+							So(err, ShouldBeNil)
+							So(u.ID, ShouldEqual, 1)
+							So(u.GroupID, ShouldEqual, 1)
+							So(u.Username, ShouldEqual, "test")
+							So(u.Password, ShouldEqual, "new-password")
+						})
+					})
+					Convey("With an invalid payload", func() {
+						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
+						_, err := doRequest("PUT", "/users/:user", params, invalidData, updateUserHandler, ft)
+						Convey("It should update the user and return the correct set of data", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+						})
+					})
+					SkipConvey("When the id of the payload does not match the user's id", func() {
+						//TODO: Finish this.
+					})
+				})
 
-				err := updateUserHandler(c)
-				So(err, ShouldBeNil)
+				Convey("When I'm authenticated as the user being updated", func() {
+					params := make(map[string]string)
+					params["user"] = "1"
+					ft := generateTestToken(1, "test", false)
+					resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+					Convey("It should update the user and return the correct set of data", func() {
+						var u User
 
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &u)
+						So(err, ShouldBeNil)
 
-				So(err, ShouldBeNil)
-				So(u.ID, ShouldEqual, 1)
-				So(u.GroupID, ShouldEqual, 1)
-				So(u.Username, ShouldEqual, "test2")
+						err = json.Unmarshal(resp, &u)
+
+						So(err, ShouldBeNil)
+						So(u.ID, ShouldEqual, 1)
+						So(u.GroupID, ShouldEqual, 1)
+						So(u.Username, ShouldEqual, "test")
+					})
+				})
+
+				Convey("When I'm not authenticated as the user being updated", func() {
+					ft := generateTestToken(1, "test2", false)
+					params := make(map[string]string)
+					params["user"] = "2"
+					_, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+
+					Convey("It should return with 403 unauthorized", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					})
+				})
 			})
 		})
 
-		Convey("As an non-admin user", func() {
-			Convey("Where a user updates itself", func() {
-				data, _ := json.Marshal(User{GroupID: 1, ID: 1, Username: "test", Password: "test2"})
+		Convey("Given no existing users on the store", func() {
+			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test"}`)
 
-				e := echo.New()
-				req, _ := http.NewRequest("POST", "/users/test", bytes.NewReader(data))
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+			Convey("And I update a user by calling /users/ on the api", func() {
+				ft := generateTestToken(1, "admin", true)
+				params := make(map[string]string)
+				params["user"] = "99"
+				_, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
 
-				ft := generateTestToken(1, "test", false)
-
-				c.SetPath("/users/:user")
-				c.SetParamNames("user")
-				c.SetParamValues("test")
-				c.Set("user", ft)
-
-				Convey("It should update the user and return the correct set of data", func() {
-					var u User
-
-					err := updateUserHandler(c)
-					So(err, ShouldBeNil)
-
-					resp := rec.Body.Bytes()
-					err = json.Unmarshal(resp, &u)
-
-					So(err, ShouldBeNil)
-					So(u.ID, ShouldEqual, 1)
-					So(u.GroupID, ShouldEqual, 1)
-					So(u.Username, ShouldEqual, "test")
-				})
-			})
-
-			Convey("Where a non-admin user updates another user", func() {
-				data, _ := json.Marshal(User{GroupID: 1, Username: "test2", Password: "test2"})
-
-				e := echo.New()
-				req, _ := http.NewRequest("POST", "/users/test2", bytes.NewReader(data))
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-				ft := generateTestToken(1, "test", false)
-
-				c.SetPath("/users/:user")
-				c.SetParamNames("user")
-				c.SetParamValues("test2")
-				c.Set("user", ft)
-
-				Convey("It should return with 403 unauthorized", func() {
-					err := updateUserHandler(c)
+				Convey("It should error with 404 doesn't exist", func() {
 					So(err, ShouldNotBeNil)
-					So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
 				})
 			})
 		})
 
-		Convey("When updating a user that doesn't exist", func() {
-			data := []byte(`{"group_id": 1, "username": "fake-user", "password": "fake"}`)
-
-			e := echo.New()
-			req, _ := http.NewRequest("POST", "/users/fake-user", bytes.NewReader(data))
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-			ft := generateTestToken(1, "test", true)
-
-			c.Set("user", ft)
-			c.SetPath("/users/")
-			c.SetParamNames("user")
-			c.SetParamValues("fake-user")
-
-			Convey("It should error with 404 doesn't exist", func() {
-				err := updateUserHandler(c)
-				So(err, ShouldNotBeNil)
-				So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
-			})
-		})
 	})
 
 	Convey("Scenario: deleting a user", t, func() {

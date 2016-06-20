@@ -19,7 +19,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cCI6NDU4NzgyOTc4MSwibmFtZSI6InRlc3QyIiwidXNlcm5hbWUiOiJ0ZXN0MiJ9.mRYxkFlLrjJkV49EAQ4wnkk4diNUwl3yJxWpZLXEHFE"
+var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cCI6NDU4ODUwMTE5MSwiZ3JvdXBfaWQiOjIsInVzZXJuYW1lIjoidGVzdDIifQ.SrP29afiIPjtIbdKrUXyf9B8m6_fPVTI0mgH6s4Y_VY"
 
 func TestAuth(t *testing.T) {
 	Convey("Given the auth handler", t, func() {

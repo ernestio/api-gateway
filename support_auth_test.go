@@ -7,14 +7,12 @@ import (
 )
 
 func generateTestToken(group int, user string, admin bool) *jwt.Token {
-	// Set claims
-	claims := ErnestClaims{
-		GroupID:  group,
-		Username: user,
-		Admin:    admin,
-	}
+	claims := make(jwt.MapClaims)
 
-	claims.ExpiresAt = time.Now().Add(time.Hour * 48).Unix()
+	claims["group_id"] = float64(group)
+	claims["username"] = user
+	claims["admin"] = admin
+	claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
 
 	// Create token
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

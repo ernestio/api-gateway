@@ -120,7 +120,14 @@ func (u *User) ValidPassword(pw string) bool {
 }
 
 func getUsersHandler(c echo.Context) error {
-	msg, err := n.Request("user.find", nil, 5*time.Second)
+	var query string
+	au := authenticatedUser(c)
+
+	if !au.Admin {
+		query = fmt.Sprintf(`{"group_id": %d}`, au.GroupID)
+	}
+
+	msg, err := n.Request("user.find", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -129,7 +136,15 @@ func getUsersHandler(c echo.Context) error {
 }
 
 func getUserHandler(c echo.Context) error {
-	query := fmt.Sprintf(`{"username": "%s"}`, c.Param("user"))
+	var query string
+	au := authenticatedUser(c)
+
+	if au.Admin {
+		query = fmt.Sprintf(`{"id": %s}`, c.Param("user"))
+	} else {
+		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("user"), au.GroupID)
+	}
+
 	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
@@ -144,6 +159,7 @@ func getUserHandler(c echo.Context) error {
 
 func createUserHandler(c echo.Context) error {
 	var u User
+	var eu []User
 
 	if authenticatedUser(c).Admin != true {
 		return ErrUnauthorized
@@ -153,8 +169,25 @@ func createUserHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
+	// Check if the user exists
+	query := fmt.Sprintf(`{"username": "%s"}`, u.Username)
+	msg, err := n.Request("user.find", []byte(query), 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	err = json.Unmarshal(msg.Data, &eu)
+	if err != nil {
+		return ErrInternal
+	}
+
+	if len(eu) > 0 {
+		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", eu[0].ID))
+		return ErrExists
+	}
+
 	// Generate salt and hash password
-	err := u.HashPassword()
+	err = u.HashPassword()
 	if err != nil {
 		return ErrInternal
 	}
@@ -164,7 +197,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("user.set", data, 5*time.Second)
+	msg, err = n.Request("user.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -224,7 +257,7 @@ func updateUserHandler(c echo.Context) error {
 }
 
 func deleteUserHandler(c echo.Context) error {
-	query := fmt.Sprintf(`{"username": "%s"}`, c.Param("user"))
+	query := fmt.Sprintf(`{"id": %s}`, c.Param("user"))
 	msg, err := n.Request("user.del", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout

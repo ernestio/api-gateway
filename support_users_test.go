@@ -32,10 +32,19 @@ func getUserSubcriber() {
 			json.Unmarshal(msg.Data, &qu)
 
 			for _, user := range mockUsers {
-				if user.ID == qu.ID || user.Username == qu.Username {
-					data, _ := json.Marshal(user)
-					n.Publish(msg.Reply, data)
-					return
+				if qu.GroupID != 0 {
+					if user.ID == qu.ID && user.GroupID == qu.GroupID ||
+						user.Username == qu.Username && user.GroupID == qu.GroupID {
+						data, _ := json.Marshal(user)
+						n.Publish(msg.Reply, data)
+						return
+					}
+				} else {
+					if user.ID == qu.ID || user.Username == qu.Username {
+						data, _ := json.Marshal(user)
+						n.Publish(msg.Reply, data)
+						return
+					}
 				}
 			}
 		}

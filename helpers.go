@@ -18,6 +18,7 @@ var (
 	ErrGatewayTimeout = echo.NewHTTPError(http.StatusGatewayTimeout, "")
 	ErrInternal       = echo.NewHTTPError(http.StatusInternalServerError, "")
 	ErrNotImplemented = echo.NewHTTPError(http.StatusNotImplemented, "")
+	ErrExists         = echo.NewHTTPError(http.StatusSeeOther, "")
 )
 
 // Get the authenticated user from the JWT Token
@@ -25,11 +26,13 @@ func authenticatedUser(c echo.Context) User {
 	var u User
 
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(ErnestClaims)
 
-	u.GroupID = claims.GroupID
-	u.Username = claims.Username
-	u.Admin = claims.Admin
+	claims, ok := user.Claims.(jwt.MapClaims)
+	if ok {
+		u.Username = claims["username"].(string)
+		u.GroupID = int(claims["group_id"].(float64))
+		u.Admin = claims["admin"].(bool)
+	}
 
 	return u
 }
