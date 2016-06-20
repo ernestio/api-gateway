@@ -2,6 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package main
 
 import (
@@ -80,7 +84,9 @@ func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
 }
 
 func getDatacentersHandler(c echo.Context) error {
-	msg, err := n.Request("datacenter.find", nil, 1*time.Second)
+	au := authenticatedUser(c)
+	query := fmt.Sprintf(`{"group_id": %d}`, au.GroupID)
+	msg, err := n.Request("datacenter.find", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -110,6 +116,7 @@ func getDatacenterHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
+// createDatacenterHandler : Endpoint to create a datacenter
 func createDatacenterHandler(c echo.Context) error {
 	var d Datacenter
 	if d.Map(c) != nil {
