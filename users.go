@@ -161,7 +161,7 @@ func getUserHandler(c echo.Context) error {
 
 func createUserHandler(c echo.Context) error {
 	var u User
-	var eu []User
+	var existing User
 
 	if authenticatedUser(c).Admin != true {
 		return ErrUnauthorized
@@ -171,20 +171,31 @@ func createUserHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	// Check if the user exists
-	query := fmt.Sprintf(`{"username": "%s"}`, u.Username)
-	msg, err := n.Request("user.find", []byte(query), 5*time.Second)
+	// Check if the group exists
+	query := fmt.Sprintf(`{"id": %d}`, u.GroupID)
+	msg, err := n.Request("group.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
 
-	err = json.Unmarshal(msg.Data, &eu)
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	// Check if the user exists
+	query = fmt.Sprintf(`{"username": "%s"}`, u.Username)
+	msg, err = n.Request("user.get", []byte(query), 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	err = json.Unmarshal(msg.Data, &existing)
 	if err != nil {
 		return ErrInternal
 	}
 
-	if len(eu) > 0 {
-		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", eu[0].ID))
+	if existing.ID != 0 {
+		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", existing.ID))
 		return ErrExists
 	}
 
@@ -194,6 +205,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
+	// Create the user
 	data, err := json.Marshal(u)
 	if err != nil {
 		return ErrInternal
@@ -209,7 +221,7 @@ func createUserHandler(c echo.Context) error {
 
 func updateUserHandler(c echo.Context) error {
 	var u User
-	var qu User
+	var existing User
 
 	if u.Map(c) != nil {
 		return ErrBadReqBody
@@ -227,7 +239,8 @@ func updateUserHandler(c echo.Context) error {
 	}
 
 	// Check user exists
-	msg, err := n.Request("user.get", data, 5*time.Second)
+	query := fmt.Sprintf(`{"id": %d}`, u.ID)
+	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -236,13 +249,18 @@ func updateUserHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	err = json.Unmarshal(msg.Data, &qu)
+	err = json.Unmarshal(msg.Data, &existing)
 	if err != nil {
 		return ErrInternal
 	}
 
-	if qu.ID == 0 {
+	if existing.ID == 0 {
 		return ErrNotFound
+	}
+
+	// Check a non-admin user is not trying to change their group
+	if au.Admin != true && u.GroupID != existing.GroupID {
+		return ErrUnauthorized
 	}
 
 	// update the user

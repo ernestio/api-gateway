@@ -26,9 +26,11 @@ func getGroupSubcriber() {
 			json.Unmarshal(msg.Data, &qg)
 
 			for _, group := range mockGroups {
-				data, _ := json.Marshal(group)
-				n.Publish(msg.Reply, data)
-				return
+				if group.ID == qg.ID || group.Name == qg.Name {
+					data, _ := json.Marshal(group)
+					n.Publish(msg.Reply, data)
+					return
+				}
 			}
 		}
 		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))

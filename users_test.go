@@ -64,8 +64,8 @@ func TestUsers(t *testing.T) {
 	Convey("Scenario: getting a single user", t, func() {
 		getUserSubcriber()
 		Convey("Given a user exists on the store", func() {
-			Convey("And I call /users/:user on the api", func() {
-				Convey("When I'm authenticated as an admin user", func() {
+			Convey("When I call /users/:user on the api", func() {
+				Convey("And I'm authenticated as an admin user", func() {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(1, "admin", true)
@@ -83,7 +83,7 @@ func TestUsers(t *testing.T) {
 						So(u.Username, ShouldEqual, "test")
 					})
 				})
-				Convey("When the user is in the same group as a normal user", func() {
+				Convey("And the user is in the same group as a normal user", func() {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(1, "test", false)
@@ -134,13 +134,14 @@ func TestUsers(t *testing.T) {
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubcriber()
+		getGroupSubcriber()
 		Convey("Given no existing users on the store", func() {
 			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
 
-			Convey("And I create a user by calling /users/ on the api", func() {
-				Convey("When I'm authenticated as an admin user", func() {
+			Convey("When I create a user by calling /users/ on the api", func() {
+				Convey("And I'm authenticated as an admin user", func() {
 					Convey("With a valid payload", func() {
-						ft := generateTestToken(1, "test2", true)
+						ft := generateTestToken(1, "admin", true)
 						resp, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
 
 						Convey("It should create the user and return the correct set of data", func() {
@@ -157,7 +158,7 @@ func TestUsers(t *testing.T) {
 					})
 					Convey("With an invalid payload", func() {
 						invalidData := []byte(`{"group_id": 1, "username": "fail"}`)
-						ft := generateTestToken(1, "test2", true)
+						ft := generateTestToken(1, "admin", true)
 						_, err := doRequest("POST", "/users/", nil, invalidData, createUserHandler, ft)
 
 						Convey("It should error with 400 bad request", func() {
@@ -166,24 +167,32 @@ func TestUsers(t *testing.T) {
 						})
 					})
 				})
-				Convey("When I'm authenticated as a non-admin user", func() {
+				Convey("And I'm authenticated as a non-admin user", func() {
 					ft := generateTestToken(1, "test2", false)
 					_, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
-
 					Convey("It should return with 403 unauthorized", func() {
 						So(err, ShouldNotBeNil)
 						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
 					})
 				})
+				Convey("And the group does not exist", func() {
+					invalidData := []byte(`{"group_id": 99, "username": "new-user", "password": "test"}`)
+					ft := generateTestToken(1, "admin", true)
+					_, err := doRequest("POST", "/users/", nil, invalidData, createUserHandler, ft)
 
+					Convey("It should error with 400 bad request", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+					})
+				})
 			})
 
 		})
 
 		Convey("Given an existing user on the store", func() {
 			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test"}`)
-			Convey("And I create a user by calling /users/ on the api", func() {
-				Convey("Where the user already exists", func() {
+			Convey("When I create a user by calling /users/ on the api", func() {
+				Convey("And the user already exists", func() {
 					ft := generateTestToken(1, "admin", true)
 					_, err := doRequest("POST", "/users/", nil, existingData, createUserHandler, ft)
 
@@ -203,8 +212,8 @@ func TestUsers(t *testing.T) {
 		Convey("Given existing users on the store", func() {
 			data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
-			Convey("And I update a user by calling /users/ on the api", func() {
-				Convey("When I'm authenticated as an admin user", func() {
+			Convey("When I update a user by calling /users/ on the api", func() {
+				Convey("And I'm authenticated as an admin user", func() {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(1, "admin", true)
@@ -232,31 +241,45 @@ func TestUsers(t *testing.T) {
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 						})
 					})
-					SkipConvey("When the id of the payload does not match the user's id", func() {
+					SkipConvey("With an payload id that does not match the user's id", func() {
 						//TODO: Finish this.
 					})
 				})
 
-				Convey("When I'm authenticated as the user being updated", func() {
-					params := make(map[string]string)
-					params["user"] = "1"
-					ft := generateTestToken(1, "test", false)
-					resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
-					Convey("It should update the user and return the correct set of data", func() {
-						var u User
+				Convey("And I'm authenticated as the user being updated", func() {
+					Convey("With a valid payload", func() {
+						params := make(map[string]string)
+						params["user"] = "1"
+						ft := generateTestToken(1, "test", false)
+						resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+						Convey("It should update the user and return the correct set of data", func() {
+							var u User
 
-						So(err, ShouldBeNil)
+							So(err, ShouldBeNil)
 
-						err = json.Unmarshal(resp, &u)
+							err = json.Unmarshal(resp, &u)
 
-						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, 1)
-						So(u.GroupID, ShouldEqual, 1)
-						So(u.Username, ShouldEqual, "test")
+							So(err, ShouldBeNil)
+							So(u.ID, ShouldEqual, 1)
+							So(u.GroupID, ShouldEqual, 1)
+							So(u.Username, ShouldEqual, "test")
+							So(u.Password, ShouldEqual, "new-password")
+						})
+					})
+					Convey("With a group id that does not match the exisiting users id", func() {
+						invalidData := []byte(`{"id": 1, "group_id": 2, "username": "test", "password": "new-password"}`)
+						params := make(map[string]string)
+						params["user"] = "1"
+						ft := generateTestToken(1, "test", false)
+						_, err := doRequest("PUT", "/users/:user", params, invalidData, updateUserHandler, ft)
+						Convey("It should update the user and return the correct set of data", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+						})
 					})
 				})
 
-				Convey("When I'm not authenticated as the user being updated", func() {
+				Convey("And I'm not authenticated as the user being updated", func() {
 					ft := generateTestToken(1, "test2", false)
 					params := make(map[string]string)
 					params["user"] = "2"
