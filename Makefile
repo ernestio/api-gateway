@@ -13,6 +13,7 @@ deps: dev-deps
 	go get github.com/nats-io/nats
 	go get github.com/labstack/echo
 	go get github.com/dgrijalva/jwt-go
+	go get github.com/nu7hatch/gouuid
 
 dev-deps:
 	go get github.com/smartystreets/goconvey
