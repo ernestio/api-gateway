@@ -106,9 +106,7 @@ func updateGroupHandler(c echo.Context) error {
 }
 
 func deleteGroupHandler(c echo.Context) error {
-	au := authenticatedUser(c)
-
-	query := fmt.Sprintf(`{"id": %s}`, c.Param("group"), au.GroupID)
+	query := fmt.Sprintf(`{"id": %s}`, c.Param("group"))
 	msg, err := n.Request("group.del", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
