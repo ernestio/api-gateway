@@ -18,65 +18,58 @@ import (
 )
 
 func TestGroups(t *testing.T) {
-	Convey("Given group handler", t, func() {
-		// setup nats connection
-		os.Setenv("JWT_SECRET", "test")
-		setup()
+	os.Setenv("JWT_SECRET", "test")
+	setup()
 
-		Convey("When getting a list of groups", func() {
+	Convey("Scenario: getting a list of groups", t, func() {
+		Convey("Given groups exist on the store", func() {
 			findGroupSubcriber()
+			Convey("When I call /groups/", func() {
+				resp, err := doRequest("GET", "/groups/", nil, nil, getGroupsHandler, nil)
+				Convey("Then I should have a response existing groups", func() {
+					var d []Group
+					So(err, ShouldBeNil)
 
-			e := echo.New()
-			req := new(http.Request)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-			c.SetPath("/groups/")
+					err = json.Unmarshal(resp, &d)
 
-			Convey("It should return the correct set of data", func() {
-				var u []Group
-
-				err := getGroupsHandler(c)
-				So(err, ShouldBeNil)
-
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &u)
-
-				So(err, ShouldBeNil)
-				So(rec.Code, ShouldEqual, 200)
-				So(len(u), ShouldEqual, 2)
-				So(u[0].ID, ShouldEqual, 1)
-				So(u[0].Name, ShouldEqual, "test")
+					So(err, ShouldBeNil)
+					So(len(d), ShouldEqual, 2)
+					So(d[0].ID, ShouldEqual, 1)
+					So(d[0].Name, ShouldEqual, "test")
+				})
 			})
 
+			SkipConvey("Given no groups on the store", func() {
+			})
 		})
+	})
 
-		Convey("When getting a single group", func() {
+	Convey("Scenario: getting a single group", t, func() {
+		Convey("Given the group exist on the store", func() {
 			getGroupSubcriber()
+			Convey("And I call /groups/:group on the api", func() {
+				params := make(map[string]string)
+				params["group"] = "1"
+				resp, err := doRequest("GET", "/groups/:group", params, nil, getGroupHandler, nil)
 
-			e := echo.New()
-			req := new(http.Request)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				Convey("When I'm authenticated as admin user", func() {
+					Convey("Then I should get the existing group", func() {
+						var g Group
 
-			c.SetPath("/groups/:group")
-			c.SetParamNames("group")
-			c.SetParamValues("test")
+						So(err, ShouldBeNil)
 
-			Convey("It should return the correct set of data", func() {
-				var u Group
+						err = json.Unmarshal(resp, &g)
 
-				err := getGroupHandler(c)
-				So(err, ShouldBeNil)
-
-				resp := rec.Body.Bytes()
-				err = json.Unmarshal(resp, &u)
-
-				So(err, ShouldBeNil)
-				So(rec.Code, ShouldEqual, 200)
-				So(u.ID, ShouldEqual, 1)
-				So(u.Name, ShouldEqual, "test")
+						So(err, ShouldBeNil)
+						So(g.ID, ShouldEqual, 1)
+						So(g.Name, ShouldEqual, "test")
+					})
+				})
 			})
 		})
+	})
+
+	Convey("Given group handler", t, func() {
 
 		Convey("When creating a group", func() {
 			setGroupSubcriber()

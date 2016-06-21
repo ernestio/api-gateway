@@ -51,8 +51,9 @@ func (g *Group) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
+// getGroupsHandler : get all datacenters
 func getGroupsHandler(c echo.Context) error {
-	msg, err := n.Request("group.find", nil, 5*time.Second)
+	msg, err := n.Request("group.find", nil, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -60,9 +61,11 @@ func getGroupsHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
+// getGroupHandler : get a group by id
 func getGroupHandler(c echo.Context) error {
-	query := fmt.Sprintf(`{"name": "%s"}`, c.Param("group"))
-	msg, err := n.Request("group.get", []byte(query), 5*time.Second)
+	var query string
+	query = fmt.Sprintf(`{"id": %s}`, c.Param("group"))
+	msg, err := n.Request("group.get", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}

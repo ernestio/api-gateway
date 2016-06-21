@@ -13,28 +13,24 @@ var (
 			Name: "test",
 		},
 		Group{
-			ID:   1,
-			Name: "test",
+			ID:   2,
+			Name: "test2",
 		},
 	}
 )
 
 func getGroupSubcriber() {
 	n.Subscribe("group.get", func(msg *nats.Msg) {
-		var qu Group
-
-		if len(msg.Data) > 0 {
-			json.Unmarshal(msg.Data, &qu)
+		if len(msg.Data) != 0 {
+			qg := Group{}
+			json.Unmarshal(msg.Data, &qg)
 
 			for _, group := range mockGroups {
-				if group.ID == qu.ID || group.Name == qu.Name {
-					data, _ := json.Marshal(group)
-					n.Publish(msg.Reply, data)
-					return
-				}
+				data, _ := json.Marshal(group)
+				n.Publish(msg.Reply, data)
+				return
 			}
 		}
-
 		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 	})
 }
