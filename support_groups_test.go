@@ -35,6 +35,18 @@ func getGroupSubcriber() {
 	})
 }
 
+func createGroupSubcriber() {
+	n.Subscribe("group.set", func(msg *nats.Msg) {
+		var g Group
+
+		json.Unmarshal(msg.Data, &g)
+		g.ID = 3
+		data, _ := json.Marshal(g)
+
+		n.Publish(msg.Reply, data)
+	})
+}
+
 func findGroupSubcriber() {
 	n.Subscribe("group.find", func(msg *nats.Msg) {
 		var qu Group
@@ -75,9 +87,9 @@ func setGroupSubcriber() {
 
 func deleteGroupSubcriber() {
 	n.Subscribe("group.del", func(msg *nats.Msg) {
-		var u Datacenter
+		var g Group
 
-		json.Unmarshal(msg.Data, &u)
+		json.Unmarshal(msg.Data, &g)
 
 		n.Publish(msg.Reply, []byte{})
 	})
