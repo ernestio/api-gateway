@@ -7,6 +7,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/nats-io/nats"
@@ -26,7 +27,12 @@ func setup() {
 
 	secret = os.Getenv("JWT_SECRET")
 	if secret == "" {
-		panic("No JWT secret was set!")
+		token, err := n.Request("config.get.jwt_token", []byte(""), 1*time.Second)
+		if err != nil {
+			panic("Can't get jwt_config config")
+		}
+
+		secret = string(token.Data)
 	}
 }
 
