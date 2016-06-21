@@ -5,15 +5,10 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -69,79 +64,30 @@ func TestGroups(t *testing.T) {
 		})
 	})
 
-	Convey("Given group handler", t, func() {
+	Convey("Scenario: create a group", t, func() {
+		Convey("Given a group exists on the store ", func() {
+			createGroupSubcriber()
 
-		Convey("When creating a group", func() {
-			setGroupSubcriber()
+			mockG := Group{
+				ID:   1,
+				Name: "new-test",
+			}
 
-			Convey("With a valid payload", func() {
-				data, _ := json.Marshal(Group{Name: "new-test"})
+			data, _ := json.Marshal(mockG)
 
-				Convey("As an admin user", func() {
-					e := echo.New()
-					req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
-					rec := httptest.NewRecorder()
-					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-					ft := generateTestToken(1, "test", true)
-
-					c.SetPath("/groups/")
-					c.Set("user", ft)
-
-					Convey("It should create the group and return the correct set of data", func() {
-						var u Group
-
-						err := createGroupHandler(c)
-						So(err, ShouldBeNil)
-
-						resp := rec.Body.Bytes()
-						err = json.Unmarshal(resp, &u)
-
-						So(err, ShouldBeNil)
-						So(u.ID, ShouldEqual, 3)
-						So(u.Name, ShouldEqual, "new-test")
-					})
-				})
-
-				Convey("As an non-admin user", func() {
-					e := echo.New()
-					req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
-					rec := httptest.NewRecorder()
-					c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-					ft := generateTestToken(1, "test", false)
-
-					c.SetPath("/groups/")
-					c.Set("user", ft)
-
-					Convey("It should return with 403 unauthorized", func() {
-						err := createGroupHandler(c)
-						So(err, ShouldNotBeNil)
-						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
-					})
-				})
-			})
-
-			Convey("With an invalid payload", func() {
-				data := []byte(`{"incorrect_name": "fail"}`)
-
-				e := echo.New()
-				req, _ := http.NewRequest("POST", "/groups/", bytes.NewReader(data))
-				rec := httptest.NewRecorder()
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
-
-				ft := generateTestToken(1, "test", true)
-
-				c.Set("user", ft)
-				c.SetPath("/groups/")
-
-				Convey("It should error with 400 bad request", func() {
-					err := createGroupHandler(c)
-					So(err, ShouldNotBeNil)
-					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+			Convey("When I do a post to /groups/", func() {
+				params := make(map[string]string)
+				params["group"] = "test"
+				resp, err := doRequest("POST", "/groups/", params, data, createGroupHandler, nil)
+				Convey("Then a group hould be created", func() {
+					var g Group
+					So(err, ShouldBeNil)
+					err = json.Unmarshal(resp, &g)
+					So(err, ShouldBeNil)
+					So(g.ID, ShouldEqual, 3)
+					So(g.Name, ShouldEqual, "new-test")
 				})
 			})
 		})
-
 	})
 }
