@@ -22,7 +22,9 @@ import (
 )
 
 const (
+	// SaltSize is the lenght of the salt string
 	SaltSize = 32
+	// HashSize is the lenght of the hash string
 	HashSize = 64
 )
 

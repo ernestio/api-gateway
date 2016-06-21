@@ -164,7 +164,7 @@ func createServiceHandler(c echo.Context) error {
 	serviceID := prefix.String() + "-" + string(sufix[:])
 
 	// We need the status of previous service
-	query = fmt.Sprintf(`{"name":"%d","group_id":"%d"}`, s.Name, au.GroupID)
+	query = fmt.Sprintf(`{"name":"%s","group_id":"%d"}`, s.Name, au.GroupID)
 	if msg, err = n.Request("service.get", []byte(query), 1*time.Second); err != nil {
 		return ErrGatewayTimeout
 	}
