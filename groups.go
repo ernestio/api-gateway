@@ -106,5 +106,15 @@ func updateGroupHandler(c echo.Context) error {
 }
 
 func deleteGroupHandler(c echo.Context) error {
-	return ErrNotImplemented
+	query := fmt.Sprintf(`{"id": %s}`, c.Param("group"))
+	msg, err := n.Request("group.del", []byte(query), 1*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	return c.String(http.StatusOK, "")
 }

@@ -89,9 +89,9 @@ func setGroupSubcriber() {
 
 func deleteGroupSubcriber() {
 	n.Subscribe("group.del", func(msg *nats.Msg) {
-		var u Datacenter
+		var g Group
 
-		json.Unmarshal(msg.Data, &u)
+		json.Unmarshal(msg.Data, &g)
 
 		n.Publish(msg.Reply, []byte{})
 	})

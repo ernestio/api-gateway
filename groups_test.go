@@ -90,4 +90,22 @@ func TestGroups(t *testing.T) {
 			})
 		})
 	})
+
+	Convey("Scenario: deleting a group", t, func() {
+		Convey("Given a group exists on the store", func() {
+			deleteGroupSubcriber()
+
+			Convey("When I call DELETE /groups/:group", func() {
+				ft := generateTestToken(1, "test", false)
+
+				params := make(map[string]string)
+				params["group"] = "test"
+				_, err := doRequest("DELETE", "/groups/:group", params, nil, deleteGroupHandler, ft)
+
+				Convey("It should delete the group and return ok", func() {
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+	})
 }
