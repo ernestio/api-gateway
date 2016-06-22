@@ -19,7 +19,7 @@ var (
 	}
 )
 
-func getGroupSubcriber() {
+func getGroupSubscriber() {
 	sub, _ := n.Subscribe("group.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qg := Group{}
@@ -38,7 +38,7 @@ func getGroupSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func createGroupSubcriber() {
+func createGroupSubscriber() {
 	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
 		var g Group
 
@@ -51,7 +51,7 @@ func createGroupSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func findGroupSubcriber() {
+func findGroupSubscriber() {
 	sub, _ := n.Subscribe("group.find", func(msg *nats.Msg) {
 		var qu Group
 		var ur []Group
@@ -76,7 +76,7 @@ func findGroupSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func setGroupSubcriber() {
+func setGroupSubscriber() {
 	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
 		var u Group
 
@@ -91,7 +91,7 @@ func setGroupSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func deleteGroupSubcriber() {
+func deleteGroupSubscriber() {
 	sub, _ := n.Subscribe("group.del", func(msg *nats.Msg) {
 		var g Group
 

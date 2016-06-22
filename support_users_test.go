@@ -24,7 +24,7 @@ var (
 	}
 )
 
-func getUserSubcriber(max int) {
+func getUserSubscriber(max int) {
 	sub, _ := n.Subscribe("user.get", func(msg *nats.Msg) {
 		var qu User
 
@@ -54,7 +54,7 @@ func getUserSubcriber(max int) {
 	sub.AutoUnsubscribe(max)
 }
 
-func findUserSubcriber() {
+func findUserSubscriber() {
 	sub, _ := n.Subscribe("user.find", func(msg *nats.Msg) {
 		var qu User
 		var ur []User
@@ -79,7 +79,7 @@ func findUserSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func setUserSubcriber() {
+func setUserSubscriber() {
 	sub, _ := n.Subscribe("user.set", func(msg *nats.Msg) {
 		var u User
 
@@ -94,7 +94,7 @@ func setUserSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func deleteUserSubcriber() {
+func deleteUserSubscriber() {
 	sub, _ := n.Subscribe("user.del", func(msg *nats.Msg) {
 		var u Datacenter
 

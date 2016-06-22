@@ -18,7 +18,7 @@ func TestGroups(t *testing.T) {
 
 	Convey("Scenario: getting a list of groups", t, func() {
 		Convey("Given groups exist on the store", func() {
-			findGroupSubcriber()
+			findGroupSubscriber()
 			Convey("When I call /groups/", func() {
 				resp, err := doRequest("GET", "/groups/", nil, nil, getGroupsHandler, nil)
 				Convey("Then I should have a response existing groups", func() {
@@ -41,7 +41,7 @@ func TestGroups(t *testing.T) {
 
 	Convey("Scenario: getting a single group", t, func() {
 		Convey("Given the group exist on the store", func() {
-			getGroupSubcriber()
+			getGroupSubscriber()
 			Convey("And I call /groups/:group on the api", func() {
 				params := make(map[string]string)
 				params["group"] = "1"
@@ -66,7 +66,7 @@ func TestGroups(t *testing.T) {
 
 	Convey("Scenario: create a group", t, func() {
 		Convey("Given a group exists on the store ", func() {
-			createGroupSubcriber()
+			createGroupSubscriber()
 
 			mockG := Group{
 				ID:   1,
@@ -93,7 +93,7 @@ func TestGroups(t *testing.T) {
 
 	Convey("Scenario: deleting a group", t, func() {
 		Convey("Given a group exists on the store", func() {
-			deleteGroupSubcriber()
+			deleteGroupSubscriber()
 
 			Convey("When I call DELETE /groups/:group", func() {
 				Convey("And I am logged in as an admin", func() {

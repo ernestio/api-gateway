@@ -21,7 +21,7 @@ func TestUsers(t *testing.T) {
 	setup()
 
 	Convey("Scenario: getting a list of users", t, func() {
-		findUserSubcriber()
+		findUserSubscriber()
 		Convey("When calling /users/ on the api", func() {
 			Convey("And I'm authenticated as an admin user", func() {
 				params := make(map[string]string)
@@ -62,7 +62,7 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: getting a single user", t, func() {
-		getUserSubcriber(7)
+		getUserSubscriber(7)
 		Convey("Given a user exists on the store", func() {
 			Convey("When I call /users/:user on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
@@ -133,8 +133,8 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: creating a user", t, func() {
-		setUserSubcriber()
-		getGroupSubcriber()
+		setUserSubscriber()
+		getGroupSubscriber()
 		Convey("Given no existing users on the store", func() {
 			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
 
@@ -207,7 +207,7 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: updating a user", t, func() {
-		setUserSubcriber()
+		setUserSubscriber()
 
 		Convey("Given existing users on the store", func() {
 			data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
@@ -312,7 +312,7 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: deleting a user", t, func() {
-		deleteUserSubcriber()
+		deleteUserSubscriber()
 
 		e := echo.New()
 		req := http.Request{Method: "DELETE"}

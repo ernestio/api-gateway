@@ -20,7 +20,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
-			findServiceSubcriber()
+			findServiceSubscriber()
 			Convey("When I call GET /services/", func() {
 				resp, err := doRequest("GET", "/services/", nil, nil, getServicesHandler, nil)
 
@@ -40,7 +40,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a single services", t, func() {
 		Convey("Given the service exists on the store", func() {
-			getServiceSubcriber()
+			getServiceSubscriber()
 			Convey("And I call /service/:service on the api", func() {
 				params := make(map[string]string)
 				params["service"] = "1"
@@ -95,7 +95,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: creating a service", t, func() {
 		params := make(map[string]string)
 		Convey("Given I do a post call to /services ", func() {
-			createServiceSubcriber()
+			createServiceSubscriber()
 
 			Convey("And the content type is non json and non yaml", func() {
 				data := []byte("bla")
@@ -261,7 +261,7 @@ func TestServices(t *testing.T) {
 	})
 	SkipConvey("Scenario: deleting a service", t, func() {
 		Convey("Given a service exists on the store", func() {
-			deleteServiceSubcriber()
+			deleteServiceSubscriber()
 
 			Convey("When I call DELETE /services/:service", func() {
 				ft := generateTestToken(1, "test", false)

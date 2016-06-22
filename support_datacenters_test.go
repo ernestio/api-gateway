@@ -25,7 +25,7 @@ var (
 	}
 )
 
-func getDatacenterSubcriber(max int) {
+func getDatacenterSubscriber(max int) {
 	sub, _ := n.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qd := Datacenter{}
@@ -48,7 +48,7 @@ func getDatacenterSubcriber(max int) {
 	sub.AutoUnsubscribe(max)
 }
 
-func findDatacenterSubcriber() {
+func findDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.find", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockDatacenters)
 		n.Publish(msg.Reply, data)
@@ -56,7 +56,7 @@ func findDatacenterSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func createDatacenterSubcriber() {
+func createDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.set", func(msg *nats.Msg) {
 		var d Datacenter
 
@@ -69,7 +69,7 @@ func createDatacenterSubcriber() {
 	sub.AutoUnsubscribe(1)
 }
 
-func deleteDatacenterSubcriber() {
+func deleteDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.del", func(msg *nats.Msg) {
 		var u Datacenter
 

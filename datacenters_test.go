@@ -19,7 +19,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
-			findDatacenterSubcriber()
+			findDatacenterSubscriber()
 			Convey("When I call /datacenters/", func() {
 				resp, err := doRequest("GET", "/datacenters/", nil, nil, getDatacentersHandler, nil)
 				Convey("Then I should have a response with existing datacenters", func() {
@@ -42,7 +42,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
-			getDatacenterSubcriber(2)
+			getDatacenterSubscriber(2)
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				params := make(map[string]string)
 				params["datacenter"] = "1"
@@ -95,7 +95,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {
-			createDatacenterSubcriber()
+			createDatacenterSubscriber()
 
 			mockDC := Datacenter{
 				GroupID:   1,
@@ -153,7 +153,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: deleting a datacenter", t, func() {
 		Convey("Given a datacenter exists on the store", func() {
-			deleteDatacenterSubcriber()
+			deleteDatacenterSubscriber()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				ft := generateTestToken(1, "test", false)

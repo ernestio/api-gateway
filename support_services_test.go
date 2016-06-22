@@ -27,7 +27,7 @@ var (
 	}
 )
 
-func getServiceSubcriber() {
+func getServiceSubscriber() {
 	n.Subscribe("service.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qs := Service{}
@@ -49,14 +49,14 @@ func getServiceSubcriber() {
 	})
 }
 
-func findServiceSubcriber() {
+func findServiceSubscriber() {
 	n.Subscribe("service.find", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockServices)
 		n.Publish(msg.Reply, data)
 	})
 }
 
-func createServiceSubcriber() {
+func createServiceSubscriber() {
 	n.Subscribe("service.set", func(msg *nats.Msg) {
 		var s Service
 
@@ -68,7 +68,7 @@ func createServiceSubcriber() {
 	})
 }
 
-func deleteServiceSubcriber() {
+func deleteServiceSubscriber() {
 	n.Subscribe("service.del", func(msg *nats.Msg) {
 		var s Service
 
