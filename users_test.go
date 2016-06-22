@@ -62,7 +62,7 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: getting a single user", t, func() {
-		getUserSubscriber(7)
+		getUserSubscriber(1)
 		Convey("Given a user exists on the store", func() {
 			Convey("When I call /users/:user on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
@@ -203,7 +203,6 @@ func TestUsers(t *testing.T) {
 				})
 			})
 		})
-
 	})
 
 	Convey("Scenario: updating a user", t, func() {
