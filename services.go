@@ -6,6 +6,7 @@ package main
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -117,21 +118,24 @@ func createServiceHandler(c echo.Context) error {
 		Name       string `json:"name"`
 	}
 	au := authenticatedUser(c)
+
 	req := c.Request()
 	body, err := ioutil.ReadAll(req.Body())
 
 	// Normalize input body to json
-	ctype := http.DetectContentType(body)
+	ctype := req.Header().Get("Content-Type")
+
 	if ctype != "application/json" && ctype != "application/yaml" {
-		return echo.NewHTTPError(400, "Invalid input format")
+		return c.JSONBlob(400, []byte(`"Invalid input format"`))
 	} else if ctype == "application/yaml" {
-		body, err = yaml.JSONToYAML(body)
+		if body, err = yaml.JSONToYAML(body); err != nil {
+			return c.JSONBlob(400, []byte(`"Invalid yaml input"`))
+		}
 	}
 
-	// TODO check content type
 	s := Service{}
 	if err = json.Unmarshal(body, &s); err != nil {
-		return echo.NewHTTPError(400, "Invalid input")
+		return c.JSONBlob(400, []byte(`"Invalid input"`))
 	}
 
 	// Get datacenter
@@ -140,28 +144,28 @@ func createServiceHandler(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 	if strings.Contains(string(msg.Data), `"error"`) {
-		return echo.NewHTTPError(http.StatusNotFound, "Specified datacenter does not exist")
-	}
-
-	// TODO override datacenter if is a fake one
-	if s.Provider == "fake" {
+		return c.JSONBlob(http.StatusNotFound, []byte(`"Specified datacenter does not exist"`))
 	}
 	datacenter := msg.Data
+	if s.Provider == "fake" {
+		datacenter = []byte(`{"datacenter_id":"fake","datacenter_name":"fake","datacenter_username":"fake","datacenter_password":"fake","datacenter_region":"fake","datacenter_type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`)
+	}
 
-	// FIXME : Is still needed this block about groups?
-	// get client data
+	// Get group
 	query = fmt.Sprintf(`{"id": %d}`, au.GroupID)
-	msg, err = n.Request("group.get", []byte(query), 1*time.Second)
-	if err != nil {
+	if msg, err = n.Request("group.get", []byte(query), 1*time.Second); err != nil {
 		return ErrGatewayTimeout
 	}
 	if strings.Contains(string(msg.Data), `"error"`) {
-		return echo.NewHTTPError(http.StatusNotFound, "Specified group does not exist")
+		return c.JSONBlob(http.StatusNotFound, []byte(`"Specified group does not exist"`))
 	}
 	group := msg.Data
 
 	// Calculate the id
-	sufix := md5.Sum([]byte(s.Name + "-" + s.Datacenter))
+	compose := []byte(s.Name + "-" + s.Datacenter)
+	hasher := md5.New()
+	hasher.Write(compose)
+	sufix := hex.EncodeToString(hasher.Sum(nil))
 	prefix, err := uuid.NewV4()
 	serviceID := prefix.String() + "-" + string(sufix[:])
 
@@ -179,6 +183,9 @@ func createServiceHandler(c echo.Context) error {
 		json.Unmarshal(msg.Data, &p)
 		if p.Status == "errored" {
 			subject = "service.patch"
+		}
+		if p.Status == "in_progress" {
+			return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
 		}
 	}
 

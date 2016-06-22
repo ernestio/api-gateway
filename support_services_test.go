@@ -77,3 +77,17 @@ func deleteServiceSubcriber() {
 		n.Publish(msg.Reply, []byte{})
 	})
 }
+
+func notFoundSubscriber(subject string, max int) {
+	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
+		n.Publish(msg.Reply, []byte(`{"error","not found"}`))
+	})
+	sub.AutoUnsubscribe(max)
+}
+
+func foundSubscriber(subject string, resp string, max int) {
+	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
+		n.Publish(msg.Reply, []byte(resp))
+	})
+	sub.AutoUnsubscribe(max)
+}
