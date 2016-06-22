@@ -27,7 +27,7 @@ func authenticate(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 
-	if responseErr(msg) != nil {
+	if re := responseErr(msg); re != nil {
 		return ErrUnauthorized
 	}
 
