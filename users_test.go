@@ -62,8 +62,8 @@ func TestUsers(t *testing.T) {
 	})
 
 	Convey("Scenario: getting a single user", t, func() {
-		getUserSubscriber(1)
 		Convey("Given a user exists on the store", func() {
+			getUserSubscriber(1)
 			Convey("When I call /users/:user on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
 					params := make(map[string]string)
@@ -117,6 +117,7 @@ func TestUsers(t *testing.T) {
 		})
 
 		Convey("Given a user doesn't exist", func() {
+			getUserSubscriber(1)
 			Convey("When calling /users/:user on the api", func() {
 				params := make(map[string]string)
 				params["user"] = "99"
@@ -135,6 +136,7 @@ func TestUsers(t *testing.T) {
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
 		getGroupSubscriber()
+		getUserSubscriber(1)
 		Convey("Given no existing users on the store", func() {
 			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
 
@@ -207,7 +209,7 @@ func TestUsers(t *testing.T) {
 
 	Convey("Scenario: updating a user", t, func() {
 		setUserSubscriber()
-
+		getUserSubscriber(1)
 		Convey("Given existing users on the store", func() {
 			data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 

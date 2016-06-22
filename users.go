@@ -5,13 +5,11 @@
 package main
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -72,26 +70,6 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 	if err != nil {
 		return ErrBadReqBody
 	}
-
-	return nil
-}
-
-// HashPassword generates a secure salt and hashes the user's password
-func (u *User) HashPassword() error {
-	salt := make([]byte, SaltSize)
-	_, err := io.ReadFull(rand.Reader, salt)
-	if err != nil {
-		return err
-	}
-
-	hash, err := scrypt.Key([]byte(u.Password), salt, 16384, 8, 1, HashSize)
-	if err != nil {
-		return err
-	}
-
-	// Create a base64 string of the binary salt and hash for storage
-	u.Salt = base64.StdEncoding.EncodeToString(salt)
-	u.Password = base64.StdEncoding.EncodeToString(hash)
 
 	return nil
 }
@@ -197,12 +175,6 @@ func createUserHandler(c echo.Context) error {
 	if existing.ID != 0 {
 		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", existing.ID))
 		return ErrExists
-	}
-
-	// Generate salt and hash password
-	err = u.HashPassword()
-	if err != nil {
-		return ErrInternal
 	}
 
 	// Create the user
