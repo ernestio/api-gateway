@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/labstack/echo"
 	"github.com/nats-io/nats"
 	"github.com/nu7hatch/gouuid"
@@ -118,18 +119,19 @@ func createServiceHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 	req := c.Request()
 	body, err := ioutil.ReadAll(req.Body())
-	/*
-		ctype := req.Header().Get(HeaderContentType)
-			if req.Body() == nil {
-				err := NewHTTPError(http.StatusBadRequest, "request body can't be empty")
-				return
-			}
-	*/
+
+	// Normalize input body to json
+	ctype := http.DetectContentType(body)
+	if ctype != "application/json" && ctype != "application/yaml" {
+		return echo.NewHTTPError(400, "Invalid input format")
+	} else if ctype == "application/yaml" {
+		body, err = yaml.JSONToYAML(body)
+	}
 
 	// TODO check content type
 	s := Service{}
 	if err = json.Unmarshal(body, &s); err != nil {
-		return errors.New("Invalid input")
+		return echo.NewHTTPError(400, "Invalid input")
 	}
 
 	// Get datacenter

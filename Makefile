@@ -14,6 +14,7 @@ deps: dev-deps
 	go get github.com/labstack/echo
 	go get github.com/dgrijalva/jwt-go
 	go get github.com/nu7hatch/gouuid
+	go get github.com/ghodss/yaml
 
 dev-deps:
 	go get github.com/smartystreets/goconvey
