@@ -27,7 +27,7 @@ func TestAuth(t *testing.T) {
 		setup()
 
 		Convey("When attempting to login", func() {
-			getUserSubcriber()
+			getUserSubcriber(1)
 
 			Convey("With valid credentials", func() {
 				e := echo.New()
@@ -90,7 +90,7 @@ func TestAuth(t *testing.T) {
 		setup()
 
 		Convey("When attempting to retrieve data", func() {
-			getUserSubcriber()
+			getUserSubcriber(1)
 			findUserSubcriber()
 
 			Convey("With valid credentials", func() {

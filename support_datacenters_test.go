@@ -25,8 +25,8 @@ var (
 	}
 )
 
-func getDatacenterSubcriber() {
-	n.Subscribe("datacenter.get", func(msg *nats.Msg) {
+func getDatacenterSubcriber(max int) {
+	sub, _ := n.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qd := Datacenter{}
 			json.Unmarshal(msg.Data, &qd)
@@ -45,17 +45,19 @@ func getDatacenterSubcriber() {
 		}
 		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 	})
+	sub.AutoUnsubscribe(max)
 }
 
 func findDatacenterSubcriber() {
-	n.Subscribe("datacenter.find", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("datacenter.find", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockDatacenters)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func createDatacenterSubcriber() {
-	n.Subscribe("datacenter.set", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("datacenter.set", func(msg *nats.Msg) {
 		var d Datacenter
 
 		json.Unmarshal(msg.Data, &d)
@@ -64,14 +66,16 @@ func createDatacenterSubcriber() {
 
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func deleteDatacenterSubcriber() {
-	n.Subscribe("datacenter.del", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("datacenter.del", func(msg *nats.Msg) {
 		var u Datacenter
 
 		json.Unmarshal(msg.Data, &u)
 
 		n.Publish(msg.Reply, []byte{})
 	})
+	sub.AutoUnsubscribe(1)
 }

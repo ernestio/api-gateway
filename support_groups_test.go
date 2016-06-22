@@ -20,7 +20,7 @@ var (
 )
 
 func getGroupSubcriber() {
-	n.Subscribe("group.get", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("group.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qg := Group{}
 			json.Unmarshal(msg.Data, &qg)
@@ -35,10 +35,11 @@ func getGroupSubcriber() {
 		}
 		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func createGroupSubcriber() {
-	n.Subscribe("group.set", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
 		var g Group
 
 		json.Unmarshal(msg.Data, &g)
@@ -47,10 +48,11 @@ func createGroupSubcriber() {
 
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func findGroupSubcriber() {
-	n.Subscribe("group.find", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("group.find", func(msg *nats.Msg) {
 		var qu Group
 		var ur []Group
 
@@ -71,10 +73,11 @@ func findGroupSubcriber() {
 		data, _ := json.Marshal(ur)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func setGroupSubcriber() {
-	n.Subscribe("group.set", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
 		var u Group
 
 		json.Unmarshal(msg.Data, &u)
@@ -85,14 +88,16 @@ func setGroupSubcriber() {
 		data, _ := json.Marshal(u)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func deleteGroupSubcriber() {
-	n.Subscribe("group.del", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("group.del", func(msg *nats.Msg) {
 		var g Group
 
 		json.Unmarshal(msg.Data, &g)
 
 		n.Publish(msg.Reply, []byte{})
 	})
+	sub.AutoUnsubscribe(1)
 }

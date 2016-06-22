@@ -24,8 +24,8 @@ var (
 	}
 )
 
-func getUserSubcriber() {
-	n.Subscribe("user.get", func(msg *nats.Msg) {
+func getUserSubcriber(max int) {
+	sub, _ := n.Subscribe("user.get", func(msg *nats.Msg) {
 		var qu User
 
 		if len(msg.Data) > 0 {
@@ -51,10 +51,11 @@ func getUserSubcriber() {
 
 		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
 	})
+	sub.AutoUnsubscribe(max)
 }
 
 func findUserSubcriber() {
-	n.Subscribe("user.find", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("user.find", func(msg *nats.Msg) {
 		var qu User
 		var ur []User
 
@@ -75,10 +76,11 @@ func findUserSubcriber() {
 		data, _ := json.Marshal(ur)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func setUserSubcriber() {
-	n.Subscribe("user.set", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("user.set", func(msg *nats.Msg) {
 		var u User
 
 		json.Unmarshal(msg.Data, &u)
@@ -89,14 +91,16 @@ func setUserSubcriber() {
 		data, _ := json.Marshal(u)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func deleteUserSubcriber() {
-	n.Subscribe("user.del", func(msg *nats.Msg) {
+	sub, _ := n.Subscribe("user.del", func(msg *nats.Msg) {
 		var u Datacenter
 
 		json.Unmarshal(msg.Data, &u)
 
 		n.Publish(msg.Reply, []byte{})
 	})
+	sub.AutoUnsubscribe(1)
 }
