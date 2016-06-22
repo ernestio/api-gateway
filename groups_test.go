@@ -96,14 +96,14 @@ func TestGroups(t *testing.T) {
 			deleteGroupSubcriber()
 
 			Convey("When I call DELETE /groups/:group", func() {
-				ft := generateTestToken(1, "test", false)
+				Convey("And I am logged in as an admin", func() {
+					params := make(map[string]string)
+					params["group"] = "test"
+					_, err := doRequest("DELETE", "/groups/:group", params, nil, deleteGroupHandler, nil)
 
-				params := make(map[string]string)
-				params["group"] = "test"
-				_, err := doRequest("DELETE", "/groups/:group", params, nil, deleteGroupHandler, ft)
-
-				Convey("It should delete the group and return ok", func() {
-					So(err, ShouldBeNil)
+					Convey("It should delete the group and return ok", func() {
+						So(err, ShouldBeNil)
+					})
 				})
 			})
 		})

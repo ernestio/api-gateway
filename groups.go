@@ -133,6 +133,12 @@ func updateGroupHandler(c echo.Context) error {
 
 // deleteGroupHandler : Deletes a group though its store
 func deleteGroupHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
 	query := fmt.Sprintf(`{"id": %s}`, c.Param("group"))
 	msg, err := n.Request("group.del", []byte(query), 1*time.Second)
 	if err != nil {
