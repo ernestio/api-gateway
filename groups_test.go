@@ -22,15 +22,15 @@ func TestGroups(t *testing.T) {
 			Convey("When I call /groups/", func() {
 				resp, err := doRequest("GET", "/groups/", nil, nil, getGroupsHandler, nil)
 				Convey("Then I should have a response existing groups", func() {
-					var d []Group
+					var g []Group
 					So(err, ShouldBeNil)
 
-					err = json.Unmarshal(resp, &d)
+					err = json.Unmarshal(resp, &g)
 
 					So(err, ShouldBeNil)
-					So(len(d), ShouldEqual, 2)
-					So(d[0].ID, ShouldEqual, 1)
-					So(d[0].Name, ShouldEqual, "test")
+					So(len(g), ShouldEqual, 2)
+					So(g[0].ID, ShouldEqual, 1)
+					So(g[0].Name, ShouldEqual, "test")
 				})
 			})
 
