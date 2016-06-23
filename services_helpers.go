@@ -120,7 +120,7 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 		return body, errors.New("Provided yaml is not valid")
 	}
 
-	if msg, err = n.Request("definition.map_create", body, 1*time.Second); err != nil {
+	if msg, err = n.Request("definition.map.creation", body, 1*time.Second); err != nil {
 		return body, errors.New("Provided yaml is not valid")
 	}
 

@@ -187,7 +187,7 @@ func deleteServiceHandler(c echo.Context) error {
 	}
 
 	query := []byte(`{"previous_id":"` + s.ID + `"}`)
-	if msg, err := n.Request("definition.map_delete", query, 1*time.Second); err != nil {
+	if msg, err := n.Request("definition.map.deletion", query, 1*time.Second); err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	} else {
 		n.Publish("service.delete", msg.Data)
