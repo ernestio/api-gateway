@@ -6,13 +6,10 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -56,6 +53,8 @@ func TestUsers(t *testing.T) {
 					So(len(u), ShouldEqual, 1)
 					So(u[0].ID, ShouldEqual, 1)
 					So(u[0].Username, ShouldEqual, "test")
+					So(u[0].Password, ShouldEqual, "")
+					So(u[0].Salt, ShouldEqual, "")
 				})
 			})
 		})
@@ -81,6 +80,8 @@ func TestUsers(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
+						So(u.Password, ShouldEqual, "")
+						So(u.Salt, ShouldEqual, "")
 					})
 				})
 				Convey("And the user is in the same group as a normal user", func() {
@@ -99,6 +100,8 @@ func TestUsers(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
+						So(u.Password, ShouldEqual, "")
+						So(u.Salt, ShouldEqual, "")
 					})
 				})
 				Convey("And the user is not in the same group as a normal user", func() {
@@ -156,6 +159,8 @@ func TestUsers(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(u.ID, ShouldEqual, 3)
 							So(u.Username, ShouldEqual, "new-test")
+							So(u.Password, ShouldEqual, "")
+							So(u.Salt, ShouldEqual, "")
 						})
 					})
 					Convey("With an invalid payload", func() {
@@ -231,7 +236,8 @@ func TestUsers(t *testing.T) {
 							So(u.ID, ShouldEqual, 1)
 							So(u.GroupID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(u.Password, ShouldEqual, "new-password")
+							So(u.Password, ShouldEqual, "")
+							So(u.Salt, ShouldEqual, "")
 						})
 					})
 					Convey("With an invalid payload", func() {
@@ -264,7 +270,8 @@ func TestUsers(t *testing.T) {
 							So(u.ID, ShouldEqual, 1)
 							So(u.GroupID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(u.Password, ShouldEqual, "new-password")
+							So(u.Password, ShouldEqual, "")
+							So(u.Salt, ShouldEqual, "")
 						})
 					})
 					Convey("With a group id that does not match the exisiting users id", func() {
@@ -315,19 +322,43 @@ func TestUsers(t *testing.T) {
 	Convey("Scenario: deleting a user", t, func() {
 		deleteUserSubscriber()
 
-		e := echo.New()
-		req := http.Request{Method: "DELETE"}
-		rec := httptest.NewRecorder()
-		c := e.NewContext(standard.NewRequest(&req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+		Convey("Given existing users on the store", func() {
+			Convey("When I delete a user by calling /users/:user on the api", func() {
+				Convey("And I am logged in as an admin", func() {
+					ft := generateTestToken(1, "admin", true)
+					params := make(map[string]string)
+					params["user"] = "1"
+					_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
 
-		c.SetPath("/users/:user")
-		c.SetParamNames("user")
-		c.SetParamValues("test")
+					Convey("It should delete the user and return a 200 ok", func() {
+						So(err, ShouldBeNil)
+					})
+				})
+				Convey("And I am logged in as a non-admin", func() {
+					ft := generateTestToken(1, "test", false)
+					params := make(map[string]string)
+					params["user"] = "1"
+					_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
 
-		Convey("It should delete the user and return a 200 ok", func() {
-			err := deleteUserHandler(c)
-			So(err, ShouldBeNil)
-			So(rec.Code, ShouldEqual, 200)
+					Convey("It should return a 403 not authorized", func() {
+						So(err, ShouldNotBeNil)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
+					})
+				})
+			})
+		})
+		Convey("Given no users on the store", func() {
+			Convey("When I delete a user by calling /users/:user on the api", func() {
+				ft := generateTestToken(1, "admin", true)
+				params := make(map[string]string)
+				params["user"] = "99"
+				_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
+
+				Convey("It should return a 404 ok", func() {
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
+				})
+			})
 		})
 	})
 }

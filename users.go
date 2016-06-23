@@ -74,6 +74,12 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
+// Redact removes all sensitive fields from the return data before outputting to the user
+func (u *User) Redact() {
+	u.Password = ""
+	u.Salt = ""
+}
+
 // ValidPassword checks if a submitted password matches the users password hash
 func (u *User) ValidPassword(pw string) bool {
 	userpass, err := base64.StdEncoding.DecodeString(u.Password)
@@ -101,6 +107,8 @@ func (u *User) ValidPassword(pw string) bool {
 
 func getUsersHandler(c echo.Context) error {
 	var query string
+	var users []User
+
 	au := authenticatedUser(c)
 
 	if !au.Admin {
@@ -112,11 +120,27 @@ func getUsersHandler(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	// Remove sensitive data
+	err = json.Unmarshal(msg.Data, &users)
+	if err != nil {
+		return ErrInternal
+	}
+
+	for i := 0; i < len(users); i++ {
+		users[i].Redact()
+	}
+
+	return c.JSON(http.StatusOK, users)
 }
 
 func getUserHandler(c echo.Context) error {
 	var query string
+	var user User
+
 	au := authenticatedUser(c)
 
 	if au.Admin {
@@ -134,11 +158,20 @@ func getUserHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	// Remove sensitive data
+	err = json.Unmarshal(msg.Data, &user)
+	if err != nil {
+		return ErrInternal
+	}
+
+	user.Redact()
+
+	return c.JSON(http.StatusOK, user)
 }
 
 func createUserHandler(c echo.Context) error {
 	var u User
+	var created User
 	var existing User
 
 	if authenticatedUser(c).Admin != true {
@@ -188,11 +221,24 @@ func createUserHandler(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	// Remove sensitive data
+	err = json.Unmarshal(msg.Data, &created)
+	if err != nil {
+		return ErrInternal
+	}
+
+	created.Redact()
+
+	return c.JSON(http.StatusOK, created)
 }
 
 func updateUserHandler(c echo.Context) error {
 	var u User
+	var updated User
 	var existing User
 
 	if u.Map(c) != nil {
@@ -245,10 +291,23 @@ func updateUserHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	// Remove sensitive data
+	err = json.Unmarshal(msg.Data, &updated)
+	if err != nil {
+		return ErrInternal
+	}
+
+	updated.Redact()
+
+	return c.JSON(http.StatusOK, updated)
 }
 
 func deleteUserHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
 	query := fmt.Sprintf(`{"id": %s}`, c.Param("user"))
 	msg, err := n.Request("user.del", []byte(query), 5*time.Second)
 	if err != nil {
@@ -256,6 +315,7 @@ func deleteUserHandler(c echo.Context) error {
 	}
 
 	if re := responseErr(msg); re != nil {
+		fmt.Println(re.Error)
 		return re.HTTPError
 	}
 

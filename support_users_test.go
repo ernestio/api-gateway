@@ -96,11 +96,17 @@ func setUserSubscriber() {
 
 func deleteUserSubscriber() {
 	sub, _ := n.Subscribe("user.del", func(msg *nats.Msg) {
-		var u Datacenter
-
+		var u User
 		json.Unmarshal(msg.Data, &u)
 
-		n.Publish(msg.Reply, []byte{})
+		for _, user := range mockUsers {
+			if user.ID == u.ID {
+				n.Publish(msg.Reply, []byte{})
+				return
+			}
+		}
+
+		n.Publish(msg.Reply, []byte(`{"error": "not found"}`))
 	})
 	sub.AutoUnsubscribe(1)
 }
