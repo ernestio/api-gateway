@@ -31,8 +31,8 @@ type User struct {
 	ID       int    `json:"id"`
 	GroupID  int    `json:"group_id"`
 	Username string `json:"username"`
-	Password string `json:"password"`
-	Salt     string `json:"salt"`
+	Password string `json:"password,omitempty"`
+	Salt     string `json:"salt,omitempty"`
 	Admin    bool   `json:"admin"`
 }
 
@@ -188,7 +188,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 func updateUserHandler(c echo.Context) error {
@@ -245,7 +245,7 @@ func updateUserHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 func deleteUserHandler(c echo.Context) error {

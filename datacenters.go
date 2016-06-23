@@ -140,7 +140,7 @@ func createDatacenterHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 // updateDatacenterHandler : Updates a datacenter through its store
@@ -169,7 +169,7 @@ func updateDatacenterHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 // deleteDatacenterHandler : Deletes a datancenter though its store

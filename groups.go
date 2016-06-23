@@ -99,7 +99,7 @@ func createGroupHandler(c echo.Context) error {
 		return ErrGatewayTimeout
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 // updateGroupHandler : Updates a group trough its store
@@ -128,7 +128,7 @@ func updateGroupHandler(c echo.Context) error {
 		return re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusAccepted, msg.Data)
+	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 // deleteGroupHandler : Deletes a group though its store
