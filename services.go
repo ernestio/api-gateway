@@ -7,14 +7,12 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
 )
 
 // Service holds the service response from service-store
@@ -73,37 +71,34 @@ func (d *Service) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
-func getServicesHandler(c echo.Context) error {
-	msg, err := n.Request("service.find", nil, 1*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	return c.JSONBlob(http.StatusOK, msg.Data)
-}
-
-func getServiceHandler(c echo.Context) error {
-	var query string
-	var msg *nats.Msg
-	var err error
+func getServicesHandler(c echo.Context) (err error) {
+	var list []OutputService
 
 	au := authenticatedUser(c)
+	if list, err = getServicesOutput(au, c.Param("service")); err != nil {
+		return c.JSONBlob(500, []byte(err.Error()))
+	}
 
-	if au.Admin {
-		query = fmt.Sprintf(`{"id": "%s"}`, c.Param("service"))
+	if body, err := json.Marshal(list); err != nil {
+		return c.JSONBlob(500, []byte("Internal error"))
 	} else {
-		query = fmt.Sprintf(`{"id": "%s", "group_id": %d}`, c.Param("service"), au.GroupID)
+		return c.JSONBlob(http.StatusOK, body)
+	}
+}
+
+func getServiceHandler(c echo.Context) (err error) {
+	var list []OutputService
+
+	au := authenticatedUser(c)
+	if list, err = getServicesOutput(au, c.Param("service")); err != nil {
+		return c.JSONBlob(500, []byte(err.Error()))
 	}
 
-	if msg, err = n.Request("service.get", []byte(query), 1*time.Second); err != nil {
-		return ErrGatewayTimeout
+	if body, err := json.Marshal(list[0]); err != nil {
+		return c.JSONBlob(500, []byte("Internal error"))
+	} else {
+		return c.JSONBlob(http.StatusOK, body)
 	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	return c.JSONBlob(http.StatusOK, msg.Data)
 }
 
 // createServiceHandler : Will receive a service application

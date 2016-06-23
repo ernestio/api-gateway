@@ -149,5 +149,30 @@ func getServiceRaw(name string, group int) (service []byte, err error) {
 	} else {
 		return body, nil
 	}
+}
 
+type OutputService struct {
+	ID           string `json:"id"`
+	DatacenterID int    `json:"datacenter_id"`
+	Name         string `json:"name"`
+	Version      string `json:"version"`
+	Status       string `json:"status"`
+	Options      string `json:"options"`
+	Endpoint     string `json:"endpoint"`
+	Definition   string `json:"definition"`
+}
+
+func getServicesOutput(au User, name string) (list []OutputService, err error) {
+	var msg *nats.Msg
+
+	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, au.GroupID)
+	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
+		return list, ErrGatewayTimeout
+	}
+
+	if err := json.Unmarshal(msg.Data, &list); err != nil {
+		return list, errors.New("Internal error")
+	}
+
+	return list, nil
 }

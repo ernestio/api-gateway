@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -25,14 +24,14 @@ func TestServices(t *testing.T) {
 				resp, err := doRequest("GET", "/services/", nil, nil, getServicesHandler, nil)
 
 				Convey("It should return the correct set of data", func() {
-					var s []Service
+					var s []OutputService
 					So(err, ShouldBeNil)
 					err = json.Unmarshal(resp, &s)
 					So(err, ShouldBeNil)
 					So(len(s), ShouldEqual, 2)
 					So(s[0].ID, ShouldEqual, "1")
 					So(s[0].Name, ShouldEqual, "test")
-					So(s[0].GroupID, ShouldEqual, 1)
+					So(s[0].DatacenterID, ShouldEqual, 1)
 				})
 			})
 		})
@@ -42,13 +41,13 @@ func TestServices(t *testing.T) {
 		Convey("Given the service exists on the store", func() {
 			getServiceSubscriber()
 			Convey("And I call /service/:service on the api", func() {
+				var d OutputService
 				params := make(map[string]string)
 				params["service"] = "1"
 				resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, nil)
 
 				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should get the existing service", func() {
-						var d Service
 
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
@@ -67,25 +66,11 @@ func TestServices(t *testing.T) {
 					resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, ft)
 
 					Convey("Then I should get the existing service", func() {
-						var d Service
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, "1")
 						So(d.Name, ShouldEqual, "test")
-					})
-				})
-
-				Convey("When the service group does not match the authenticated users group", func() {
-					ft := generateTestToken(2, "test2", false)
-
-					params := make(map[string]string)
-					params["service"] = "1"
-					_, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, ft)
-
-					Convey("Then I should get a 404 error as it doesn't exist", func() {
-						So(err, ShouldNotBeNil)
-						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
 					})
 				})
 			})
