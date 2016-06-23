@@ -35,10 +35,6 @@ func (d *Datacenter) Validate() error {
 		return errors.New("Datacenter name is empty")
 	}
 
-	if d.GroupID == 0 {
-		return errors.New("Datacenter group is empty")
-	}
-
 	if d.Type == "" {
 		return errors.New("Datacenter type is empty")
 	}
