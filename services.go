@@ -35,10 +35,6 @@ func (d *Service) Validate() error {
 		return errors.New("Service name is empty")
 	}
 
-	if d.GroupID == 0 {
-		return errors.New("Service group is empty")
-	}
-
 	if d.DatacenterID == 0 {
 		return errors.New("Service group is empty")
 	}

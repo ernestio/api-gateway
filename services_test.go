@@ -19,7 +19,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
-			findServiceSubscriber()
+			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
 			Convey("When I call GET /services/", func() {
 				resp, err := doRequest("GET", "/services/", nil, nil, getServicesHandler, nil)
 
@@ -39,7 +39,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a single services", t, func() {
 		Convey("Given the service exists on the store", func() {
-			getServiceSubscriber()
+			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
 			Convey("And I call /service/:service on the api", func() {
 				var d OutputService
 				params := make(map[string]string)
