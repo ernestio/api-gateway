@@ -17,6 +17,38 @@ func TestServices(t *testing.T) {
 	os.Setenv("JWT_SECRET", "test")
 	setup()
 
+	Convey("Scenario: reeting a service", t, func() {
+		foundSubscriber("service.update", `"success"`, 1)
+
+		Convey("Given my existing service is in progress", func() {
+			foundSubscriber("service.find", `[{"id":"1","name":"test","status":"in_progress"},{"id":"2","name":"test","status":"done"}]`, 1)
+
+			Convey("When I do a call to /services/reset", func() {
+				params := make(map[string]string)
+				params["service"] = "foo"
+				resp, err := doRequest("POST", "/services/foo/reset/", params, nil, resetServiceHandler, nil)
+				Convey("Then it should return a success message", func() {
+					So(err, ShouldBeNil)
+					So(string(resp), ShouldEqual, `"success"`)
+				})
+			})
+		})
+
+		Convey("Given my existing service is errored", func() {
+			foundSubscriber("service.find", `[{"id":"1","name":"test","status":"errored"},{"id":"2","name":"test","status":"done"}]`, 1)
+
+			Convey("When I do a call to /services/reset", func() {
+				params := make(map[string]string)
+				params["service"] = "foo"
+				resp, err := doRequest("POST", "/services/foo/reset/", params, nil, resetServiceHandler, nil)
+				Convey("Then it should return an error message", func() {
+					So(err, ShouldBeNil)
+					So(string(resp), ShouldEqual, "Reset only applies to 'in progress' serices, however service 'foo' is on status 'errored")
+				})
+			})
+		})
+	})
+
 	Convey("Scenario: generating a uuid", t, func() {
 		Convey("Given I do a call to /services/uuid", func() {
 			resp, err := doRequest("POST", "/services/uuid/", nil, []byte(`{"id":"foo"}`), createUuidHandler, nil)

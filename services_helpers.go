@@ -180,3 +180,23 @@ func getServicesOutput(au User, name string) (list []OutputService, err error) {
 
 	return list, nil
 }
+
+func resetService(au User, name string) (status int, err error) {
+	var list []OutputService
+	if list, err = getServicesOutput(au, name); err != nil {
+		return 500, errors.New("Internal error")
+	}
+	if len(list) == 0 {
+		return 404, errors.New(`No services found with for '` + name + `'`)
+	}
+	if list[0].Status != "in_progress" {
+		return 200, errors.New("Reset only applies to 'in progress' serices, however service '" + name + "' is on status '" + list[0].Status)
+	}
+
+	query := `{"id":"` + list[0].ID + `","status":"errored"}`
+	if _, err := n.Request("service.update", []byte(query), 1*time.Second); err != nil {
+		return 500, errors.New("Could not update the service")
+	}
+
+	return 200, nil
+}

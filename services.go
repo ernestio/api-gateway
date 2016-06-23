@@ -97,6 +97,15 @@ func getServiceHandler(c echo.Context) (err error) {
 	}
 }
 
+func resetServiceHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+	if status, err := resetService(au, c.Param("service")); err != nil {
+		return c.JSONBlob(status, []byte(err.Error()))
+	} else {
+		return c.JSONBlob(200, []byte(`"success"`))
+	}
+}
+
 func createUuidHandler(c echo.Context) error {
 	var s struct {
 		ID string `json:"id"`
