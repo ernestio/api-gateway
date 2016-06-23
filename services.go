@@ -10,9 +10,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/nats-io/nats"
 )
 
 // Service holds the service response from service-store
@@ -82,6 +84,9 @@ func getServicesHandler(c echo.Context) error {
 
 func getServiceHandler(c echo.Context) error {
 	var query string
+	var msg *nats.Msg
+	var err error
+
 	au := authenticatedUser(c)
 
 	if au.Admin {
@@ -90,8 +95,7 @@ func getServiceHandler(c echo.Context) error {
 		query = fmt.Sprintf(`{"id": "%s", "group_id": %d}`, c.Param("service"), au.GroupID)
 	}
 
-	msg, err := n.Request("service.get", []byte(query), 1*time.Second)
-	if err != nil {
+	if msg, err = n.Request("service.get", []byte(query), 1*time.Second); err != nil {
 		return ErrGatewayTimeout
 	}
 
@@ -164,7 +168,33 @@ func updateServiceHandler(c echo.Context) error {
 	return echo.NewHTTPError(405, "Not implemented")
 }
 
+// Deletes a service by name
 func deleteServiceHandler(c echo.Context) error {
+	var raw []byte
+	var err error
 
-	return ErrNotImplemented
+	au := authenticatedUser(c)
+
+	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
+		return echo.NewHTTPError(404, err.Error())
+	}
+
+	s := Service{}
+	json.Unmarshal(raw, &s)
+
+	if s.Status == "in_progress" {
+		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
+	}
+
+	query := []byte(`{"previous_id":"` + s.ID + `"}`)
+	if msg, err := n.Request("definition.map_delete", query, 1*time.Second); err != nil {
+		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
+	} else {
+		n.Publish("service.delete", msg.Data)
+	}
+
+	parts := strings.Split(s.ID, "-")
+	stream := parts[len(parts)-1]
+
+	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`","stream_id":"`+stream+`"}`))
 }

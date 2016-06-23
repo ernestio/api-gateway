@@ -100,7 +100,7 @@ func getGroup(id int) (group []byte, err error) {
 func getService(name string, group int) (service *Service, err error) {
 	var msg *nats.Msg
 
-	query := fmt.Sprintf(`{"name":"%s","group_id":"%d"}`, name, group)
+	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, group)
 	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
 		return service, ErrGatewayTimeout
 	}
@@ -125,4 +125,29 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 	}
 
 	return msg.Data, nil
+}
+
+func getServiceRaw(name string, group int) (service []byte, err error) {
+	var msg *nats.Msg
+
+	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, group)
+	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
+		return service, ErrGatewayTimeout
+	}
+	p := []*json.RawMessage{}
+
+	if err = json.Unmarshal(msg.Data, &p); err != nil {
+		return nil, errors.New(`"Internal error"`)
+	}
+
+	if len(p) == 0 {
+		return nil, errors.New(`"Service not found"`)
+	}
+
+	if body, err := p[0].MarshalJSON(); err != nil {
+		return nil, errors.New("Internal error")
+	} else {
+		return body, nil
+	}
+
 }

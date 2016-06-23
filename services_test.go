@@ -209,19 +209,43 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
-	SkipConvey("Scenario: deleting a service", t, func() {
-		Convey("Given a service exists on the store", func() {
-			deleteServiceSubscriber()
 
+	Convey("Scenario: deleting a service", t, func() {
+		ft := generateTestToken(1, "test", false)
+		params := make(map[string]string)
+		params["service"] = "foo-bar"
+
+		Convey("Given I don't have services on my store", func() {
+			foundSubscriber("service.find", `[]`, 1)
 			Convey("When I call DELETE /services/:service", func() {
-				ft := generateTestToken(1, "test", false)
-
-				params := make(map[string]string)
-				params["service"] = "test"
 				_, err := doRequest("DELETE", "/services/:service", params, nil, deleteServiceHandler, ft)
+				Convey("Then I should get a 400 response", func() {
+					So(err.Error(), ShouldEqual, `"Service not found"`)
+				})
+			})
+		})
 
-				Convey("It should delete the service and return ok", func() {
+		Convey("Given a service exists with in progress status", func() {
+			foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
+			Convey("When I call DELETE /services/:service", func() {
+				req, err := doRequest("DELETE", "/services/:service", params, nil, deleteServiceHandler, ft)
+				Convey("Then I should get a 400 response", func() {
 					So(err, ShouldBeNil)
+					So(string(req), ShouldEqual, `"Service is already applying some changes, please wait until they are done"`)
+				})
+			})
+		})
+
+		Convey("Given a service exists on the store", func() {
+			foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
+			foundSubscriber("definition.map_delete", `""`, 1)
+			foundSubscriber("service.delete", `""`, 1)
+			Convey("When I call DELETE /services/:service", func() {
+				res, err := doRequest("DELETE", "/services/:service", params, nil, deleteServiceHandler, ft)
+
+				Convey("Then I should get a response with id and stream id", func() {
+					So(err, ShouldBeNil)
+					So(string(res), ShouldEqual, `{"id":"foo-bar","stream_id":"bar"}`)
 				})
 			})
 
