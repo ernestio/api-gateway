@@ -5,20 +5,14 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/ghodss/yaml"
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
-	"github.com/nu7hatch/gouuid"
 )
 
 // Service holds the service response from service-store
@@ -110,120 +104,67 @@ func getServiceHandler(c echo.Context) error {
 
 // createServiceHandler : Will receive a service application
 func createServiceHandler(c echo.Context) error {
-	var msg *nats.Msg
+	var s ServiceInput
+	var err error
+	var body []byte
+	var datacenter []byte
+	var group []byte
+	var action = "service.create"
 
-	type Service struct {
-		Datacenter string `json:"datacenter"`
-		Provider   string `json:"provider"`
-		Name       string `json:"name"`
-	}
+	payload := ServicePayload{}
 	au := authenticatedUser(c)
 
-	req := c.Request()
-	body, err := ioutil.ReadAll(req.Body())
-
-	// Normalize input body to json
-	ctype := req.Header().Get("Content-Type")
-
-	if ctype != "application/json" && ctype != "application/yaml" {
-		return c.JSONBlob(400, []byte(`"Invalid input format"`))
-	} else if ctype == "application/yaml" {
-		if body, err = yaml.JSONToYAML(body); err != nil {
-			return c.JSONBlob(400, []byte(`"Invalid yaml input"`))
-		}
+	if s, body, err = mapInputService(c); err != nil {
+		return c.JSONBlob(400, []byte(err.Error()))
 	}
-
-	s := Service{}
-	if err = json.Unmarshal(body, &s); err != nil {
-		return c.JSONBlob(400, []byte(`"Invalid input"`))
-	}
+	payload.Service = (*json.RawMessage)(&body)
 
 	// Get datacenter
-	query := fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("datacenter"), au.GroupID)
-	if msg, err = n.Request("datacenter.find", []byte(query), 1*time.Second); err != nil {
-		return ErrGatewayTimeout
+	if datacenter, err = getDatacenter(c.Param("datacenter"), au.GroupID, s.Provider); err != nil {
+		return c.JSONBlob(404, []byte(err.Error()))
 	}
-	if strings.Contains(string(msg.Data), `"error"`) {
-		return c.JSONBlob(http.StatusNotFound, []byte(`"Specified datacenter does not exist"`))
-	}
-	datacenter := msg.Data
-	if s.Provider == "fake" {
-		datacenter = []byte(`{"datacenter_id":"fake","datacenter_name":"fake","datacenter_username":"fake","datacenter_password":"fake","datacenter_region":"fake","datacenter_type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`)
-	}
+	payload.Datacenter = (*json.RawMessage)(&datacenter)
 
 	// Get group
-	query = fmt.Sprintf(`{"id": %d}`, au.GroupID)
-	if msg, err = n.Request("group.get", []byte(query), 1*time.Second); err != nil {
-		return ErrGatewayTimeout
+	if group, err = getGroup(au.GroupID); err != nil {
+		return c.JSONBlob(http.StatusNotFound, []byte(err.Error()))
 	}
-	if strings.Contains(string(msg.Data), `"error"`) {
-		return c.JSONBlob(http.StatusNotFound, []byte(`"Specified group does not exist"`))
-	}
-	group := msg.Data
+	payload.Group = (*json.RawMessage)(&group)
 
-	// Calculate the id
-	compose := []byte(s.Name + "-" + s.Datacenter)
-	hasher := md5.New()
-	hasher.Write(compose)
-	sufix := hex.EncodeToString(hasher.Sum(nil))
-	prefix, err := uuid.NewV4()
-	serviceID := prefix.String() + "-" + string(sufix[:])
+	// Generate service ID
+	payload.ID = generateServiceID(&s)
 
-	// We need the status of previous service
-	query = fmt.Sprintf(`{"name":"%s","group_id":"%d"}`, s.Name, au.GroupID)
-	if msg, err = n.Request("service.get", []byte(query), 1*time.Second); err != nil {
-		return ErrGatewayTimeout
-	}
-	var p struct {
-		ID     string `json:"id"`
-		Status string `json:"status"`
-	}
-	subject := "service.create"
-	if !strings.Contains(string(msg.Data), `{"error":"not found"}`) {
-		json.Unmarshal(msg.Data, &p)
-		if p.Status == "errored" {
-			subject = "service.patch"
-		}
-		if p.Status == "in_progress" {
-			return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
+	// Get previous service if exists
+	if previous, err := getService(s.Name, au.GroupID); err != nil {
+		return c.JSONBlob(http.StatusNotFound, []byte(err.Error()))
+	} else {
+		if previous != nil {
+			payload.PrevID = previous.ID
+			if previous.Status == "errored" {
+				action = "service.patch"
+			}
+			if previous.Status == "in_progress" {
+				return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
+			}
 		}
 	}
 
-	// MAP definition
-	var payload struct {
-		ID         string      `json:"id"`
-		PrevID     string      `json:"previous_id"`
-		Datacenter interface{} `json:"datacenter"`
-		Group      interface{} `json:"client"`
-		Service    interface{} `json:"service"`
+	var service []byte
+	if service, err = mapCreateDefinition(payload); err != nil {
+		return echo.NewHTTPError(400, err.Error())
 	}
-
-	payload.ID = serviceID
-	payload.Service = body
-	payload.Datacenter = datacenter
-	payload.Group = group
-	payload.PrevID = p.ID
-
-	var payloadBody []byte
-	if payloadBody, err = json.Marshal(payload); err != nil {
-		return echo.NewHTTPError(400, "Provided yaml is not valid")
-	}
-	if msg, err = n.Request("definition.map_create", []byte(payloadBody), 1*time.Second); err != nil {
-		return echo.NewHTTPError(400, "Provided yaml is not valid")
-	}
-	mappedService := msg.Data
 
 	// Apply changes
-	n.Publish(subject, mappedService)
+	n.Publish(action, service)
 
-	// Respond with { id: id } -------->
-	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+serviceID+`"}`))
+	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
 
 func updateServiceHandler(c echo.Context) error {
-	return ErrNotImplemented
+	return echo.NewHTTPError(405, "Not implemented")
 }
 
 func deleteServiceHandler(c echo.Context) error {
+
 	return ErrNotImplemented
 }

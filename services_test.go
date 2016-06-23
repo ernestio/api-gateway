@@ -129,7 +129,7 @@ func TestServices(t *testing.T) {
 			})
 
 			Convey("And the specified datacenter does not exist", func() {
-				notFoundSubscriber("datacenter.find", 1)
+				foundSubscriber("datacenter.find", "[]", 1)
 				data := []byte(`{"name":"test"}`)
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/json"
@@ -161,7 +161,7 @@ func TestServices(t *testing.T) {
 				headers["Content-Type"] = "application/json"
 
 				Convey("And the service does not exist", func() {
-					notFoundSubscriber("service.get", 1)
+					foundSubscriber("service.find", "[]", 1)
 					foundSubscriber("service.create", `{"id":"1"}`, 1)
 					foundSubscriber("definition.map_create", `{"id":"1"}`, 1)
 					resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
@@ -176,7 +176,7 @@ func TestServices(t *testing.T) {
 					foundSubscriber("service.create", `{"id":"1"}`, 1)
 					Convey("And the existing service is done", func() {
 						foundSubscriber("definition.map_create", `{"id":"1"}`, 1)
-						foundSubscriber("service.get", `{"id":"foo-bar","status":"done"}`, 1)
+						foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
 						resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
 						Convey("Then I should get a response with the existing id", func() {
 							So(err, ShouldEqual, nil)
@@ -186,7 +186,7 @@ func TestServices(t *testing.T) {
 					})
 
 					Convey("And the existing service is in progress", func() {
-						foundSubscriber("service.get", `{"id":"foo-bar","status":"in_progress"}`, 1)
+						foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
 						resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
 						Convey("Then I should get an error as an in_progress service can't be modified", func() {
 							So(err, ShouldEqual, nil)
@@ -195,7 +195,7 @@ func TestServices(t *testing.T) {
 					})
 
 					Convey("And the existing service is errored", func() {
-						foundSubscriber("service.get", `{"id":"foo-bar","status":"errored"}`, 1)
+						foundSubscriber("service.find", `[{"id":"foo-bar","status":"errored"}]`, 1)
 						foundSubscriber("definition.map_create", `{"id":"1"}`, 1)
 						foundSubscriber("service.patch", `{"id":"1"}`, 1)
 						resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
@@ -207,56 +207,6 @@ func TestServices(t *testing.T) {
 					})
 				})
 			})
-			/*
-				Convey("When I do a post to /services/ with invalid innput type", func() {
-					mockDC := Service{
-						GroupID: 1,
-						Name:    "new-test",
-						Type:    "vcloud",
-					}
-
-					data, _ := json.Marshal(mockDC)
-					params := make(map[string]string)
-					params["service"] = "test"
-
-					Convey("And I am logged in as an admin", func() {
-						resp, err := doRequest("POST", "/services/", params, data, createServiceHandler, nil)
-
-						Convey("Then a service should be created", func() {
-							var d Service
-							So(err, ShouldBeNil)
-							err = json.Unmarshal(resp, &d)
-							So(err, ShouldBeNil)
-							So(d.ID, ShouldEqual, 3)
-							So(d.Name, ShouldEqual, "new-test")
-						})
-					})
-
-					Convey("And the service group matches the authenticated users group", func() {
-						ft := generateTestToken(1, "test", false)
-						resp, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
-
-						Convey("It should create the service and return the correct set of data", func() {
-							var d Service
-							So(err, ShouldBeNil)
-							err = json.Unmarshal(resp, &d)
-							So(err, ShouldBeNil)
-							So(d.ID, ShouldEqual, 3)
-							So(d.Name, ShouldEqual, "new-test")
-						})
-					})
-
-					Convey("And the service group does not match the authenticated users group", func() {
-						ft := generateTestToken(2, "test2", false)
-						_, err := doRequest("POST", "/services/", params, data, createServiceHandler, ft)
-
-						Convey("It should return an 403 unauthorized error", func() {
-							So(err, ShouldNotBeNil)
-							So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
-						})
-					})
-				})
-			*/
 		})
 	})
 	SkipConvey("Scenario: deleting a service", t, func() {
