@@ -55,14 +55,18 @@ func mapInputService(c echo.Context) (s ServiceInput, body []byte, err error) {
 }
 
 // Generates a service ID based on an input service
-func generateServiceID(s *ServiceInput) string {
-	compose := []byte(s.Name + "-" + s.Datacenter)
-	hasher := md5.New()
-	hasher.Write(compose)
-	sufix := hex.EncodeToString(hasher.Sum(nil))
+func generateServiceID(salt string) string {
+	sufix := generateStreamID(salt)
 	prefix, _ := uuid.NewV4()
 
 	return prefix.String() + "-" + string(sufix[:])
+}
+
+func generateStreamID(salt string) string {
+	compose := []byte(salt)
+	hasher := md5.New()
+	hasher.Write(compose)
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func getDatacenter(id string, group int, provider string) (datacenter []byte, err error) {

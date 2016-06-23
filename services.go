@@ -97,6 +97,22 @@ func getServiceHandler(c echo.Context) (err error) {
 	}
 }
 
+func createUuidHandler(c echo.Context) error {
+	var s struct {
+		ID string `json:"id"`
+	}
+	req := c.Request()
+	body, err := ioutil.ReadAll(req.Body())
+	if err != nil {
+		return c.JSONBlob(500, []byte("Invalid input"))
+	}
+
+	json.Unmarshal(body, &s)
+	id := generateStreamID(s.ID)
+
+	return c.JSONBlob(http.StatusOK, []byte(`{"uuid":"`+id+`"}`))
+}
+
 // createServiceHandler : Will receive a service application
 func createServiceHandler(c echo.Context) error {
 	var s ServiceInput
@@ -127,7 +143,7 @@ func createServiceHandler(c echo.Context) error {
 	payload.Group = (*json.RawMessage)(&group)
 
 	// Generate service ID
-	payload.ID = generateServiceID(&s)
+	payload.ID = generateServiceID(s.Name + "-" + s.Datacenter)
 
 	// Get previous service if exists
 	if previous, err := getService(s.Name, au.GroupID); err != nil {

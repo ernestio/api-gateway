@@ -17,6 +17,17 @@ func TestServices(t *testing.T) {
 	os.Setenv("JWT_SECRET", "test")
 	setup()
 
+	Convey("Scenario: generating a uuid", t, func() {
+		Convey("Given I do a call to /services/uuid", func() {
+			resp, err := doRequest("POST", "/services/uuid/", nil, []byte(`{"id":"foo"}`), createUuidHandler, nil)
+
+			Convey("It should return the correct encoded uuid", func() {
+				So(err, ShouldBeNil)
+				So(string(resp), ShouldEqual, `{"uuid":"acbd18db4cc2f85cedef654fccc4a4d8"}`)
+			})
+		})
+	})
+
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)

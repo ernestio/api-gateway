@@ -62,6 +62,8 @@ func setupRoutes(api *echo.Group) {
 	api.GET("/services/", getServicesHandler)
 	api.GET("/services/:service", getServiceHandler)
 	api.Post("/services/", createServiceHandler)
+	api.Post("/services/uuid/", createUuidHandler)
 	api.Put("/services/:service", updateServiceHandler)
 	api.Delete("/services/:service", deleteServiceHandler)
+
 }
