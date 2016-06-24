@@ -17,12 +17,21 @@ var (
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
+			Version:      "1",
+		},
+		Service{
+			ID:           "3",
+			Name:         "test",
+			GroupID:      1,
+			DatacenterID: 1,
+			Version:      "2",
 		},
 		Service{
 			ID:           "2",
 			Name:         "test2",
 			GroupID:      2,
 			DatacenterID: 3,
+			Version:      "1",
 		},
 	}
 )
@@ -50,10 +59,29 @@ func getServiceSubscriber() {
 }
 
 func findServiceSubscriber() {
-	n.Subscribe("service.find", func(msg *nats.Msg) {
-		data, _ := json.Marshal(mockServices)
+	sub, _ := n.Subscribe("service.find", func(msg *nats.Msg) {
+		var s []Service
+		var qs Service
+		json.Unmarshal(msg.Data, &qs)
+
+		if qs.Name != "" && qs.ID != "" && qs.Version != "" {
+			data, _ := json.Marshal(mockServices)
+			n.Publish(msg.Reply, data)
+			return
+		}
+
+		for _, service := range mockServices {
+			if service.Name == qs.Name && qs.Version == "" ||
+				service.Name == qs.Name && service.Version == qs.Version ||
+				service.Name == qs.Name && service.GroupID == qs.GroupID {
+				s = append(s, service)
+			}
+		}
+
+		data, _ := json.Marshal(s)
 		n.Publish(msg.Reply, data)
 	})
+	sub.AutoUnsubscribe(1)
 }
 
 func createServiceSubscriber() {

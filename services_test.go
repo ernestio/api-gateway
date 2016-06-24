@@ -29,7 +29,7 @@ func TestServices(t *testing.T) {
 				resp, err := doRequest("POST", "/services/foo/reset/", params, nil, resetServiceHandler, nil)
 				Convey("Then it should return a success message", func() {
 					So(err, ShouldBeNil)
-					So(string(resp), ShouldEqual, `"success"`)
+					So(string(resp), ShouldEqual, `success`)
 				})
 			})
 		})
@@ -51,7 +51,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: generating a uuid", t, func() {
 		Convey("Given I do a call to /services/uuid", func() {
-			resp, err := doRequest("POST", "/services/uuid/", nil, []byte(`{"id":"foo"}`), createUuidHandler, nil)
+			resp, err := doRequest("POST", "/services/uuid/", nil, []byte(`{"id":"foo"}`), createUUIDHandler, nil)
 
 			Convey("It should return the correct encoded uuid", func() {
 				So(err, ShouldBeNil)
@@ -80,7 +80,7 @@ func TestServices(t *testing.T) {
 		})
 	})
 
-	Convey("Scenario: getting a single services", t, func() {
+	Convey("Scenario: getting a single service", t, func() {
 		Convey("Given the service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
 			Convey("And I call /service/:service on the api", func() {
@@ -114,6 +114,48 @@ func TestServices(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, "1")
 						So(d.Name, ShouldEqual, "test")
+					})
+				})
+			})
+		})
+	})
+
+	Convey("Scenario: searching for services", t, func() {
+		Convey("Given the service exists on the store", func() {
+			findServiceSubscriber()
+			Convey("And I call /service/search/ on the api", func() {
+				var s []OutputService
+				params := make(map[string]string)
+				params["service"] = "1"
+				resp, err := doRequest("GET", "/services/search/?name=test", params, nil, searchServicesHandler, nil)
+
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should get the matching service", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+
+						So(err, ShouldBeNil)
+						So(len(s), ShouldEqual, 2)
+					})
+				})
+			})
+		})
+
+		Convey("Given the service doesn't exist on the store", func() {
+			findServiceSubscriber()
+			Convey("And I call /service/search/ on the api", func() {
+				var s []OutputService
+				params := make(map[string]string)
+				params["service"] = "1"
+				resp, err := doRequest("GET", "/services/search/?name=doesntexist", params, nil, searchServicesHandler, nil)
+
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should return an empty array", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+
+						So(err, ShouldBeNil)
+						So(len(s), ShouldEqual, 0)
 					})
 				})
 			})

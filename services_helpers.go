@@ -108,6 +108,7 @@ func getService(name string, group int) (service *Service, err error) {
 	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
 		return service, ErrGatewayTimeout
 	}
+
 	p := []Service{}
 	json.Unmarshal(msg.Data, &p)
 	if len(p) == 0 {
@@ -166,11 +167,15 @@ type OutputService struct {
 	Definition   string `json:"definition"`
 }
 
-func getServicesOutput(au User, name string) (list []OutputService, err error) {
+func getServicesOutput(filter map[string]interface{}) (list []OutputService, err error) {
 	var msg *nats.Msg
 
-	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, au.GroupID)
-	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
+	query, err := json.Marshal(filter)
+	if err != nil {
+		return list, err
+	}
+
+	if msg, err = n.Request("service.find", query, 1*time.Second); err != nil {
 		return list, ErrGatewayTimeout
 	}
 
@@ -183,7 +188,11 @@ func getServicesOutput(au User, name string) (list []OutputService, err error) {
 
 func resetService(au User, name string) (status int, err error) {
 	var list []OutputService
-	if list, err = getServicesOutput(au, name); err != nil {
+	filter := make(map[string]interface{})
+	filter["group_id"] = au.GroupID
+	filter["name"] = name
+
+	if list, err = getServicesOutput(filter); err != nil {
 		return 500, errors.New("Internal error")
 	}
 	if len(list) == 0 {

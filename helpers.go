@@ -6,6 +6,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -42,4 +43,54 @@ func authenticatedUser(c echo.Context) User {
 	}
 
 	return u
+}
+
+// Returns a filter based on parameters defined on the url stem
+func getParamFilter(c echo.Context) map[string]interface{} {
+	query := make(map[string]interface{})
+
+	fields := []string{"group", "user", "group", "datacenter"}
+
+	// Process ID's as int's
+	for _, field := range fields {
+		if val := c.Param(field); val != "" {
+			id, err := strconv.Atoi(val)
+			if err == nil {
+				query["id"] = id
+			}
+		}
+	}
+
+	if c.Param("service") != "" {
+		query["name"] = c.Param("service")
+	}
+
+	if c.Param("version") != "" {
+		query["version"] = c.Param("version")
+	}
+
+	return query
+}
+
+// Returns a filter based on url query values from the request
+func getSearchFilter(c echo.Context) map[string]interface{} {
+	query := make(map[string]interface{})
+
+	fields := []string{"id", "user_id", "group_id", "datacenter_id", "service_id"}
+
+	// Process ID's as int's
+	for _, field := range fields {
+		if val := c.QueryParam(field); val != "" {
+			id, err := strconv.Atoi(val)
+			if err == nil {
+				query[field] = id
+			}
+		}
+	}
+
+	if c.QueryParam("name") != "" {
+		query["name"] = c.QueryParam("name")
+	}
+
+	return query
 }

@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -69,44 +70,109 @@ func (d *Service) Map(c echo.Context) *echo.HTTPError {
 
 func getServicesHandler(c echo.Context) (err error) {
 	var list []OutputService
-
 	au := authenticatedUser(c)
-	if list, err = getServicesOutput(au, c.Param("service")); err != nil {
+
+	query := getSearchFilter(c)
+	if au.Admin != true {
+		query["group_id"] = au.GroupID
+	}
+
+	if list, err = getServicesOutput(query); err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
 	}
 
-	if body, err := json.Marshal(list); err != nil {
-		return c.JSONBlob(500, []byte("Internal error"))
-	} else {
-		return c.JSONBlob(http.StatusOK, body)
+	return c.JSON(http.StatusOK, list)
+}
+
+func getServiceBuildsHandler(c echo.Context) error {
+	// get the service name
+	var s Service
+	au := authenticatedUser(c)
+
+	qn := fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("service"), au.GroupID)
+	msg, err := n.Request("service.find", []byte(qn), time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
 	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	err = json.Unmarshal(msg.Data, s)
+	if err != nil {
+		return ErrInternal
+	}
+
+	// Get all builds for service name
+	qb := getParamFilter(c)
+	qb["group_id"] = au.GroupID
+
+	list, err := getServicesOutput(qb)
+	if err != nil {
+		return c.JSONBlob(500, []byte(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, list)
 }
 
 func getServiceHandler(c echo.Context) (err error) {
 	var list []OutputService
 
 	au := authenticatedUser(c)
-	if list, err = getServicesOutput(au, c.Param("service")); err != nil {
+	query := getParamFilter(c)
+	if au.Admin != true {
+		query["group_id"] = au.GroupID
+	}
+
+	if list, err = getServicesOutput(query); err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
 	}
 
-	if body, err := json.Marshal(list[0]); err != nil {
-		return c.JSONBlob(500, []byte("Internal error"))
-	} else {
-		return c.JSONBlob(http.StatusOK, body)
+	return c.JSON(http.StatusOK, list[0])
+}
+
+func getServiceBuildHandler(c echo.Context) (err error) {
+	var list []OutputService
+
+	au := authenticatedUser(c)
+	query := getParamFilter(c)
+	if au.Admin != true {
+		query["group_id"] = au.GroupID
 	}
+
+	if list, err = getServicesOutput(query); err != nil {
+		return c.JSONBlob(500, []byte(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, list[0])
+}
+
+func searchServicesHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	query := getSearchFilter(c)
+	if au.Admin != true {
+		query["group_id"] = au.GroupID
+	}
+
+	list, err := getServicesOutput(query)
+	if err != nil {
+		return ErrInternal
+	}
+
+	return c.JSON(http.StatusOK, list)
 }
 
 func resetServiceHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 	if status, err := resetService(au, c.Param("service")); err != nil {
 		return c.JSONBlob(status, []byte(err.Error()))
-	} else {
-		return c.JSONBlob(200, []byte(`"success"`))
 	}
+	return c.String(200, "success")
 }
 
-func createUuidHandler(c echo.Context) error {
+func createUUIDHandler(c echo.Context) error {
 	var s struct {
 		ID string `json:"id"`
 	}
