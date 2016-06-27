@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -14,7 +13,7 @@ import (
 )
 
 func TestServices(t *testing.T) {
-	os.Setenv("JWT_SECRET", "test")
+	testsSetup()
 	setup()
 
 	Convey("Scenario: reeting a service", t, func() {

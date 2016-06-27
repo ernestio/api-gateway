@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"strings"
 	"testing"
 
@@ -23,7 +22,7 @@ var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cC
 
 func TestAuth(t *testing.T) {
 	Convey("Given the auth handler", t, func() {
-		os.Setenv("JWT_SECRET", "test")
+		testsSetup()
 		setup()
 
 		Convey("When attempting to login", func() {
@@ -86,7 +85,7 @@ func TestAuth(t *testing.T) {
 	})
 
 	Convey("Given a protected route", t, func() {
-		os.Setenv("JWT_SECRET", "test")
+		testsSetup()
 		setup()
 
 		Convey("When attempting to retrieve data", func() {
