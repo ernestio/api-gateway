@@ -176,7 +176,7 @@ func TestServices(t *testing.T) {
 				})
 			})
 
-			Convey("And the content type is a non valid yaml", func() {
+			SkipConvey("And the content type is a non valid yaml", func() {
 				data := []byte("{asd}")
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/yaml"
@@ -204,7 +204,7 @@ func TestServices(t *testing.T) {
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/json"
 				resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
-				Convey("Then I should get a 404 response", func() {
+				SkipConvey("Then I should get a 404 response", func() {
 					So(err, ShouldEqual, nil)
 					So(string(resp), ShouldEqual, `"Specified datacenter does not exist"`)
 				})
