@@ -62,6 +62,8 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				Convey("When the datacenter group matches the authenticated users group", func() {
+					SkipConvey("there is no support for groups on datacenters payloads", func() {
+					})
 					ft := generateTestToken(1, "admin", true)
 
 					params := make(map[string]string)
