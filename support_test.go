@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"os"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -49,4 +50,9 @@ func doRequestHeaders(method string, path string, params map[string]string, data
 
 	resp := rec.Body.Bytes()
 	return resp, nil
+}
+
+func testsSetup() {
+	os.Setenv("JWT_SECRET", "test")
+	os.Setenv("NATS_URI", os.Getenv("NATS_URI_TEST"))
 }

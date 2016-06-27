@@ -6,14 +6,13 @@ package main
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGroups(t *testing.T) {
-	os.Setenv("JWT_SECRET", "test")
+	testsSetup()
 	setup()
 
 	Convey("Scenario: getting a list of groups", t, func() {

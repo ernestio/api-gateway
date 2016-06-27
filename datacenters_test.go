@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/labstack/echo"
@@ -14,7 +13,7 @@ import (
 )
 
 func TestDatacenters(t *testing.T) {
-	os.Setenv("JWT_SECRET", "test")
+	testsSetup()
 	setup()
 
 	Convey("Scenario: getting a list of datacenters", t, func() {
