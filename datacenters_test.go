@@ -61,26 +61,24 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				Convey("When the datacenter group matches the authenticated users group", func() {
-					SkipConvey("there is no support for groups on datacenters payloads", func() {
-						ft := generateTestToken(1, "admin", true)
+				SkipConvey("When the datacenter group matches the authenticated users group", func() {
+					ft := generateTestToken(1, "admin", true)
 
-						params := make(map[string]string)
-						params["datacenter"] = "1"
-						resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
+					params := make(map[string]string)
+					params["datacenter"] = "1"
+					resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
 
-						Convey("Then I should get the existing datacenter", func() {
-							var d Datacenter
-							So(err, ShouldBeNil)
-							err = json.Unmarshal(resp, &d)
-							So(err, ShouldBeNil)
-							So(d.ID, ShouldEqual, 1)
-							So(d.Name, ShouldEqual, "test")
-						})
+					Convey("Then I should get the existing datacenter", func() {
+						var d Datacenter
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &d)
+						So(err, ShouldBeNil)
+						So(d.ID, ShouldEqual, 1)
+						So(d.Name, ShouldEqual, "test")
 					})
 				})
 
-				Convey("When the datacenter group does not match the authenticated users group", func() {
+				SkipConvey("When the datacenter group does not match the authenticated users group", func() {
 					ft := generateTestToken(2, "test2", false)
 					params := make(map[string]string)
 					params["datacenter"] = "1"
@@ -126,7 +124,7 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				Convey("And the datacenter group matches the authenticated users group", func() {
+				SkipConvey("And the datacenter group matches the authenticated users group", func() {
 					ft := generateTestToken(1, "test", false)
 					resp, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
 
@@ -140,7 +138,7 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				Convey("And the datacenter group does not match the authenticated users group", func() {
+				SkipConvey("And the datacenter group does not match the authenticated users group", func() {
 					ft := generateTestToken(2, "test", false)
 					_, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
 
