@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -86,27 +85,13 @@ func getServicesHandler(c echo.Context) (err error) {
 
 func getServiceBuildsHandler(c echo.Context) error {
 	// get the service name
-	var s Service
 	au := authenticatedUser(c)
-
-	qn := fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("service"), au.GroupID)
-	msg, err := n.Request("service.find", []byte(qn), time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	err = json.Unmarshal(msg.Data, s)
-	if err != nil {
-		return ErrInternal
-	}
 
 	// Get all builds for service name
 	qb := getParamFilter(c)
-	qb["group_id"] = au.GroupID
+	if au.Admin != true {
+		qb["group_id"] = au.GroupID
+	}
 
 	list, err := getServicesOutput(qb)
 	if err != nil {

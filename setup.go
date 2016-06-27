@@ -70,5 +70,4 @@ func setupRoutes(api *echo.Group) {
 	api.Post("/services/:service/reset/", resetServiceHandler)
 	api.Put("/services/:service", updateServiceHandler)
 	api.Delete("/services/:service", deleteServiceHandler)
-
 }

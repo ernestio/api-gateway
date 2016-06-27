@@ -120,6 +120,91 @@ func TestServices(t *testing.T) {
 		})
 	})
 
+	Convey("Scenario: getting a service's builds", t, func() {
+		Convey("Given the service exists on the store", func() {
+			Convey("And I call /service/:service/builds/ on the api", func() {
+				findServiceSubscriber()
+				var s []OutputService
+				params := make(map[string]string)
+				params["service"] = "test"
+				resp, err := doRequest("GET", "/services/:service/builds/", params, nil, getServiceBuildsHandler, nil)
+
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should get the service's builds", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+
+						So(err, ShouldBeNil)
+						So(len(s), ShouldEqual, 2)
+						So(s[0].ID, ShouldEqual, "1")
+						So(s[0].Name, ShouldEqual, "test")
+					})
+				})
+
+				Convey("When the service group matches the authenticated users group", func() {
+					findServiceSubscriber()
+					ft := generateTestToken(1, "test", false)
+
+					params := make(map[string]string)
+					params["service"] = "test"
+					resp, err := doRequest("GET", "/services/:service/builds/", params, nil, getServiceBuildsHandler, ft)
+
+					Convey("Then I should get the service's builds", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+
+						So(len(s), ShouldEqual, 2)
+						So(s[0].ID, ShouldEqual, "1")
+						So(s[0].Name, ShouldEqual, "test")
+					})
+				})
+			})
+		})
+	})
+
+	Convey("Scenario: getting a service's build", t, func() {
+		Convey("Given the service exists on the store", func() {
+			Convey("And I call /service/:service/builds/:build on the api", func() {
+				findServiceSubscriber()
+				var s OutputService
+
+				params := make(map[string]string)
+				params["service"] = "test"
+				params["build"] = "1"
+				resp, err := doRequest("GET", "/services/:service/builds/:build", params, nil, getServiceBuildHandler, nil)
+
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should get the existing service", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+
+						So(err, ShouldBeNil)
+						So(s.ID, ShouldEqual, "1")
+						So(s.Name, ShouldEqual, "test")
+					})
+				})
+
+				Convey("When the service group matches the authenticated users group", func() {
+					findServiceSubscriber()
+					ft := generateTestToken(1, "test", false)
+
+					params := make(map[string]string)
+					params["service"] = "test"
+					params["build"] = "1"
+					resp, err := doRequest("GET", "/services/:service/builds/:build", params, nil, getServiceBuildHandler, ft)
+
+					Convey("Then I should get the existing service", func() {
+						So(err, ShouldBeNil)
+						err = json.Unmarshal(resp, &s)
+						So(err, ShouldBeNil)
+						So(s.ID, ShouldEqual, "1")
+						So(s.Name, ShouldEqual, "test")
+					})
+				})
+			})
+		})
+	})
+
 	Convey("Scenario: searching for services", t, func() {
 		Convey("Given the service exists on the store", func() {
 			findServiceSubscriber()
@@ -177,7 +262,7 @@ func TestServices(t *testing.T) {
 			})
 
 			Convey("And the content type is a non valid yaml", func() {
-				data := []byte("{asd}")
+				data := []byte("asd")
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/yaml"
 				resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)

@@ -94,7 +94,7 @@ func getDatacenter(id string, group int, provider string) (datacenter []byte, er
 func getGroup(id int) (group []byte, err error) {
 	var msg *nats.Msg
 
-	query := fmt.Sprintf(`{"id": %d}`, group)
+	query := fmt.Sprintf(`{"id": %d}`, id)
 	if msg, err = n.Request("group.get", []byte(query), 1*time.Second); err != nil {
 		return group, ErrGatewayTimeout
 	}

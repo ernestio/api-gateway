@@ -140,15 +140,6 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				Convey("And the datacenter group does not match the authenticated users group", func() {
-					ft := generateTestToken(2, "test", false)
-					_, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
-
-					Convey("It should return an 403 unauthorized error", func() {
-						So(err, ShouldNotBeNil)
-						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
-					})
-				})
 			})
 		})
 	})

@@ -64,7 +64,7 @@ func findServiceSubscriber() {
 		var qs Service
 		json.Unmarshal(msg.Data, &qs)
 
-		if qs.Name != "" && qs.ID != "" && qs.Version != "" {
+		if qs.Name == "" && qs.ID == "" && qs.Version == "" {
 			data, _ := json.Marshal(mockServices)
 			n.Publish(msg.Reply, data)
 			return
@@ -72,8 +72,8 @@ func findServiceSubscriber() {
 
 		for _, service := range mockServices {
 			if service.Name == qs.Name && qs.Version == "" ||
-				service.Name == qs.Name && service.Version == qs.Version ||
-				service.Name == qs.Name && service.GroupID == qs.GroupID {
+				service.Name == qs.Name && service.Version == qs.Version && qs.GroupID == 0 ||
+				service.Name == qs.Name && service.GroupID == qs.GroupID && qs.Version == "" {
 				s = append(s, service)
 			}
 		}
