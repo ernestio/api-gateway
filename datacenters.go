@@ -118,9 +118,7 @@ func createDatacenterHandler(c echo.Context) error {
 	}
 
 	au := authenticatedUser(c)
-	if au.Admin != true && d.GroupID != au.GroupID {
-		return ErrUnauthorized
-	}
+	d.GroupID = au.GroupID
 
 	data, err := json.Marshal(d)
 	if err != nil {
