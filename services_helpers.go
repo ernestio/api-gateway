@@ -41,8 +41,11 @@ func mapInputService(c echo.Context) (s ServiceInput, body []byte, err error) {
 
 	if ctype != "application/json" && ctype != "application/yaml" {
 		return s, body, errors.New(`"Invalid input format"`)
-	} else if ctype == "application/yaml" {
-		if body, err = yaml.JSONToYAML(body); err != nil {
+	}
+
+	if ctype == "application/yaml" {
+		body, err = yaml.YAMLToJSON(body)
+		if err != nil {
 			return s, body, errors.New(`"Invalid yaml input"`)
 		}
 	}
