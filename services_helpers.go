@@ -75,6 +75,11 @@ func generateStreamID(salt string) string {
 func getDatacenter(id string, group int, provider string) (datacenter []byte, err error) {
 	var msg *nats.Msg
 
+	// FIXME This is just a temporal fix until we introduce typed datacenters
+	if provider == "fake" {
+		return []byte(`{"id":"fake","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`), nil
+	}
+
 	query := fmt.Sprintf(`{"id": %s, "group_id": %d}`, id, group)
 	if msg, err = n.Request("datacenter.find", []byte(query), 1*time.Second); err != nil {
 		return datacenter, ErrGatewayTimeout
@@ -83,12 +88,15 @@ func getDatacenter(id string, group int, provider string) (datacenter []byte, er
 		return datacenter, errors.New(`"Specified datacenter does not exist"`)
 	}
 
-	// FIXME This is just a temporal fix until we introduce typed datacenters
-	if provider == "fake" {
-		datacenter = []byte(`{"id":"fake","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`)
+	// Get only the first datcenter
+	datacenters := make([]interface{}, 0)
+	json.Unmarshal(msg.Data, &datacenters)
+	res, err := json.Marshal(datacenters[0])
+	if err != nil {
+		return datacenter, errors.New("Internal error trying to get the datacenter")
 	}
 
-	return msg.Data, nil
+	return res, nil
 }
 
 func getGroup(id int) (group []byte, err error) {
