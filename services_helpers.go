@@ -220,3 +220,33 @@ func resetService(au User, name string) (status int, err error) {
 
 	return 200, nil
 }
+func saveService(id, name, t, v, s, o, d, m string, group, datacenter uint) {
+	var payload struct {
+		Uuid         string `json:"id"`
+		GroupID      uint   `json:"group_id"`
+		DatacenterID uint   `json:"datacenter_id"`
+		Name         string `json:"name"`
+		Type         string `json:"type"`
+		Version      string `json:"version"`
+		Status       string `json:"status"`
+		Options      string `json:"options"`
+		Definition   string `json:"definition"`
+		Mapping      string `json:"mapping"`
+	}
+
+	payload.Uuid = id
+	payload.Name = name
+	payload.Type = t
+	payload.GroupID = group
+	payload.DatacenterID = datacenter
+	payload.Version = v
+	payload.Status = s
+	payload.Options = o
+	payload.Definition = d
+	payload.Mapping = m
+
+	body, _ := json.Marshal(payload)
+
+	println(string(body))
+	n.Publish("service.set", body)
+}

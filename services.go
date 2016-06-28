@@ -225,6 +225,19 @@ func createServiceHandler(c echo.Context) error {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
+	var datacenterStruct struct {
+		ID   uint   `json:"id"`
+		Type string `json:"typ"`
+	}
+	json.Unmarshal(datacenter, &datacenterStruct)
+
+	version := "0.1.1"
+	status := "in_progress"
+	options := "{}"
+	definition := string(body)
+	mapping := string(service)
+	saveService(payload.ID, s.Name, datacenterStruct.Type, version, status, options, definition, mapping, uint(au.GroupID), datacenterStruct.ID)
+
 	// Apply changes
 	n.Publish(action, service)
 
