@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/nats-io/nats"
 )
@@ -17,21 +18,21 @@ var (
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
-			Version:      "1",
+			Version:      time.Now(),
 		},
 		Service{
 			ID:           "3",
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
-			Version:      "2",
+			Version:      time.Now(),
 		},
 		Service{
 			ID:           "2",
 			Name:         "test2",
 			GroupID:      2,
 			DatacenterID: 3,
-			Version:      "1",
+			Version:      time.Now(),
 		},
 	}
 )
@@ -64,16 +65,16 @@ func findServiceSubscriber() {
 		var qs Service
 		json.Unmarshal(msg.Data, &qs)
 
-		if qs.Name == "" && qs.ID == "" && qs.Version == "" {
+		if qs.Name == "" && qs.ID == "" {
 			data, _ := json.Marshal(mockServices)
 			n.Publish(msg.Reply, data)
 			return
 		}
 
 		for _, service := range mockServices {
-			if service.Name == qs.Name && qs.Version == "" ||
+			if service.Name == qs.Name ||
 				service.Name == qs.Name && service.Version == qs.Version && qs.GroupID == 0 ||
-				service.Name == qs.Name && service.GroupID == qs.GroupID && qs.Version == "" {
+				service.Name == qs.Name && service.GroupID == qs.GroupID {
 				s = append(s, service)
 			}
 		}
