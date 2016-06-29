@@ -22,7 +22,7 @@ type Service struct {
 	DatacenterID int                    `json:"datacenter_id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
-	Version      string                 `json:"version"`
+	Version      time.Time              `json:"version"`
 	Options      map[string]interface{} `json:"options"`
 	Status       string                 `json:"status"`
 	Endpoint     string                 `json:"endpoint"`
@@ -231,7 +231,7 @@ func createServiceHandler(c echo.Context) error {
 	}
 	json.Unmarshal(datacenter, &datacenterStruct)
 
-	version := "0.1.1"
+	version := time.Now()
 	status := "in_progress"
 	options := "{}"
 	definition := string(body)
