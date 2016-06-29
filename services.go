@@ -227,7 +227,7 @@ func createServiceHandler(c echo.Context) error {
 
 	var datacenterStruct struct {
 		ID   uint   `json:"id"`
-		Type string `json:"typ"`
+		Type string `json:"type"`
 	}
 	json.Unmarshal(datacenter, &datacenterStruct)
 
