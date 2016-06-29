@@ -77,7 +77,7 @@ func getDatacenter(id string, group int, provider string) (datacenter []byte, er
 
 	// FIXME This is just a temporal fix until we introduce typed datacenters
 	if provider == "fake" {
-		return []byte(`{"id":"fake","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`), nil
+		return []byte(`{"id":"0","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`), nil
 	}
 
 	query := fmt.Sprintf(`{"id": %s, "group_id": %d}`, id, group)
