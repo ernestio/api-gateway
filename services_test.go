@@ -296,7 +296,7 @@ func TestServices(t *testing.T) {
 
 			Convey("And the specified group does not exist", func() {
 				notFoundSubscriber("group.get", 1)
-				foundSubscriber("datacenter.find", `{"id":"1"}`, 1)
+				foundSubscriber("datacenter.find", `[{"id":"1"}]`, 1)
 				data := []byte(`{"name":"test"}`)
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/json"
@@ -309,7 +309,7 @@ func TestServices(t *testing.T) {
 
 			Convey("And I provide a valid input", func() {
 				foundSubscriber("group.get", `{"id":"1"}`, 1)
-				foundSubscriber("datacenter.find", `{"id":"1"}`, 1)
+				foundSubscriber("datacenter.find", `[{"id":"1"}]`, 1)
 				data := []byte(`{"name":"test"}`)
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/json"
