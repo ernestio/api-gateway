@@ -214,7 +214,7 @@ func resetService(au User, name string) (status int, err error) {
 	}
 
 	query := `{"id":"` + list[0].ID + `","status":"errored"}`
-	if _, err := n.Request("service.update", []byte(query), 1*time.Second); err != nil {
+	if _, err := n.Request("service.set", []byte(query), 1*time.Second); err != nil {
 		return 500, errors.New("Could not update the service")
 	}
 
