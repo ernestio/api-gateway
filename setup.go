@@ -37,6 +37,10 @@ func setup() {
 }
 
 func setupRoutes(api *echo.Group) {
+	// Setup session routes
+	ss := api.Group("/session")
+	ss.GET("/", getSessionsHandler)
+
 	// Setup user routes
 	u := api.Group("/users")
 	u.GET("/", getUsersHandler)
