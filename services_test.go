@@ -17,7 +17,7 @@ func TestServices(t *testing.T) {
 	setup()
 
 	Convey("Scenario: reeting a service", t, func() {
-		foundSubscriber("service.update", `"success"`, 1)
+		foundSubscriber("service.set", `"success"`, 1)
 
 		Convey("Given my existing service is in progress", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","status":"in_progress"},{"id":"2","name":"test","status":"done"}]`, 1)
