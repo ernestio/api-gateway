@@ -191,7 +191,7 @@ func createServiceHandler(c echo.Context) error {
 	payload.Service = (*json.RawMessage)(&body)
 
 	// Get datacenter
-	if datacenter, err = getDatacenter(c.Param("datacenter"), au.GroupID, s.Provider); err != nil {
+	if datacenter, err = getDatacenter(s.Datacenter, au.GroupID, s.Provider); err != nil {
 		return c.JSONBlob(404, []byte(err.Error()))
 	}
 	payload.Datacenter = (*json.RawMessage)(&datacenter)
