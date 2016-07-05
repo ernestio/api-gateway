@@ -28,12 +28,13 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID       int    `json:"id"`
-	GroupID  int    `json:"group_id"`
-	Username string `json:"username"`
-	Password string `json:"password,omitempty"`
-	Salt     string `json:"salt,omitempty"`
-	Admin    bool   `json:"admin"`
+	ID          int    `json:"id"`
+	GroupID     int    `json:"group_id"`
+	Username    string `json:"username"`
+	Password    string `json:"password,omitempty"`
+	OldPassword string `json:"oldpassword,omitempty"`
+	Salt        string `json:"salt,omitempty"`
+	Admin       bool   `json:"admin"`
 }
 
 // Validate vaildate all of the user's input
