@@ -28,12 +28,13 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID       int    `json:"id"`
-	GroupID  int    `json:"group_id"`
-	Username string `json:"username"`
-	Password string `json:"password,omitempty"`
-	Salt     string `json:"salt,omitempty"`
-	Admin    bool   `json:"admin"`
+	ID          int    `json:"id"`
+	GroupID     int    `json:"group_id"`
+	Username    string `json:"username"`
+	Password    string `json:"password,omitempty"`
+	OldPassword string `json:"oldpassword,omitempty"`
+	Salt        string `json:"salt,omitempty"`
+	Admin       bool   `json:"admin"`
 }
 
 // Validate vaildate all of the user's input
@@ -278,6 +279,11 @@ func updateUserHandler(c echo.Context) error {
 
 	// Check a non-admin user is not trying to change their group
 	if au.Admin != true && u.GroupID != existing.GroupID {
+		return ErrUnauthorized
+	}
+
+	// Check the old password if it is present
+	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
 		return ErrUnauthorized
 	}
 
