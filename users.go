@@ -282,6 +282,11 @@ func updateUserHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
+	// Check the old password if it is present
+	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
+		return ErrUnauthorized
+	}
+
 	// update the user
 	msg, err = n.Request("user.set", data, 5*time.Second)
 	if err != nil {
