@@ -32,29 +32,31 @@ type ServicePayload struct {
 }
 
 // Maps input as a valid Serviceinput
-func mapInputService(c echo.Context) (s ServiceInput, body []byte, err error) {
+func mapInputService(c echo.Context) (s ServiceInput, definition []byte, jsonbody []byte, err error) {
 	req := c.Request()
-	body, err = ioutil.ReadAll(req.Body())
+	definition, err = ioutil.ReadAll(req.Body())
 
 	// Normalize input body to json
 	ctype := req.Header().Get("Content-Type")
 
 	if ctype != "application/json" && ctype != "application/yaml" {
-		return s, body, errors.New(`"Invalid input format"`)
+		return s, definition, jsonbody, errors.New(`"Invalid input format"`)
 	}
 
 	if ctype == "application/yaml" {
-		body, err = yaml.YAMLToJSON(body)
+		jsonbody, err = yaml.YAMLToJSON(definition)
 		if err != nil {
-			return s, body, errors.New(`"Invalid yaml input"`)
+			return s, definition, jsonbody, errors.New(`"Invalid yaml input"`)
 		}
+	} else {
+		jsonbody = definition
 	}
 
-	if err = json.Unmarshal(body, &s); err != nil {
-		return s, body, errors.New(`"Invalid input"`)
+	if err = json.Unmarshal(jsonbody, &s); err != nil {
+		return s, definition, jsonbody, errors.New(`"Invalid input"`)
 	}
 
-	return s, body, nil
+	return s, definition, jsonbody, nil
 }
 
 // Generates a service ID based on an input service
