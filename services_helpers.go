@@ -48,6 +48,8 @@ func mapInputService(c echo.Context) (s ServiceInput, definition []byte, jsonbod
 		if err != nil {
 			return s, definition, jsonbody, errors.New(`"Invalid yaml input"`)
 		}
+	} else {
+		jsonbody = definition
 	}
 
 	if err = json.Unmarshal(jsonbody, &s); err != nil {
