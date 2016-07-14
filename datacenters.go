@@ -27,6 +27,8 @@ type Datacenter struct {
 	VCloudURL       string `json:"vcloud_url"`
 	VseURL          string `json:"vse_url"`
 	ExternalNetwork string `json:"external_network"`
+	Token           string `json:"token"`
+	Secret          string `json:"secret"`
 }
 
 // Validate the datacenter

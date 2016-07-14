@@ -15,11 +15,15 @@ var (
 		Datacenter{
 			ID:      1,
 			Name:    "test",
+			Type:    "vcloud",
 			GroupID: 1,
 		},
 		Datacenter{
 			ID:      2,
 			Name:    "test2",
+			Type:    "aws",
+			Token:   "token",
+			Secret:  "s3cr3t",
 			GroupID: 2,
 		},
 	}

@@ -57,6 +57,7 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, 1)
 						So(d.Name, ShouldEqual, "test")
+						So(d.Type, ShouldEqual, "vcloud")
 					})
 				})
 
@@ -74,6 +75,7 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, 1)
 						So(d.Name, ShouldEqual, "test")
+						So(d.Type, ShouldEqual, "vcloud")
 					})
 				})
 
@@ -87,6 +89,31 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldNotBeNil)
 						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
 					})
+				})
+			})
+		})
+	})
+
+	Convey("Scenario: getting an aws datacenter", t, func() {
+		getDatacenterSubscriber(2)
+		Convey("And I call /datacenter/:datacenter on the api", func() {
+			params := make(map[string]string)
+			params["datacenter"] = "2"
+			resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, nil)
+
+			Convey("When I get an aws typed datacenter", func() {
+				Convey("Then I should get the datacenter with token and secret", func() {
+					var d Datacenter
+
+					So(err, ShouldBeNil)
+					err = json.Unmarshal(resp, &d)
+
+					So(err, ShouldBeNil)
+					So(d.ID, ShouldEqual, 2)
+					So(d.Name, ShouldEqual, "test2")
+					So(d.Type, ShouldEqual, "aws")
+					So(d.Token, ShouldEqual, "token")
+					So(d.Secret, ShouldEqual, "s3cr3t")
 				})
 			})
 		})
