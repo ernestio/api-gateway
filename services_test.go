@@ -169,7 +169,7 @@ func TestServices(t *testing.T) {
 
 				params := make(map[string]string)
 				params["service"] = "test"
-				params["build"] = "1"
+				params["id"] = "1"
 				resp, err := doRequest("GET", "/services/:service/builds/:build", params, nil, getServiceBuildHandler, nil)
 
 				Convey("When I'm authenticated as an admin user", func() {
@@ -189,7 +189,7 @@ func TestServices(t *testing.T) {
 
 					params := make(map[string]string)
 					params["service"] = "test"
-					params["build"] = "1"
+					params["id"] = "1"
 					resp, err := doRequest("GET", "/services/:service/builds/:build", params, nil, getServiceBuildHandler, ft)
 
 					Convey("Then I should get the existing service", func() {
