@@ -76,5 +76,5 @@ func setupRoutes(api *echo.Group) {
 	s.Post("/uuid/", createUUIDHandler)
 	s.Post("/:service/reset/", resetServiceHandler)
 	s.Put("/:service", updateServiceHandler)
-	s.Delete("/:service", deleteServiceHandler)
+	s.Delete("/:name", deleteServiceHandler)
 }
