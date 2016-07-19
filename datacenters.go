@@ -43,10 +43,6 @@ func (d *Datacenter) Validate() error {
 		return errors.New("Datacenter username is empty")
 	}
 
-	if d.Password == "" {
-		return errors.New("Datacenter password is empty")
-	}
-
 	if d.Type == "vcloud" && d.VCloudURL == "" {
 		return errors.New("Datacenter vcloud url is empty")
 	}
