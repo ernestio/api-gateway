@@ -7,4 +7,4 @@ WORKDIR /go/src/github.com/ernestio/api-gateway
 
 RUN make deps && go install
 
-ENTRYPOINT /go/bin/api-gateway
+ENTRYPOINT ./entrypoint.sh
