@@ -77,11 +77,6 @@ func generateStreamID(salt string) string {
 func getDatacenter(name string, group int, provider string) (datacenter []byte, err error) {
 	var msg *nats.Msg
 
-	// FIXME This is just a temporal fix until we introduce typed datacenters
-	if provider == "fake" {
-		return []byte(`{"id":"0","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`), nil
-	}
-
 	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, name, group)
 	if msg, err = n.Request("datacenter.find", []byte(query), 1*time.Second); err != nil {
 		return datacenter, ErrGatewayTimeout
