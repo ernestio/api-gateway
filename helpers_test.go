@@ -59,4 +59,20 @@ func TestGetParamFilter(t *testing.T) {
 		})
 	})
 
+	Convey("Scenario: getting an http context", t, func() {
+		c := e.NewContext(req, rec)
+		Convey("when it has a build paramater", func() {
+			c.SetParamNames("build")
+			c.SetParamValues("someid")
+			Convey("and it is converted to a query", func() {
+				query := getParamFilter(c)
+				Convey("the query has the id and its value", func() {
+					So(query, ShouldNotBeNil)
+					So(len(query), ShouldEqual, 1)
+					So(query["id"], ShouldEqual, "someid")
+				})
+			})
+		})
+	})
+
 }
