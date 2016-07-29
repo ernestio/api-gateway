@@ -61,6 +61,10 @@ func getParamFilter(c echo.Context) map[string]interface{} {
 		}
 	}
 
+	if c.Param("name") != "" {
+		query["name"] = c.Param("name")
+	}
+
 	if c.Param("service") != "" {
 		query["name"] = c.Param("service")
 	}
