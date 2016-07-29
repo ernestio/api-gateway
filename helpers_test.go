@@ -43,4 +43,20 @@ func TestGetParamFilter(t *testing.T) {
 		})
 	})
 
+	Convey("Scenario: getting an http context", t, func() {
+		c := e.NewContext(req, rec)
+		Convey("when it has a service paramater", func() {
+			c.SetParamNames("service")
+			c.SetParamValues("somename")
+			Convey("and it is converted to a query", func() {
+				query := getParamFilter(c)
+				Convey("the query has the name and its value", func() {
+					So(query, ShouldNotBeNil)
+					So(len(query), ShouldEqual, 1)
+					So(query["name"], ShouldEqual, "somename")
+				})
+			})
+		})
+	})
+
 }
