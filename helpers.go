@@ -49,7 +49,7 @@ func authenticatedUser(c echo.Context) User {
 func getParamFilter(c echo.Context) map[string]interface{} {
 	query := make(map[string]interface{})
 
-	fields := []string{"group", "user", "group", "datacenter"}
+	fields := []string{"group", "user", "datacenter"}
 
 	// Process ID's as int's
 	for _, field := range fields {
@@ -59,6 +59,10 @@ func getParamFilter(c echo.Context) map[string]interface{} {
 				query["id"] = id
 			}
 		}
+	}
+
+	if c.Param("name") != "" {
+		query["name"] = c.Param("name")
 	}
 
 	if c.Param("service") != "" {
