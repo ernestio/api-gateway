@@ -19,7 +19,6 @@ import (
 // ServiceInput : service received by the endpoint
 type ServiceInput struct {
 	Datacenter string `json:"datacenter"`
-	Provider   string `json:"provider"`
 	Name       string `json:"name"`
 }
 
@@ -74,7 +73,7 @@ func generateStreamID(salt string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func getDatacenter(name string, group int, provider string) (datacenter []byte, err error) {
+func getDatacenter(name string, group int) (datacenter []byte, err error) {
 	var msg *nats.Msg
 
 	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, name, group)
