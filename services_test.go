@@ -80,6 +80,16 @@ func TestServices(t *testing.T) {
 	})
 
 	Convey("Scenario: getting a single service", t, func() {
+		Convey("Given the service do not exist on the store", func() {
+			foundSubscriber("service.find", `[]`, 2)
+			Convey("And I call /service/:service on the api", func() {
+				params := make(map[string]string)
+				params["service"] = "1"
+				resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, nil)
+				So(string(resp), ShouldEqual, "null")
+				So(err, ShouldBeNil)
+			})
+		})
 		Convey("Given the service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
 			Convey("And I call /service/:service on the api", func() {
