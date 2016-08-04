@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
@@ -150,4 +151,69 @@ func deleteGroupHandler(c echo.Context) error {
 	}
 
 	return c.String(http.StatusOK, "")
+}
+
+// addUserToGroupHandler : Adds an user to a group
+func addUserToGroupHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
+	groupid, err := strconv.Atoi(c.Param("group"))
+	if err != nil {
+		return ErrBadReqBody
+	}
+	_, err = getGroup(groupid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	body := c.Request().Body()
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var payload struct {
+		GroupID string `json:"groupid"`
+		UserID  string `json:"userid"`
+	}
+	err = json.Unmarshal(data, &payload)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	userid, err := strconv.Atoi(payload.UserID)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	udata, err := getUser(userid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var user User
+	err = json.Unmarshal(udata, &user)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	user.GroupID = groupid
+
+	data, err = json.Marshal(user)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	msg, err := n.Request("user.set", data, 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	return c.JSONBlob(http.StatusOK, []byte(""))
 }
