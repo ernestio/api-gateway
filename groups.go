@@ -153,6 +153,65 @@ func deleteGroupHandler(c echo.Context) error {
 	return c.String(http.StatusOK, "")
 }
 
+// deleteUserFromGroupHandler : Deletes an user from a group
+func deleteUserFromGroupHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
+	body := c.Request().Body()
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var payload struct {
+		GroupID string `json:"groupid"`
+		UserID  string `json:"userid"`
+	}
+	err = json.Unmarshal(data, &payload)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	userid, err := strconv.Atoi(payload.UserID)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	udata, err := getUser(userid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var user User
+	err = json.Unmarshal(udata, &user)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	user.GroupID = 0
+	user.Password = ""
+	user.Salt = ""
+
+	data, err = json.Marshal(user)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	msg, err := n.Request("user.set", data, 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	return c.JSONBlob(http.StatusOK, []byte(""))
+
+}
+
 // addUserToGroupHandler : Adds an user to a group
 func addUserToGroupHandler(c echo.Context) error {
 	au := authenticatedUser(c)
@@ -200,6 +259,8 @@ func addUserToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 	user.GroupID = groupid
+	user.Password = ""
+	user.Salt = ""
 
 	data, err = json.Marshal(user)
 	if err != nil {
@@ -207,6 +268,71 @@ func addUserToGroupHandler(c echo.Context) error {
 	}
 
 	msg, err := n.Request("user.set", data, 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	return c.JSONBlob(http.StatusOK, []byte(""))
+}
+
+// addDatacenterToGroupHandler : Adds a datacenter to a group
+func addDatacenterToGroupHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
+	groupid, err := strconv.Atoi(c.Param("group"))
+	if err != nil {
+		return ErrBadReqBody
+	}
+	_, err = getGroup(groupid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	body := c.Request().Body()
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var payload struct {
+		GroupID      string `json:"groupid"`
+		DatacenterID string `json:"datacenterid"`
+	}
+	err = json.Unmarshal(data, &payload)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	datacenterid, err := strconv.Atoi(payload.DatacenterID)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	ddata, err := getDatacenter(datacenterid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var datacenter Datacenter
+	err = json.Unmarshal(ddata, &datacenter)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	datacenter.GroupID = groupid
+
+	data, err = json.Marshal(datacenter)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	msg, err := n.Request("datacenter.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}

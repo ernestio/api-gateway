@@ -57,6 +57,9 @@ func setupRoutes(api *echo.Group) {
 	g.Put("/:group", updateGroupHandler)
 	g.Delete("/:group", deleteGroupHandler)
 	g.Post("/:group/users/", addUserToGroupHandler)
+	g.Delete("/:group/users/:user", addUserToGroupHandler)
+	g.Post("/:group/datacenters/", deleteDatacenterFromGroupHandler)
+	g.Delete("/:group/datacenters/:user", deleteDatacenterFromGroupHandler)
 
 	// Setup datacenter routes
 	d := api.Group("/datacenters")
