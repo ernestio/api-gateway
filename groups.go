@@ -315,7 +315,7 @@ func addDatacenterToGroupHandler(c echo.Context) error {
 	if err != nil {
 		return ErrBadReqBody
 	}
-	ddata, err := getDatacenter(datacenterid)
+	ddata, err := getDatacenterByID(datacenterid)
 	if err != nil {
 		return ErrBadReqBody
 	}
@@ -326,6 +326,62 @@ func addDatacenterToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 	datacenter.GroupID = groupid
+
+	data, err = json.Marshal(datacenter)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	msg, err := n.Request("datacenter.set", data, 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+
+	return c.JSONBlob(http.StatusOK, []byte(""))
+}
+
+// deleteDatacenterFromGroupHandler : Deletes a datacenter from a group
+func deleteDatacenterFromGroupHandler(c echo.Context) error {
+	au := authenticatedUser(c)
+
+	if au.Admin != true {
+		return ErrUnauthorized
+	}
+
+	body := c.Request().Body()
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var payload struct {
+		GroupID      string `json:"groupid"`
+		DatacenterID string `json:"datacenterid"`
+	}
+	err = json.Unmarshal(data, &payload)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	datacenterid, err := strconv.Atoi(payload.DatacenterID)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	ddata, err := getDatacenterByID(datacenterid)
+	if err != nil {
+		return ErrBadReqBody
+	}
+
+	var datacenter Datacenter
+	err = json.Unmarshal(ddata, &datacenter)
+	if err != nil {
+		return ErrBadReqBody
+	}
+	datacenter.GroupID = 0
 
 	data, err = json.Marshal(datacenter)
 	if err != nil {
