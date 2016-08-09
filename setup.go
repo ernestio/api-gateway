@@ -5,25 +5,15 @@
 package main
 
 import (
-	"log"
 	"os"
 	"time"
 
+	ecc "github.com/ernestio/ernest-config-client"
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
 )
 
 func setup() {
-	var err error
-	natsURI := os.Getenv("NATS_URI")
-	if natsURI == "" {
-		natsURI = nats.DefaultURL
-	}
-
-	n, err = nats.Connect(natsURI)
-	if err != nil {
-		log.Panic(err)
-	}
+	n = ecc.NewConfig(os.Getenv("NATS_URI")).Nats()
 
 	secret = os.Getenv("JWT_SECRET")
 	if secret == "" {
