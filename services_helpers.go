@@ -162,6 +162,15 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 		return body, errors.New("Provided yaml is not valid")
 	}
 
+	var s struct {
+		Error string `json:"error"`
+	}
+
+	json.Unmarshal(msg.Data, &s)
+	if s.Error != "" {
+		return body, errors.New(s.Error)
+	}
+
 	return msg.Data, nil
 }
 
