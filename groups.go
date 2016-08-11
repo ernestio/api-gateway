@@ -140,8 +140,46 @@ func deleteGroupHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	query := fmt.Sprintf(`{"id": %s}`, c.Param("group"))
-	msg, err := n.Request("group.del", []byte(query), 1*time.Second)
+	// Check if there is users on the group
+	var users []User
+	query := fmt.Sprintf(`{"group_id": %s}`, c.Param("group"))
+	msg, err := n.Request("user.find", []byte(query), 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+	err = json.Unmarshal(msg.Data, &users)
+	if err != nil {
+		return ErrInternal
+	}
+
+	if len(users) > 0 {
+		return ErrInternal
+	}
+
+	// Check if there is datacenters on the group
+	var datacenters []Datacenter
+	query = fmt.Sprintf(`{"group_id": %s}`, c.Param("group"))
+	msg, err = n.Request("datacenter.find", []byte(query), 5*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+	if re := responseErr(msg); re != nil {
+		return re.HTTPError
+	}
+	err = json.Unmarshal(msg.Data, &datacenters)
+	if err != nil {
+		return ErrInternal
+	}
+
+	if len(datacenters) > 0 {
+		return ErrInternal
+	}
+
+	query = fmt.Sprintf(`{"id": %s}`, c.Param("group"))
+	msg, err = n.Request("group.del", []byte(query), 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
