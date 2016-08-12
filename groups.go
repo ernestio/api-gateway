@@ -199,22 +199,7 @@ func deleteUserFromGroupHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	var payload struct {
-		GroupID string `json:"groupid"`
-		UserID  string `json:"userid"`
-	}
-	err = json.Unmarshal(data, &payload)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	userid, err := strconv.Atoi(payload.UserID)
+	userid, err := strconv.Atoi(c.Param("user"))
 	if err != nil {
 		return ErrBadReqBody
 	}
@@ -232,7 +217,7 @@ func deleteUserFromGroupHandler(c echo.Context) error {
 	user.Password = ""
 	user.Salt = ""
 
-	data, err = json.Marshal(user)
+	data, err := json.Marshal(user)
 	if err != nil {
 		return ErrBadReqBody
 	}
