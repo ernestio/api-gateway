@@ -390,25 +390,24 @@ func deleteDatacenterFromGroupHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
+	groupid, err := strconv.Atoi(c.Param("group"))
+	if err != nil {
+		return ErrBadReqBody
+	}
+	_, err = getGroup(groupid)
 	if err != nil {
 		return ErrBadReqBody
 	}
 
-	var payload struct {
-		GroupID      string `json:"groupid"`
-		DatacenterID string `json:"datacenterid"`
+	datacenterid, err := strconv.Atoi(c.Param("datacenter"))
+	if err != nil {
+		return ErrBadReqBody
 	}
-	err = json.Unmarshal(data, &payload)
+	_, err = getGroup(groupid)
 	if err != nil {
 		return ErrBadReqBody
 	}
 
-	datacenterid, err := strconv.Atoi(payload.DatacenterID)
-	if err != nil {
-		return ErrBadReqBody
-	}
 	ddata, err := getDatacenterByID(datacenterid)
 	if err != nil {
 		return ErrBadReqBody
@@ -421,7 +420,7 @@ func deleteDatacenterFromGroupHandler(c echo.Context) error {
 	}
 	datacenter.GroupID = 0
 
-	data, err = json.Marshal(datacenter)
+	data, err := json.Marshal(datacenter)
 	if err != nil {
 		return ErrBadReqBody
 	}
