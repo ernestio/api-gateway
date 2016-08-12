@@ -181,16 +181,6 @@ func TestUsers(t *testing.T) {
 						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
 					})
 				})
-				Convey("And the group does not exist", func() {
-					invalidData := []byte(`{"group_id": 99, "username": "new-user", "password": "test"}`)
-					ft := generateTestToken(1, "admin", true)
-					_, err := doRequest("POST", "/users/", nil, invalidData, createUserHandler, ft)
-
-					Convey("It should error with 400 bad request", func() {
-						So(err, ShouldNotBeNil)
-						So(err.(*echo.HTTPError).Code, ShouldEqual, 404)
-					})
-				})
 			})
 
 		})
