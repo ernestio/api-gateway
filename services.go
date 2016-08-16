@@ -274,7 +274,7 @@ func deleteServiceHandler(c echo.Context) error {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
-	query := []byte(`{"previous_id":"` + s.ID + `"}`)
+	query := []byte(`{"previous_id":"` + s.ID + `","datacenter":{"type":"` + s.Type + `"}}`)
 	if msg, err := n.Request("definition.map.deletion", query, 1*time.Second); err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	} else {
