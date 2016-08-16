@@ -184,7 +184,6 @@ func createServiceHandler(c echo.Context) error {
 	var definition []byte
 	var datacenter []byte
 	var group []byte
-	var action = "service.create"
 
 	payload := ServicePayload{}
 	au := authenticatedUser(c)
@@ -216,7 +215,13 @@ func createServiceHandler(c echo.Context) error {
 		if previous != nil {
 			payload.PrevID = previous.ID
 			if previous.Status == "errored" {
-				action = "service.patch"
+				prev, err := n.Request("service.get.mapping", []byte(`{"id":"`+previous.ID+`"}`), time.Second*3)
+				if err != nil {
+					return c.JSONBlob(http.StatusNotFound, []byte(`"We found a problem reexecuting your service, please try again"`))
+				}
+				body := []byte(strings.Replace(string(prev.Data), "\"service.create\"", "\"service.patch\"", -1))
+				n.Publish("service.patch", body)
+				return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 			}
 			if previous.Status == "in_progress" {
 				return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
@@ -242,7 +247,7 @@ func createServiceHandler(c echo.Context) error {
 	saveService(payload.ID, s.Name, datacenterStruct.Type, version, status, options, string(definition), mapping, uint(au.GroupID), datacenterStruct.ID)
 
 	// Apply changes
-	n.Publish(action, service)
+	n.Publish("service.create", service)
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
