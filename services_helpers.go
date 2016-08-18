@@ -101,6 +101,32 @@ func getDatacenter(name string, group int, provider string) (datacenter []byte, 
 	return res, nil
 }
 
+func getDatacenterByID(id int) (user []byte, err error) {
+	var msg *nats.Msg
+
+	query := fmt.Sprintf(`{"id": %d}`, id)
+	if msg, err = n.Request("datacenter.get", []byte(query), 1*time.Second); err != nil {
+		return user, ErrGatewayTimeout
+	}
+	if strings.Contains(string(msg.Data), `"error"`) {
+		return user, errors.New(`"Specified datacenter does not exist"`)
+	}
+	return msg.Data, nil
+}
+
+func getUser(id int) (user []byte, err error) {
+	var msg *nats.Msg
+
+	query := fmt.Sprintf(`{"id": %d}`, id)
+	if msg, err = n.Request("user.get", []byte(query), 1*time.Second); err != nil {
+		return user, ErrGatewayTimeout
+	}
+	if strings.Contains(string(msg.Data), `"error"`) {
+		return user, errors.New(`"Specified user does not exist"`)
+	}
+	return msg.Data, nil
+}
+
 func getGroup(id int) (group []byte, err error) {
 	var msg *nats.Msg
 

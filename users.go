@@ -47,10 +47,6 @@ func (u *User) Validate() error {
 		return errors.New("User password is empty")
 	}
 
-	if u.GroupID == 0 {
-		return errors.New("User group is empty")
-	}
-
 	return nil
 }
 
@@ -183,20 +179,9 @@ func createUserHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	// Check if the group exists
-	query := fmt.Sprintf(`{"id": %d}`, u.GroupID)
-	msg, err := n.Request("group.get", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
 	// Check if the user exists
-	query = fmt.Sprintf(`{"username": "%s"}`, u.Username)
-	msg, err = n.Request("user.get", []byte(query), 5*time.Second)
+	query := fmt.Sprintf(`{"username": "%s"}`, u.Username)
+	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
