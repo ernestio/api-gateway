@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/nats-io/nats"
 )
 
 // Group holds the group response from group-store
@@ -54,7 +55,20 @@ func (g *Group) Map(c echo.Context) *echo.HTTPError {
 
 // getGroupsHandler : get all datacenters
 func getGroupsHandler(c echo.Context) error {
-	msg, err := n.Request("group.find", nil, 1*time.Second)
+	var msg *nats.Msg
+	var err error
+
+	au := authenticatedUser(c)
+	if au.Admin == false {
+		if body, err := getGroupByID(au.GroupID); err != nil {
+			return err
+		} else {
+			body := []byte("[" + string(body) + "]")
+			return c.JSONBlob(http.StatusOK, body)
+		}
+	}
+
+	msg, err = n.Request("group.find", nil, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -64,18 +78,28 @@ func getGroupsHandler(c echo.Context) error {
 
 // getGroupHandler : get a group by id
 func getGroupHandler(c echo.Context) error {
-	var query string
-	query = fmt.Sprintf(`{"id": %s}`, c.Param("group"))
+	id, _ := strconv.Atoi(c.Param("group"))
+	if body, err := getGroupByID(id); err != nil {
+		return err
+	} else {
+		return c.JSONBlob(http.StatusOK, body)
+	}
+}
+
+func getGroupByID(id int) (body []byte, err error) {
+	query := fmt.Sprintf(`{"id": %d}`, id)
 	msg, err := n.Request("group.get", []byte(query), 1*time.Second)
+	body = msg.Data
+
 	if err != nil {
-		return ErrGatewayTimeout
+		return body, ErrGatewayTimeout
 	}
 
 	if re := responseErr(msg); re != nil {
-		return re.HTTPError
+		return body, re.HTTPError
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	return body, nil
 }
 
 // createGroupHandler : Endpoint to create a datacenter
