@@ -362,6 +362,7 @@ func TestServices(t *testing.T) {
 						foundSubscriber("service.find", `[{"id":"foo-bar","status":"errored"}]`, 1)
 						foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
 						foundSubscriber("service.patch", `{"id":"1"}`, 1)
+						foundSubscriber("service.get.mapping", `{"id":"1"}`, 1)
 						resp, err := doRequestHeaders("POST", "/services/", params, data, createServiceHandler, nil, headers)
 						Convey("Then I should get a response with the existing id", func() {
 							So(err, ShouldEqual, nil)
