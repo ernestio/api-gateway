@@ -27,6 +27,8 @@ type Datacenter struct {
 	VCloudURL       string `json:"vcloud_url"`
 	VseURL          string `json:"vse_url"`
 	ExternalNetwork string `json:"external_network"`
+	Token           string `json:"token"`
+	Secret          string `json:"secret"`
 }
 
 // Validate the datacenter
@@ -41,10 +43,6 @@ func (d *Datacenter) Validate() error {
 
 	if d.Username == "" {
 		return errors.New("Datacenter username is empty")
-	}
-
-	if d.Password == "" {
-		return errors.New("Datacenter password is empty")
 	}
 
 	if d.Type == "vcloud" && d.VCloudURL == "" {

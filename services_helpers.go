@@ -19,7 +19,6 @@ import (
 // ServiceInput : service received by the endpoint
 type ServiceInput struct {
 	Datacenter string `json:"datacenter"`
-	Provider   string `json:"provider"`
 	Name       string `json:"name"`
 }
 
@@ -74,13 +73,8 @@ func generateStreamID(salt string) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func getDatacenter(name string, group int, provider string) (datacenter []byte, err error) {
+func getDatacenter(name string, group int) (datacenter []byte, err error) {
 	var msg *nats.Msg
-
-	// FIXME This is just a temporal fix until we introduce typed datacenters
-	if provider == "fake" {
-		return []byte(`{"id":"0","name":"fake","username":"fake","password":"fake_pwd","region":"fake","type":"fake","external_network":"fake","vse_url":"http://vse.url/","vcloud_url":"fake"}`), nil
-	}
 
 	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, name, group)
 	if msg, err = n.Request("datacenter.find", []byte(query), 1*time.Second); err != nil {
@@ -166,6 +160,15 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 
 	if msg, err = n.Request("definition.map.creation", body, 1*time.Second); err != nil {
 		return body, errors.New("Provided yaml is not valid")
+	}
+
+	var s struct {
+		Error string `json:"error"`
+	}
+
+	json.Unmarshal(msg.Data, &s)
+	if s.Error != "" {
+		return body, errors.New(s.Error)
 	}
 
 	return msg.Data, nil

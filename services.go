@@ -184,7 +184,6 @@ func createServiceHandler(c echo.Context) error {
 	var definition []byte
 	var datacenter []byte
 	var group []byte
-	var action = "service.create"
 
 	payload := ServicePayload{}
 	au := authenticatedUser(c)
@@ -195,7 +194,7 @@ func createServiceHandler(c echo.Context) error {
 	payload.Service = (*json.RawMessage)(&body)
 
 	// Get datacenter
-	if datacenter, err = getDatacenter(s.Datacenter, au.GroupID, s.Provider); err != nil {
+	if datacenter, err = getDatacenter(s.Datacenter, au.GroupID); err != nil {
 		return c.JSONBlob(404, []byte(err.Error()))
 	}
 	payload.Datacenter = (*json.RawMessage)(&datacenter)
@@ -216,7 +215,13 @@ func createServiceHandler(c echo.Context) error {
 		if previous != nil {
 			payload.PrevID = previous.ID
 			if previous.Status == "errored" {
-				action = "service.patch"
+				prev, err := n.Request("service.get.mapping", []byte(`{"id":"`+previous.ID+`"}`), time.Second*3)
+				if err != nil {
+					return c.JSONBlob(http.StatusNotFound, []byte(`"We found a problem reexecuting your service, please try again"`))
+				}
+				body := []byte(strings.Replace(string(prev.Data), "\"service.create\"", "\"service.patch\"", -1))
+				n.Publish("service.patch", body)
+				return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 			}
 			if previous.Status == "in_progress" {
 				return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
@@ -242,7 +247,7 @@ func createServiceHandler(c echo.Context) error {
 	saveService(payload.ID, s.Name, datacenterStruct.Type, version, status, options, string(definition), mapping, uint(au.GroupID), datacenterStruct.ID)
 
 	// Apply changes
-	n.Publish(action, service)
+	n.Publish("service.create", service)
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
@@ -269,7 +274,7 @@ func deleteServiceHandler(c echo.Context) error {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
-	query := []byte(`{"previous_id":"` + s.ID + `"}`)
+	query := []byte(`{"previous_id":"` + s.ID + `","datacenter":{"type":"` + s.Type + `"}}`)
 	if msg, err := n.Request("definition.map.deletion", query, 1*time.Second); err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	} else {
