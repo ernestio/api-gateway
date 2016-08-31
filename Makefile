@@ -15,8 +15,8 @@ deps: dev-deps
 	go get github.com/dgrijalva/jwt-go
 	go get github.com/nu7hatch/gouuid
 	go get github.com/ghodss/yaml
-	go get -u github.com/ernestio/ernest-config-client
+	go get github.com/ernestio/ernest-config-client
 
 dev-deps:
 	go get github.com/smartystreets/goconvey
-	go get -u github.com/golang/lint/golint
+	go get github.com/golang/lint/golint
