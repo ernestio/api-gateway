@@ -117,7 +117,7 @@ func getServiceHandler(c echo.Context) (err error) {
 	if len(list) > 0 {
 		return c.JSON(http.StatusOK, list[0])
 	}
-	return c.JSON(http.StatusOK, nil)
+	return c.JSON(http.StatusNotFound, nil)
 }
 
 func getServiceBuildHandler(c echo.Context) (err error) {
@@ -133,7 +133,10 @@ func getServiceBuildHandler(c echo.Context) (err error) {
 		return c.JSONBlob(500, []byte(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, list[0])
+	if len(list) > 0 {
+		return c.JSON(http.StatusOK, list[0])
+	}
+	return c.JSON(http.StatusNotFound, nil)
 }
 
 func searchServicesHandler(c echo.Context) error {

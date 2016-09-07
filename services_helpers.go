@@ -207,6 +207,43 @@ type OutputService struct {
 	Options      string `json:"options"`
 	Endpoint     string `json:"endpoint"`
 	Definition   string `json:"definition"`
+	Networks     []struct {
+		Name   string `json:"name"`
+		Subnet string `json:"subnet"`
+	} `json:"networks"`
+	Instances []struct {
+		Name          string `json:"name"`
+		InstanceAWSID string `json:"instance_aws_id"`
+		PublicIP      string `json:"public_ip"`
+		IP            string `json:"ip"`
+	} `json:"instances"`
+	SecurityGroups []struct {
+		Name            string `json:"name"`
+		NatGatewayAWSID string `json:"nat_gateway_aws_id"`
+	} `json:"nats"`
+}
+
+type ServiceMapping struct {
+	Networks struct {
+		Items []struct {
+			Name   string `json:"name"`
+			Subnet string `json:"subnet"`
+		} `json:"items"`
+	} `json:"networks"`
+	Instances struct {
+		Items []struct {
+			Name          string `json:"name"`
+			InstanceAWSID string `json:"instance_aws_id"`
+			PublicIP      string `json:"public_ip"`
+			IP            string `json:"ip"`
+		} `json:"items"`
+	} `json:"instances"`
+	SecurityGroups struct {
+		Items []struct {
+			Name            string `json:"name"`
+			NatGatewayAWSID string `json:"nat_gateway_aws_id"`
+		} `json:"items"`
+	} `json:"nats"`
 }
 
 func getServicesOutput(filter map[string]interface{}) (list []OutputService, err error) {
@@ -223,6 +260,22 @@ func getServicesOutput(filter map[string]interface{}) (list []OutputService, err
 
 	if err := json.Unmarshal(msg.Data, &list); err != nil {
 		return list, errors.New("Internal error")
+	}
+
+	// Popolate service with detailedd info
+	for i, v := range list {
+		mapping := ServiceMapping{}
+		if msg, err = n.Request("service.get.mapping", []byte(`{"id":"`+v.ID+`"}`), 1*time.Second); err != nil {
+			return list, ErrGatewayTimeout
+		}
+
+		if err := json.Unmarshal(msg.Data, &mapping); err != nil {
+			return list, errors.New("Internal error")
+		}
+
+		list[i].Networks = mapping.Networks.Items
+		list[i].SecurityGroups = mapping.SecurityGroups.Items
+		list[i].Instances = mapping.Instances.Items
 	}
 
 	return list, nil
