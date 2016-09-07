@@ -4,8 +4,8 @@ This service expose REST endpoints to each of the datastores inside of ernest. R
 
 ## Build status
 
-* master:  [![CircleCI Master](https://circleci.com/gh/ErnestIO/api-gateway/tree/master.svg?style=svg)](https://circleci.com/gh/ErnestIO/api-gateway/tree/master)
-* develop: [![CircleCI Develop](https://circleci.com/gh/ErnestIO/api-gateway/tree/develop.svg?style=svg)](https://circleci.com/gh/ErnestIO/api-gateway/tree/develop)
+* master:  [![CircleCI Master](https://circleci.com/gh/ernestio/api-gateway/tree/master.svg?style=svg)](https://circleci.com/gh/ernestio/api-gateway/tree/master)
+* develop: [![CircleCI Develop](https://circleci.com/gh/ernestio/api-gateway/tree/develop.svg?style=svg)](https://circleci.com/gh/ernestio/api-gateway/tree/develop)
 
 ## Installation
 
