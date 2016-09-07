@@ -18,6 +18,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: reeting a service", t, func() {
 		foundSubscriber("service.set", `"success"`, 1)
+		foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 
 		Convey("Given my existing service is in progress", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","status":"in_progress"},{"id":"2","name":"test","status":"done"}]`, 1)
@@ -62,6 +63,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
+			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 			Convey("When I call GET /services/", func() {
 				resp, err := doRequest("GET", "/services/", nil, nil, getServicesHandler, nil)
 
@@ -81,7 +83,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a single service", t, func() {
 		Convey("Given the service do not exist on the store", func() {
-			foundSubscriber("service.find", `[]`, 2)
+			foundSubscriber("service.find", `[]`, 3)
 			Convey("And I call /service/:service on the api", func() {
 				params := make(map[string]string)
 				params["service"] = "1"
@@ -92,6 +94,7 @@ func TestServices(t *testing.T) {
 		})
 		Convey("Given the service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
+			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
 			Convey("And I call /service/:service on the api", func() {
 				var d OutputService
 				params := make(map[string]string)
@@ -132,6 +135,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: getting a service's builds", t, func() {
 		Convey("Given the service exists on the store", func() {
 			Convey("And I call /service/:service/builds/ on the api", func() {
+				foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
 				findServiceSubscriber()
 				var s []OutputService
 				params := make(map[string]string)
@@ -175,6 +179,7 @@ func TestServices(t *testing.T) {
 		Convey("Given the service exists on the store", func() {
 			Convey("And I call /service/:service/builds/:build on the api", func() {
 				findServiceSubscriber()
+				foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
 				var s OutputService
 
 				params := make(map[string]string)
@@ -195,6 +200,7 @@ func TestServices(t *testing.T) {
 
 				Convey("When the service group matches the authenticated users group", func() {
 					findServiceSubscriber()
+					foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
 					ft := generateTestToken(1, "test", false)
 
 					params := make(map[string]string)
@@ -217,6 +223,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: searching for services", t, func() {
 		Convey("Given the service exists on the store", func() {
 			findServiceSubscriber()
+			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 			Convey("And I call /service/search/ on the api", func() {
 				var s []OutputService
 				params := make(map[string]string)
@@ -415,6 +422,5 @@ func TestServices(t *testing.T) {
 			})
 
 		})
-
 	})
 }
