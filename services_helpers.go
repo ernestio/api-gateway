@@ -331,6 +331,5 @@ func saveService(id string, name string, t string, v time.Time, s string, o stri
 
 	body, _ := json.Marshal(payload)
 
-	println(string(body))
 	n.Publish("service.set", body)
 }
