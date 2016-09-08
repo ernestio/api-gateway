@@ -248,6 +248,7 @@ func createServiceHandler(c echo.Context) error {
 	options := "{}"
 	mapping := string(service)
 	saveService(payload.ID, s.Name, datacenterStruct.Type, version, status, options, string(definition), mapping, uint(au.GroupID), datacenterStruct.ID)
+	time.Sleep(1 * time.Second)
 
 	// Apply changes
 	n.Publish("service.create", service)
@@ -281,6 +282,7 @@ func deleteServiceHandler(c echo.Context) error {
 	if msg, err := n.Request("definition.map.deletion", query, 1*time.Second); err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	} else {
+		time.Sleep(1 * time.Second)
 		n.Publish("service.delete", msg.Data)
 	}
 
