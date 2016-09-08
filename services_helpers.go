@@ -209,7 +209,7 @@ type OutputService struct {
 	Definition   string `json:"definition"`
 	Networks     []struct {
 		Name   string `json:"name"`
-		Subnet string `json:"subnet"`
+		Subnet string `json:"network_aws_id"`
 	} `json:"networks"`
 	Instances []struct {
 		Name          string `json:"name"`
@@ -227,7 +227,7 @@ type ServiceMapping struct {
 	Networks struct {
 		Items []struct {
 			Name   string `json:"name"`
-			Subnet string `json:"subnet"`
+			Subnet string `json:"network_aws_id"`
 		} `json:"items"`
 	} `json:"networks"`
 	Instances struct {
