@@ -217,10 +217,14 @@ type OutputService struct {
 		PublicIP      string `json:"public_ip"`
 		IP            string `json:"ip"`
 	} `json:"instances"`
-	SecurityGroups []struct {
+	Nats []struct {
 		Name            string `json:"name"`
 		NatGatewayAWSID string `json:"nat_gateway_aws_id"`
 	} `json:"nats"`
+	SecurityGroups []struct {
+		Name               string `json:"name"`
+		SecurityGroupAWSID string `json:"security_group_aws_id"`
+	} `json:"security_groups"`
 }
 
 type ServiceMapping struct {
@@ -238,12 +242,18 @@ type ServiceMapping struct {
 			IP            string `json:"ip"`
 		} `json:"items"`
 	} `json:"instances"`
-	SecurityGroups struct {
+	Nats struct {
 		Items []struct {
 			Name            string `json:"name"`
 			NatGatewayAWSID string `json:"nat_gateway_aws_id"`
 		} `json:"items"`
 	} `json:"nats"`
+	SecurityGroups struct {
+		Items []struct {
+			Name               string `json:"name"`
+			SecurityGroupAWSID string `json:"security_group_aws_id"`
+		} `json:"items"`
+	} `json:"firewalls"`
 }
 
 func getServicesOutput(filter map[string]interface{}) (list []OutputService, err error) {
@@ -275,6 +285,7 @@ func getServicesOutput(filter map[string]interface{}) (list []OutputService, err
 
 		list[i].Networks = mapping.Networks.Items
 		list[i].SecurityGroups = mapping.SecurityGroups.Items
+		list[i].Nats = mapping.Nats.Items
 		list[i].Instances = mapping.Instances.Items
 	}
 
