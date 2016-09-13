@@ -126,7 +126,16 @@ func createDatacenterHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("datacenter.set", data, 1*time.Second)
+	// Does the datacenter already exist
+	msg, err := n.Request("datacenter.get", []byte(`{"name":"`+d.Name+`"}`), 1*time.Second)
+	if err != nil {
+		return ErrGatewayTimeout
+	}
+	if string(msg.Data) != `{"error":"not found"}` {
+		return c.JSONBlob(409, []byte("Datacenter name already in use"))
+	}
+
+	msg, err = n.Request("datacenter.set", data, 1*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
