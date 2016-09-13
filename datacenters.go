@@ -116,6 +116,9 @@ func createDatacenterHandler(c echo.Context) error {
 	}
 
 	au := authenticatedUser(c)
+	if au.GroupID == 0 {
+		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
+	}
 	d.GroupID = au.GroupID
 
 	data, err := json.Marshal(d)

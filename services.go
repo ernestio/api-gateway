@@ -191,6 +191,9 @@ func createServiceHandler(c echo.Context) error {
 	payload := ServicePayload{}
 	au := authenticatedUser(c)
 
+	if au.GroupID == 0 {
+		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
+	}
 	if s, definition, body, err = mapInputService(c); err != nil {
 		return c.JSONBlob(400, []byte(err.Error()))
 	}
