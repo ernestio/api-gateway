@@ -220,15 +220,6 @@ func createServiceHandler(c echo.Context) error {
 	} else {
 		if previous != nil {
 			payload.PrevID = previous.ID
-			if previous.Status == "errored" {
-				prev, err := n.Request("service.get.mapping", []byte(`{"id":"`+previous.ID+`"}`), time.Second*3)
-				if err != nil {
-					return c.JSONBlob(http.StatusNotFound, []byte(`"We found a problem reexecuting your service, please try again"`))
-				}
-				body := []byte(strings.Replace(string(prev.Data), "\"service.create\"", "\"service.patch\"", -1))
-				n.Publish("service.patch", body)
-				return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
-			}
 			if previous.Status == "in_progress" {
 				return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
 			}
