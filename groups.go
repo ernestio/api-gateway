@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,42 +15,6 @@ import (
 	"github.com/labstack/echo"
 	"github.com/nats-io/nats"
 )
-
-// Group holds the group response from group-store
-type Group struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-// Validate the group
-func (g *Group) Validate() error {
-	if g.Name == "" {
-		return errors.New("Group name is empty")
-	}
-
-	return nil
-}
-
-// Map : maps a group from a request's body and validates the input
-func (g *Group) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &g)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = g.Validate()
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	return nil
-}
 
 // getGroupsHandler : get all datacenters
 func getGroupsHandler(c echo.Context) error {
@@ -261,18 +224,21 @@ func deleteUserFromGroupHandler(c echo.Context) error {
 
 // addUserToGroupHandler : Adds an user to a group
 func addUserToGroupHandler(c echo.Context) error {
+	var group Group
+	var user User
+
+	var payload struct {
+		GroupName string `json:"group"`
+		UserName  string `json:"username"`
+	}
+
 	au := authenticatedUser(c)
 
 	if au.Admin != true {
 		return ErrUnauthorized
 	}
 
-	groupid, err := strconv.Atoi(c.Param("group"))
-	if err != nil {
-		return ErrBadReqBody
-	}
-	_, err = getGroup(groupid)
-	if err != nil {
+	if err := group.findByName(c.Param("group")); err != nil {
 		return ErrBadReqBody
 	}
 
@@ -282,45 +248,20 @@ func addUserToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	var payload struct {
-		GroupID string `json:"groupid"`
-		UserID  string `json:"userid"`
-	}
 	err = json.Unmarshal(data, &payload)
 	if err != nil {
 		return ErrBadReqBody
 	}
 
-	userid, err := strconv.Atoi(payload.UserID)
-	if err != nil {
-		return ErrBadReqBody
-	}
-	udata, err := getUser(userid)
-	if err != nil {
-		return ErrBadReqBody
+	if err := user.findByUserName(payload.UserName); err != nil {
+		return err
 	}
 
-	var user User
-	err = json.Unmarshal(udata, &user)
-	if err != nil {
-		return ErrBadReqBody
-	}
-	user.GroupID = groupid
+	user.GroupID = group.ID
 	user.Password = ""
 	user.Salt = ""
-
-	data, err = json.Marshal(user)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	msg, err := n.Request("user.set", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
+	if err := user.save(); err != nil {
+		return err
 	}
 
 	return c.JSONBlob(http.StatusOK, []byte(""))

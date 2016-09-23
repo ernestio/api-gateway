@@ -8,9 +8,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -25,51 +23,6 @@ const (
 	// HashSize is the lenght of the hash string
 	HashSize = 64
 )
-
-// User holds the user response from user-store
-type User struct {
-	ID          int    `json:"id"`
-	GroupID     int    `json:"group_id"`
-	Username    string `json:"username"`
-	Password    string `json:"password,omitempty"`
-	OldPassword string `json:"oldpassword,omitempty"`
-	Salt        string `json:"salt,omitempty"`
-	Admin       bool   `json:"admin"`
-}
-
-// Validate vaildate all of the user's input
-func (u *User) Validate() error {
-	if u.Username == "" {
-		return errors.New("User username is empty")
-	}
-
-	if u.Password == "" {
-		return errors.New("User password is empty")
-	}
-
-	return nil
-}
-
-// Map a user from a request's body and validates the input
-func (u *User) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &u)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = u.Validate()
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	return nil
-}
 
 // Redact removes all sensitive fields from the return data before outputting to the user
 func (u *User) Redact() {
