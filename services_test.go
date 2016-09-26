@@ -87,8 +87,7 @@ func TestServices(t *testing.T) {
 			Convey("And I call /service/:service on the api", func() {
 				params := make(map[string]string)
 				params["service"] = "1"
-				resp, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, nil)
-				So(string(resp), ShouldEqual, "null")
+				_, err := doRequest("GET", "/services/:service", params, nil, getServiceHandler, nil)
 				So(err, ShouldBeNil)
 			})
 		})
