@@ -94,7 +94,7 @@ func TestServices(t *testing.T) {
 		})
 		Convey("Given the service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
-			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
+			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 4)
 			Convey("And I call /service/:service on the api", func() {
 				var d OutputService
 				params := make(map[string]string)
@@ -110,6 +110,7 @@ func TestServices(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, "1")
 						So(d.Name, ShouldEqual, "test")
+						So(d.VpcID, ShouldEqual, "22")
 					})
 				})
 
