@@ -133,20 +133,9 @@ func createUserHandler(c echo.Context) error {
 	}
 
 	// Check if the user exists
-	query := fmt.Sprintf(`{"username": "%s"}`, u.Username)
-	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	err = json.Unmarshal(msg.Data, &existing)
-	if err != nil {
-		return ErrInternal
-	}
-
-	if existing.ID != 0 {
-		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", existing.ID))
-		return ErrExists
+	if err := existing.findByUserName(u.Username); err == nil {
+		// c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", existing.ID))
+		return echo.NewHTTPError(409, "Specified user already exists")
 	}
 
 	// Create the user
@@ -155,7 +144,7 @@ func createUserHandler(c echo.Context) error {
 		return ErrInternal
 	}
 
-	msg, err = n.Request("user.set", data, 5*time.Second)
+	msg, err := n.Request("user.set", data, 5*time.Second)
 	if err != nil {
 		return ErrGatewayTimeout
 	}
@@ -259,7 +248,6 @@ func deleteUserHandler(c echo.Context) error {
 	}
 
 	if re := responseErr(msg); re != nil {
-		fmt.Println(re.Error)
 		return re.HTTPError
 	}
 
