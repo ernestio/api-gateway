@@ -76,7 +76,7 @@ func (u *User) FindByUserName(name string, user *User) (err error) {
 	var res []byte
 
 	query := `{"username": "` + name + `"}`
-	if res, err = u.query("user.get", query); err != nil {
+	if res, err = Query("user.get", query); err != nil {
 		return err
 	}
 	if strings.Contains(string(res), `"error"`) {
@@ -99,7 +99,7 @@ func (u *User) FindAll(users *[]User) (err error) {
 		query = fmt.Sprintf(`{"group_id": %d}`, u.GroupID)
 	}
 
-	if res, err = u.query("user.find", query); err != nil {
+	if res, err = Query("user.find", query); err != nil {
 		return err
 	}
 
@@ -123,7 +123,7 @@ func (u *User) FindByID(id string, user *User) (err error) {
 		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, id, u.GroupID)
 	}
 
-	if res, err = u.query("user.get", query); err != nil {
+	if res, err = Query("user.get", query); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func (u *User) Save() (err error) {
 		return ErrBadReqBody
 	}
 
-	if res, err = u.query("user.set", string(data)); err != nil {
+	if res, err = Query("user.set", string(data)); err != nil {
 		return err
 	}
 
@@ -157,7 +157,7 @@ func (u *User) Save() (err error) {
 // Delete : will delete a user by its id
 func (u *User) Delete(id string) (err error) {
 	query := fmt.Sprintf(`{"id": %s}`, id)
-	if _, err := u.query("user.del", query); err != nil {
+	if _, err := Query("user.del", query); err != nil {
 		return err
 	}
 
@@ -197,7 +197,15 @@ func (u *User) ValidPassword(pw string) bool {
 	return false
 }
 
-func (u *User) query(subject, query string) ([]byte, error) {
+// Group : Gets the related user group if any
+func (u *User) Group() (group Group) {
+	group.FindByID(u.GroupID)
+
+	return group
+}
+
+// TODO : Move this to somewhere else
+func Query(subject, query string) ([]byte, error) {
 	var res []byte
 	msg, err := n.Request(subject, []byte(query), 5*time.Second)
 	if err != nil {

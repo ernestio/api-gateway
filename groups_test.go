@@ -66,6 +66,7 @@ func TestGroups(t *testing.T) {
 	Convey("Scenario: create a group", t, func() {
 		Convey("Given a group exists on the store ", func() {
 			createGroupSubscriber()
+			getGroupSubscriber()
 
 			mockG := Group{
 				ID:   1,
@@ -93,6 +94,7 @@ func TestGroups(t *testing.T) {
 	Convey("Scenario: deleting a group", t, func() {
 		Convey("Given a group exists on the store", func() {
 			deleteGroupSubscriber()
+			getGroupSubscriber()
 
 			Convey("When I call DELETE /groups/:group", func() {
 				Convey("And I am logged in as an admin", func() {
