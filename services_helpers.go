@@ -207,6 +207,7 @@ type OutputService struct {
 	Options      string `json:"options"`
 	Endpoint     string `json:"endpoint"`
 	Definition   string `json:"definition"`
+	VpcID        string `json:"vpc_id"`
 	Networks     []struct {
 		Name   string `json:"name"`
 		Subnet string `json:"network_aws_id"`
@@ -228,6 +229,11 @@ type OutputService struct {
 }
 
 type ServiceMapping struct {
+	Vpcs struct {
+		Items []struct {
+			VpcID string `json:"vpc_id"`
+		} `json:"items"`
+	} `json:"vpcs"`
 	Networks struct {
 		Items []struct {
 			Name   string `json:"name"`
@@ -281,6 +287,9 @@ func getServicesOutput(filter map[string]interface{}) (list []OutputService, err
 
 		if err := json.Unmarshal(msg.Data, &mapping); err != nil {
 			return list, errors.New("Internal error")
+		}
+		if len(mapping.Vpcs.Items) > 0 {
+			list[i].VpcID = mapping.Vpcs.Items[0].VpcID
 		}
 
 		list[i].Networks = mapping.Networks.Items
