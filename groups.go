@@ -253,14 +253,14 @@ func addUserToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	if err := user.findByUserName(payload.UserName); err != nil {
+	if err := user.FindByUserName(payload.UserName, &user); err != nil {
 		return err
 	}
 
 	user.GroupID = group.ID
 	user.Password = ""
 	user.Salt = ""
-	if err := user.save(); err != nil {
+	if err := user.Save(); err != nil {
 		return err
 	}
 

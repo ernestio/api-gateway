@@ -5,14 +5,24 @@
 package main
 
 import (
+	"crypto/subtle"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
+	"golang.org/x/crypto/scrypt"
+)
+
+const (
+	// SaltSize is the lenght of the salt string
+	SaltSize = 32
+	// HashSize is the lenght of the hash string
+	HashSize = 64
 )
 
 // User holds the user response from user-store
@@ -60,37 +70,143 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
-func (u *User) findByUserName(name string) (err error) {
-	var msg *nats.Msg
+// FindByUserName : find a user for the given username, and maps it on
+// the fiven User struct
+func (u *User) FindByUserName(name string, user *User) (err error) {
+	var res []byte
 
 	query := `{"username": "` + name + `"}`
-	if msg, err = n.Request("user.get", []byte(query), 1*time.Second); err != nil {
-		return ErrGatewayTimeout
+	if res, err = u.query("user.get", query); err != nil {
+		return err
 	}
-	if strings.Contains(string(msg.Data), `"error"`) {
+	if strings.Contains(string(res), `"error"`) {
 		return errors.New(`"Specified username does not exist"`)
 	}
-	if err = json.Unmarshal(msg.Data, &u); err != nil {
+	if err = json.Unmarshal(res, &user); err != nil {
 		return errors.New(`"Specified username does not exist"`)
 	}
 
 	return nil
 }
 
-func (u *User) save() (err error) {
+// FindAll : Searches for all users on the store current user
+// has access to
+func (u *User) FindAll(users *[]User) (err error) {
+	var query string
+	var res []byte
+
+	if !u.Admin {
+		query = fmt.Sprintf(`{"group_id": %d}`, u.GroupID)
+	}
+
+	if res, err = u.query("user.find", query); err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(res, &users)
+	if err != nil {
+		return ErrInternal
+	}
+
+	return nil
+}
+
+// FindByID : Searches a user by ID on the store current user
+// has access to
+func (u *User) FindByID(id string, user *User) (err error) {
+	var query string
+	var res []byte
+
+	if u.Admin {
+		query = fmt.Sprintf(`{"id": %s}`, id)
+	} else {
+		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, id, u.GroupID)
+	}
+
+	if res, err = u.query("user.get", query); err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(res, &user); err != nil {
+		return ErrInternal
+	}
+
+	return nil
+}
+
+// Save : calls user.set with the marshalled current user
+func (u *User) Save() (err error) {
+	var res []byte
+
 	data, err := json.Marshal(u)
 	if err != nil {
 		return ErrBadReqBody
 	}
 
-	msg, err := n.Request("user.set", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
+	if res, err = u.query("user.set", string(data)); err != nil {
+		return err
 	}
 
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
+	if err := json.Unmarshal(res, &u); err != nil {
+		return ErrInternal
 	}
 
 	return nil
+}
+
+// Delete : will delete a user by its id
+func (u *User) Delete(id string) (err error) {
+	query := fmt.Sprintf(`{"id": %s}`, id)
+	if _, err := u.query("user.del", query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Redact : removes all sensitive fields from the return
+// data before outputting to the user
+func (u *User) Redact() {
+	u.Password = ""
+	u.Salt = ""
+}
+
+// ValidPassword : checks if a submitted password matches
+// the users password hash
+func (u *User) ValidPassword(pw string) bool {
+	userpass, err := base64.StdEncoding.DecodeString(u.Password)
+	if err != nil {
+		return false
+	}
+
+	usersalt, err := base64.StdEncoding.DecodeString(u.Salt)
+	if err != nil {
+		return false
+	}
+
+	hash, err := scrypt.Key([]byte(pw), usersalt, 16384, 8, 1, HashSize)
+	if err != nil {
+		return false
+	}
+
+	// Compare in constant time to mitigate timing attacks
+	if subtle.ConstantTimeCompare(userpass, hash) == 1 {
+		return true
+	}
+
+	return false
+}
+
+func (u *User) query(subject, query string) ([]byte, error) {
+	var res []byte
+	msg, err := n.Request(subject, []byte(query), 5*time.Second)
+	if err != nil {
+		return res, ErrGatewayTimeout
+	}
+
+	if re := responseErr(msg); re != nil {
+		return res, re.HTTPError
+	}
+
+	return msg.Data, nil
 }
