@@ -9,10 +9,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"strings"
-	"time"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/scrypt"
@@ -73,94 +71,60 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 // FindByUserName : find a user for the given username, and maps it on
 // the fiven User struct
 func (u *User) FindByUserName(name string, user *User) (err error) {
-	var res []byte
-
-	query := `{"username": "` + name + `"}`
-	if res, err = Query("user.get", query); err != nil {
+	query := make(map[string]interface{})
+	query["username"] = name
+	if err := NewBaseModel("user").GetBy(query, user); err != nil {
 		return err
 	}
-	if strings.Contains(string(res), `"error"`) {
-		return errors.New(`"Specified username does not exist"`)
-	}
-	if err = json.Unmarshal(res, &user); err != nil {
-		return errors.New(`"Specified username does not exist"`)
-	}
-
 	return nil
 }
 
 // FindAll : Searches for all users on the store current user
 // has access to
 func (u *User) FindAll(users *[]User) (err error) {
-	var query string
-	var res []byte
-
+	query := make(map[string]interface{})
 	if !u.Admin {
-		query = fmt.Sprintf(`{"group_id": %d}`, u.GroupID)
+		query["group_id"] = u.GroupID
 	}
-
-	if res, err = Query("user.find", query); err != nil {
+	if err := NewBaseModel("user").FindBy(query, users); err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(res, &users)
-	if err != nil {
-		return ErrInternal
-	}
-
 	return nil
 }
 
 // FindByID : Searches a user by ID on the store current user
 // has access to
 func (u *User) FindByID(id string, user *User) (err error) {
-	var query string
-	var res []byte
-
-	if u.Admin {
-		query = fmt.Sprintf(`{"id": %s}`, id)
-	} else {
-		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, id, u.GroupID)
-	}
-
-	if res, err = Query("user.get", query); err != nil {
+	query := make(map[string]interface{})
+	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
 	}
-
-	if err = json.Unmarshal(res, &user); err != nil {
-		return ErrInternal
+	if !u.Admin {
+		query["group_id"] = u.GroupID
 	}
-
+	if err := NewBaseModel("user").GetBy(query, user); err != nil {
+		return err
+	}
 	return nil
 }
 
 // Save : calls user.set with the marshalled current user
 func (u *User) Save() (err error) {
-	var res []byte
-
-	data, err := json.Marshal(u)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	if res, err = Query("user.set", string(data)); err != nil {
+	if err := NewBaseModel("user").Save(u); err != nil {
 		return err
 	}
-
-	if err := json.Unmarshal(res, &u); err != nil {
-		return ErrInternal
-	}
-
 	return nil
 }
 
 // Delete : will delete a user by its id
 func (u *User) Delete(id string) (err error) {
-	query := fmt.Sprintf(`{"id": %s}`, id)
-	if _, err := Query("user.del", query); err != nil {
+	query := make(map[string]interface{})
+	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
 	}
-
+	if err := NewBaseModel("user").Delete(query); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -202,19 +166,4 @@ func (u *User) Group() (group Group) {
 	group.FindByID(u.GroupID)
 
 	return group
-}
-
-// TODO : Move this to somewhere else
-func Query(subject, query string) ([]byte, error) {
-	var res []byte
-	msg, err := n.Request(subject, []byte(query), 5*time.Second)
-	if err != nil {
-		return res, ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return res, re.HTTPError
-	}
-
-	return msg.Data, nil
 }

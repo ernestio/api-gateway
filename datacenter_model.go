@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/labstack/echo"
@@ -74,49 +73,28 @@ func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
 // FindAll : Searches for all datacenters on the store current user
 // has access to
 func (d *Datacenter) FindByGroupID(id int, datacenters *[]Datacenter) (err error) {
-	var query string
-	var res []byte
-
-	query = fmt.Sprintf(`{"group_id": %d}`, id)
-
-	if res, err = Query("datacenter.find", query); err != nil {
+	query := make(map[string]interface{})
+	query["group_id"] = id
+	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
 		return err
 	}
-
-	err = json.Unmarshal(res, &datacenters)
-	if err != nil {
-		return ErrInternal
-	}
-
 	return nil
 }
 
+// FindByID : Gets a model by its id
 func (d *Datacenter) FindByID(id int) (err error) {
-	var res []byte
-	query := fmt.Sprintf(`{"id": %d}`, id)
-	if res, err = Query("datacenter.get", query); err != nil {
+	query := make(map[string]interface{})
+	query["id"] = id
+	if err := NewBaseModel("datacenter").GetBy(query, d); err != nil {
 		return err
 	}
-	json.Unmarshal(res, &d)
 	return nil
 }
 
 // Save : calls datacenter.set with the marshalled current group
 func (d *Datacenter) Save() (err error) {
-	var res []byte
-
-	data, err := json.Marshal(d)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	if res, err = Query("datacenter.set", string(data)); err != nil {
+	if err := NewBaseModel("datacenter").Save(d); err != nil {
 		return err
 	}
-
-	if err := json.Unmarshal(res, &d); err != nil {
-		return ErrInternal
-	}
-
 	return nil
 }
