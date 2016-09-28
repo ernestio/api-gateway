@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-// getGroupsHandler : get all datacenters
 // getGroupsHandler : responds to GET /groups/ with a list of all
 // groups
 func getGroupsHandler(c echo.Context) (err error) {

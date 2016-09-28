@@ -143,12 +143,13 @@ func TestDatacenters(t *testing.T) {
 	Convey("Scenario: deleting a datacenter", t, func() {
 		Convey("Given a datacenter exists on the store", func() {
 			deleteDatacenterSubscriber()
+			getDatacenterSubscriber(2)
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				ft := generateTestToken(1, "test", false)
 
 				params := make(map[string]string)
-				params["datacenter"] = "test"
+				params["datacenter"] = "1"
 				_, err := doRequest("DELETE", "/datacenters/:datacenter", params, nil, deleteDatacenterHandler, ft)
 
 				Convey("It should delete the datacenter and return ok", func() {

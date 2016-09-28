@@ -70,8 +70,18 @@ func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
 	return nil
 }
 
-// FindAll : Searches for all datacenters on the store current user
-// has access to
+// FindByName : Searches for all datacenters with a name equal to the specified
+func (d *Datacenter) FindByName(name string, datacenter *Datacenter) (err error) {
+	query := make(map[string]interface{})
+	query["name"] = name
+	if err := NewBaseModel("datacenter").GetBy(query, datacenter); err != nil {
+		return err
+	}
+	return nil
+}
+
+// FindByGroupID : Searches for all datacenters on the store current user
+// has access to with the specified group id
 func (d *Datacenter) FindByGroupID(id int, datacenters *[]Datacenter) (err error) {
 	query := make(map[string]interface{})
 	query["group_id"] = id
@@ -91,9 +101,30 @@ func (d *Datacenter) FindByID(id int) (err error) {
 	return nil
 }
 
+// FindAll : Searches for all groups on the store current user
+// has access to
+func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
+	query := make(map[string]interface{})
+	query["group_id"] = au.GroupID
+	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Save : calls datacenter.set with the marshalled current group
 func (d *Datacenter) Save() (err error) {
 	if err := NewBaseModel("datacenter").Save(d); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Delete : will delete a datacenter by its id
+func (d *Datacenter) Delete() (err error) {
+	query := make(map[string]interface{})
+	query["id"] = d.ID
+	if err := NewBaseModel("datacenter").Delete(query); err != nil {
 		return err
 	}
 	return nil
