@@ -103,3 +103,19 @@ func (b *BaseModel) Query(subject, query string) ([]byte, error) {
 
 	return msg.Data, nil
 }
+
+// Set : interface to call component.set on the specific store
+func (b *BaseModel) Set(query map[string]interface{}) (err error) {
+	var req []byte
+	if len(query) > 0 {
+		if req, err = json.Marshal(query); err != nil {
+			return err
+		}
+	}
+
+	if _, err = b.Query(b.Type+".set", string(req)); err != nil {
+		return err
+	}
+
+	return nil
+}

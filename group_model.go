@@ -75,10 +75,7 @@ func (g *Group) FindAll(au User, groups *[]Group) (err error) {
 func (g *Group) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	if err := NewBaseModel("group").GetBy(query, g); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("group").GetBy(query, g)
 }
 
 // Save : calls group.set with the marshalled current group

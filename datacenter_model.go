@@ -91,6 +91,17 @@ func (d *Datacenter) FindByGroupID(id int, datacenters *[]Datacenter) (err error
 	return nil
 }
 
+// FindByNameAndGroupID : Searches for all datacenters with a name equal to the specified
+func (d *Datacenter) FindByNameAndGroupID(name string, id int, datacenters *[]Datacenter) (err error) {
+	query := make(map[string]interface{})
+	query["name"] = name
+	query["group_id"] = id
+	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
+		return err
+	}
+	return nil
+}
+
 // FindByID : Gets a model by its id
 func (d *Datacenter) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
