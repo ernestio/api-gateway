@@ -15,17 +15,17 @@ import (
 
 // Service holds the service response from service-store
 type Service struct {
-	ID           string                 `json:"id"`
-	GroupID      int                    `json:"group_id"`
-	DatacenterID int                    `json:"datacenter_id"`
-	Name         string                 `json:"name"`
-	Type         string                 `json:"type"`
-	Version      time.Time              `json:"version"`
-	Options      map[string]interface{} `json:"options"`
-	Status       string                 `json:"status"`
-	Endpoint     string                 `json:"endpoint"`
-	Definition   interface{}            `json:"definition"`
-	Maped        string                 `json:"mapping"`
+	ID           string      `json:"id"`
+	GroupID      int         `json:"group_id"`
+	DatacenterID int         `json:"datacenter_id"`
+	Name         string      `json:"name"`
+	Type         string      `json:"type"`
+	Version      time.Time   `json:"version"`
+	Options      string      `json:"options"`
+	Status       string      `json:"status"`
+	Endpoint     string      `json:"endpoint"`
+	Definition   interface{} `json:"definition"`
+	Maped        string      `json:"mapping"`
 }
 
 type ServiceMapping struct {

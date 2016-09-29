@@ -21,7 +21,12 @@ func getGroupsHandler(c echo.Context) (err error) {
 	var group Group
 
 	au := authenticatedUser(c)
-	group.FindAll(au, &groups)
+	if au.Admin == true {
+		group.FindAll(au, &groups)
+	} else {
+		group.FindByID(au.GroupID)
+		groups = append(groups, group)
+	}
 
 	if body, err = json.Marshal(groups); err != nil {
 		return err
