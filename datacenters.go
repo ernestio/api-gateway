@@ -20,7 +20,15 @@ func getDatacentersHandler(c echo.Context) (err error) {
 	var datacenter Datacenter
 
 	au := authenticatedUser(c)
-	datacenter.FindAll(au, &datacenters)
+	if au.Admin == true {
+		err = datacenter.FindAll(au, &datacenters)
+	} else {
+		datacenters, err = au.Datacenters()
+	}
+
+	if err != nil {
+		return err
+	}
 
 	if body, err = json.Marshal(datacenters); err != nil {
 		return err
@@ -53,13 +61,17 @@ func createDatacenterHandler(c echo.Context) (err error) {
 	var existing Datacenter
 	var body []byte
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	au := authenticatedUser(c)
+
+	if au.GroupID == 0 {
+		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
 	}
 
 	if d.Map(c) != nil {
 		return ErrBadReqBody
 	}
+
+	d.GroupID = au.GroupID
 
 	if err := existing.FindByName(d.Name, &existing); err == nil {
 		return echo.NewHTTPError(409, "Specified datacenter already exists")

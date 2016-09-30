@@ -167,3 +167,12 @@ func (u *User) Group() (group Group) {
 
 	return group
 }
+
+// Datacenters : Gets the related user datacenters if any
+func (u *User) Datacenters() (ds []Datacenter, err error) {
+	var d Datacenter
+
+	err = d.FindByGroupID(u.GroupID, &ds)
+
+	return ds, err
+}

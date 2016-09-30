@@ -116,7 +116,6 @@ func (d *Datacenter) FindByID(id int) (err error) {
 // has access to
 func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
 	query := make(map[string]interface{})
-	query["group_id"] = au.GroupID
 	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
 		return err
 	}
