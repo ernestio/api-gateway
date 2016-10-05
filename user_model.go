@@ -27,6 +27,7 @@ const (
 type User struct {
 	ID          int    `json:"id"`
 	GroupID     int    `json:"group_id"`
+	GroupName   string `json:"group_name"`
 	Username    string `json:"username"`
 	Password    string `json:"password,omitempty"`
 	OldPassword string `json:"oldpassword,omitempty"`
@@ -133,6 +134,12 @@ func (u *User) Delete(id string) (err error) {
 func (u *User) Redact() {
 	u.Password = ""
 	u.Salt = ""
+}
+
+// Improve : adds extra data as group name
+func (u *User) Improve() {
+	g := u.Group()
+	u.GroupName = g.Name
 }
 
 // ValidPassword : checks if a submitted password matches

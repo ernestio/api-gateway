@@ -23,6 +23,7 @@ func getUsersHandler(c echo.Context) error {
 
 	for i := 0; i < len(users); i++ {
 		users[i].Redact()
+		users[i].Improve()
 	}
 
 	return c.JSON(http.StatusOK, users)
