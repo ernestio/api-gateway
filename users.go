@@ -5,123 +5,48 @@
 package main
 
 import (
-	"crypto/subtle"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
-
-	"golang.org/x/crypto/scrypt"
 
 	"github.com/labstack/echo"
 )
 
-const (
-	// SaltSize is the lenght of the salt string
-	SaltSize = 32
-	// HashSize is the lenght of the hash string
-	HashSize = 64
-)
-
-// Redact removes all sensitive fields from the return data before outputting to the user
-func (u *User) Redact() {
-	u.Password = ""
-	u.Salt = ""
-}
-
-// ValidPassword checks if a submitted password matches the users password hash
-func (u *User) ValidPassword(pw string) bool {
-	userpass, err := base64.StdEncoding.DecodeString(u.Password)
-	if err != nil {
-		return false
-	}
-
-	usersalt, err := base64.StdEncoding.DecodeString(u.Salt)
-	if err != nil {
-		return false
-	}
-
-	hash, err := scrypt.Key([]byte(pw), usersalt, 16384, 8, 1, HashSize)
-	if err != nil {
-		return false
-	}
-
-	// Compare in constant time to mitigate timing attacks
-	if subtle.ConstantTimeCompare(userpass, hash) == 1 {
-		return true
-	}
-
-	return false
-}
-
+// getUsersHandler : responds to GET /users/ with a list of all
+// users for admin, and all users in your group for other
+// users
 func getUsersHandler(c echo.Context) error {
-	var query string
 	var users []User
 
 	au := authenticatedUser(c)
-
-	if !au.Admin {
-		query = fmt.Sprintf(`{"group_id": %d}`, au.GroupID)
-	}
-
-	msg, err := n.Request("user.find", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	// Remove sensitive data
-	err = json.Unmarshal(msg.Data, &users)
-	if err != nil {
-		return ErrInternal
+	if err := au.FindAll(&users); err != nil {
+		return err
 	}
 
 	for i := 0; i < len(users); i++ {
 		users[i].Redact()
+		users[i].Improve()
 	}
 
 	return c.JSON(http.StatusOK, users)
 }
 
+// getUserHandler : responds to GET /users/:id:/ with the specified
+// user details
 func getUserHandler(c echo.Context) error {
-	var query string
 	var user User
 
 	au := authenticatedUser(c)
-
-	if au.Admin {
-		query = fmt.Sprintf(`{"id": %s}`, c.Param("user"))
-	} else {
-		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("user"), au.GroupID)
+	if err := au.FindByID(c.Param("user"), &user); err != nil {
+		return err
 	}
-
-	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	// Remove sensitive data
-	err = json.Unmarshal(msg.Data, &user)
-	if err != nil {
-		return ErrInternal
-	}
-
 	user.Redact()
 
 	return c.JSON(http.StatusOK, user)
 }
 
+// createUserHandler : responds to POST /users/ by creating a user
+// on the data store
 func createUserHandler(c echo.Context) error {
 	var u User
-	var created User
 	var existing User
 
 	if authenticatedUser(c).Admin != true {
@@ -132,61 +57,27 @@ func createUserHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	// Check if the user exists
-	query := fmt.Sprintf(`{"username": "%s"}`, u.Username)
-	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
+	if err := existing.FindByUserName(u.Username, &existing); err == nil {
+		return echo.NewHTTPError(409, "Specified user already exists")
 	}
 
-	err = json.Unmarshal(msg.Data, &existing)
-	if err != nil {
-		return ErrInternal
+	if err := u.Save(); err != nil {
+		return err
 	}
 
-	if existing.ID != 0 {
-		c.Response().Header().Add("Location", fmt.Sprintf("/users/%d", existing.ID))
-		return ErrExists
-	}
+	u.Redact()
 
-	// Create the user
-	data, err := json.Marshal(u)
-	if err != nil {
-		return ErrInternal
-	}
-
-	msg, err = n.Request("user.set", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	// Remove sensitive data
-	err = json.Unmarshal(msg.Data, &created)
-	if err != nil {
-		return ErrInternal
-	}
-
-	created.Redact()
-
-	return c.JSON(http.StatusOK, created)
+	return c.JSON(http.StatusOK, u)
 }
 
+// updateUserHandler : responds to PUT /users/:id: by updating an existing
+// user
 func updateUserHandler(c echo.Context) error {
 	var u User
-	var updated User
 	var existing User
 
 	if u.Map(c) != nil {
 		return ErrBadReqBody
-	}
-
-	data, err := json.Marshal(u)
-	if err != nil {
-		return ErrInternal
 	}
 
 	// Check if authenticated user is admin or updating itself
@@ -196,19 +87,8 @@ func updateUserHandler(c echo.Context) error {
 	}
 
 	// Check user exists
-	query := fmt.Sprintf(`{"id": %d}`, u.ID)
-	msg, err := n.Request("user.get", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	err = json.Unmarshal(msg.Data, &existing)
-	if err != nil {
-		return ErrInternal
+	if err := au.FindByID(c.Param("user"), &existing); err != nil {
+		return err
 	}
 
 	if existing.ID == 0 {
@@ -225,43 +105,27 @@ func updateUserHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	// update the user
-	msg, err = n.Request("user.set", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
+	if err := u.Save(); err != nil {
+		return err
 	}
 
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
+	u.Redact()
 
-	// Remove sensitive data
-	err = json.Unmarshal(msg.Data, &updated)
-	if err != nil {
-		return ErrInternal
-	}
-
-	updated.Redact()
-
-	return c.JSON(http.StatusOK, updated)
+	return c.JSON(http.StatusOK, u)
 }
 
+// deleteUserHandler : responds to DELETE /users/:id: by deleting an
+// existing user
 func deleteUserHandler(c echo.Context) error {
-	au := authenticatedUser(c)
-	if au.Admin != true {
+	var au User
+
+	if au = authenticatedUser(c); au.Admin != true {
 		return ErrUnauthorized
 	}
 
-	query := fmt.Sprintf(`{"id": %s}`, c.Param("user"))
-	msg, err := n.Request("user.del", []byte(query), 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
+	if err := au.Delete(c.Param("user")); err != nil {
+		return err
 	}
 
-	if re := responseErr(msg); re != nil {
-		fmt.Println(re.Error)
-		return re.HTTPError
-	}
-
-	return c.String(http.StatusOK, "")
+	return c.String(http.StatusOK, "User successfully deleted")
 }

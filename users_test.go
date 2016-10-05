@@ -192,9 +192,9 @@ func TestUsers(t *testing.T) {
 					ft := generateTestToken(1, "admin", true)
 					_, err := doRequest("POST", "/users/", nil, existingData, createUserHandler, ft)
 
-					Convey("It should return with 303 see other", func() {
+					Convey("It should return with 409", func() {
 						So(err, ShouldNotBeNil)
-						So(err.(*echo.HTTPError).Code, ShouldEqual, 303)
+						So(err.(*echo.HTTPError).Code, ShouldEqual, 409)
 					})
 				})
 			})

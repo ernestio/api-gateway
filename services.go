@@ -6,94 +6,43 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo"
 )
 
-// Service holds the service response from service-store
-type Service struct {
-	ID           string                 `json:"id"`
-	GroupID      int                    `json:"group_id"`
-	DatacenterID int                    `json:"datacenter_id"`
-	Name         string                 `json:"name"`
-	Type         string                 `json:"type"`
-	Version      time.Time              `json:"version"`
-	Options      map[string]interface{} `json:"options"`
-	Status       string                 `json:"status"`
-	Endpoint     string                 `json:"endpoint"`
-	Definition   interface{}            `json:"definition"`
-}
-
-// Validate the service
-func (d *Service) Validate() error {
-	if d.Name == "" {
-		return errors.New("Service name is empty")
-	}
-
-	if d.DatacenterID == 0 {
-		return errors.New("Service group is empty")
-	}
-
-	if d.Type == "" {
-		return errors.New("Service type is empty")
-	}
-
-	return nil
-}
-
-// Map : maps a service from a request's body and validates the input
-func (d *Service) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &d)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = d.Validate()
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	return nil
-}
-
+// getServicesHandler : responds to GET /services/ with a list of all
+// services for current user group
 func getServicesHandler(c echo.Context) (err error) {
-	var list []OutputService
+	var services []Service
+	var body []byte
+	var service Service
+
+	au := authenticatedUser(c)
+	service.FindAll(au, &services)
+
+	if body, err = json.Marshal(services); err != nil {
+		return err
+	}
+	return c.JSONBlob(http.StatusOK, body)
+}
+
+// getServiceBuildsHandler : gets the list of builds for the specified
+// service
+func getServiceBuildsHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
-	query := getSearchFilter(c)
+	query := getParamFilter(c)
 	if au.Admin != true {
 		query["group_id"] = au.GroupID
 	}
 
-	if list, err = getServicesOutput(query); err != nil {
-		return c.JSONBlob(500, []byte(err.Error()))
-	}
-
-	return c.JSON(http.StatusOK, list)
-}
-
-func getServiceBuildsHandler(c echo.Context) error {
-	// get the service name
-	au := authenticatedUser(c)
-
-	// Get all builds for service name
-	qb := getParamFilter(c)
-	if au.Admin != true {
-		qb["group_id"] = au.GroupID
-	}
-
-	list, err := getServicesOutput(qb)
+	list, err := getServicesOutput(query)
 	if err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
 	}
@@ -101,8 +50,12 @@ func getServiceBuildsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
+// getServiceHandler : responds to GET /services/:service with the
+// details of an existing service
 func getServiceHandler(c echo.Context) (err error) {
-	var list []OutputService
+	var s Service
+	var services []Service
+	var o ServiceRender
 
 	au := authenticatedUser(c)
 	query := getParamFilter(c)
@@ -110,18 +63,24 @@ func getServiceHandler(c echo.Context) (err error) {
 		query["group_id"] = au.GroupID
 	}
 
-	if list, err = getServicesOutput(query); err != nil {
+	if err = s.Find(query, &services); err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
 	}
 
-	if len(list) > 0 {
-		return c.JSON(http.StatusOK, list[0])
+	if len(services) > 0 {
+		o.Render(services[0])
+		if body, err := o.ToJson(); err != nil {
+			return c.JSONBlob(500, []byte(err.Error()))
+		} else {
+			return c.JSONBlob(http.StatusOK, body)
+		}
 	}
 	return c.JSON(http.StatusNotFound, nil)
 }
 
+// getServiceBuildHandler : gets the details of a specific service build
 func getServiceBuildHandler(c echo.Context) (err error) {
-	var list []OutputService
+	var list []ServiceRender
 
 	au := authenticatedUser(c)
 	query := getParamFilter(c)
@@ -139,6 +98,7 @@ func getServiceBuildHandler(c echo.Context) (err error) {
 	return c.JSON(http.StatusNotFound, nil)
 }
 
+// TODO : WTF is this doing??
 func searchServicesHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
@@ -155,11 +115,38 @@ func searchServicesHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
+// resetServiceHandler : Respons to POST /services/:service/reset/ and updates the
+// service status to errored from in_progress
 func resetServiceHandler(c echo.Context) error {
+	var s Service
+	var services []Service
+
+	name := c.Param("service")
+
 	au := authenticatedUser(c)
-	if status, err := resetService(au, c.Param("service")); err != nil {
-		return c.JSONBlob(status, []byte(err.Error()))
+	filter := make(map[string]interface{})
+	filter["group_id"] = au.GroupID
+	filter["name"] = name
+	if err := s.Find(filter, &services); err != nil {
+		log.Println(err.Error())
+		return c.JSONBlob(500, []byte("Internal Error"))
 	}
+
+	if len(services) == 0 {
+		return c.JSONBlob(404, []byte("Service not found with this name"))
+	}
+
+	s = services[0]
+
+	if s.Status != "in_progress" {
+		return c.JSONBlob(200, []byte("Reset only applies to 'in progress' serices, however service '"+name+"' is on status '"+s.Status))
+	}
+
+	if err := s.Reset(); err != nil {
+		log.Println(err.Error())
+		return c.JSONBlob(500, []byte("Internal error"))
+	}
+
 	return c.String(200, "success")
 }
 
@@ -237,11 +224,22 @@ func createServiceHandler(c echo.Context) error {
 	}
 	json.Unmarshal(datacenter, &datacenterStruct)
 
-	version := time.Now()
-	status := "in_progress"
-	options := "{}"
-	mapping := string(service)
-	saveService(payload.ID, s.Name, datacenterStruct.Type, version, status, options, string(definition), mapping, uint(au.GroupID), datacenterStruct.ID)
+	datacenterID, _ := strconv.Atoi(string(datacenterStruct.ID))
+
+	ss := Service{
+		ID:           payload.ID,
+		Name:         s.Name,
+		Type:         datacenterStruct.Type,
+		GroupID:      au.GroupID,
+		DatacenterID: datacenterID,
+		Version:      time.Now(),
+		Status:       "in_progress",
+		Definition:   string(definition),
+		Maped:        string(service),
+	}
+	if err := ss.Save(); err != nil {
+		return echo.NewHTTPError(500, err.Error())
+	}
 
 	// Apply changes
 	n.Publish("service.create", service)

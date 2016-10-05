@@ -6,188 +6,138 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/labstack/echo"
 )
 
-// Datacenter holds the datacenter response from datacenter-store
-type Datacenter struct {
-	ID              int    `json:"id"`
-	GroupID         int    `json:"group_id"`
-	Name            string `json:"name"`
-	Type            string `json:"type"`
-	Region          string `json:"region"`
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	VCloudURL       string `json:"vcloud_url"`
-	VseURL          string `json:"vse_url"`
-	ExternalNetwork string `json:"external_network"`
-	Token           string `json:"token"`
-	Secret          string `json:"secret"`
-}
+// getDatacentersHandler : responds to GET /datacenters/ with a list of all
+// datacenters
+func getDatacentersHandler(c echo.Context) (err error) {
+	var datacenters []Datacenter
+	var body []byte
+	var datacenter Datacenter
 
-// Validate the datacenter
-func (d *Datacenter) Validate() error {
-	if d.Name == "" {
-		return errors.New("Datacenter name is empty")
-	}
-
-	if d.Type == "" {
-		return errors.New("Datacenter type is empty")
-	}
-
-	if d.Username == "" {
-		return errors.New("Datacenter username is empty")
-	}
-
-	if d.Type == "vcloud" && d.VCloudURL == "" {
-		return errors.New("Datacenter vcloud url is empty")
-	}
-
-	return nil
-}
-
-// Map : maps a datacenter from a request's body and validates the input
-func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &d)
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	err = d.Validate()
-	if err != nil {
-		return ErrBadReqBody
-	}
-
-	return nil
-}
-
-// getDatacentersHandler : get all datacenters
-func getDatacentersHandler(c echo.Context) error {
 	au := authenticatedUser(c)
-	query := fmt.Sprintf(`{"group_id": %d}`, au.GroupID)
-	msg, err := n.Request("datacenter.find", []byte(query), 1*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	return c.JSONBlob(http.StatusOK, msg.Data)
-}
-
-// getDatacenterHandler : get a datancenter by id
-func getDatacenterHandler(c echo.Context) error {
-	var query string
-	au := authenticatedUser(c)
-
-	if au.Admin {
-		query = fmt.Sprintf(`{"id": %s}`, c.Param("datacenter"))
+	if au.Admin == true {
+		err = datacenter.FindAll(au, &datacenters)
 	} else {
-		query = fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("datacenter"), au.GroupID)
+		datacenters, err = au.Datacenters()
 	}
 
-	msg, err := n.Request("datacenter.get", []byte(query), 1*time.Second)
 	if err != nil {
-		return ErrGatewayTimeout
+		return err
 	}
 
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
+	for i := 0; i < len(datacenters); i++ {
+		datacenters[i].Redact()
+		datacenters[i].Improve()
 	}
 
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	if body, err = json.Marshal(datacenters); err != nil {
+		return err
+	}
+	return c.JSONBlob(http.StatusOK, body)
 }
 
-// createDatacenterHandler : Endpoint to create a datacenter
-func createDatacenterHandler(c echo.Context) error {
+// getDatacenterHandler : responds to GET /datacenter/:id:/ with the specified
+// datacenter details
+func getDatacenterHandler(c echo.Context) (err error) {
 	var d Datacenter
-	if d.Map(c) != nil {
-		return ErrBadReqBody
+	var body []byte
+
+	id, _ := strconv.Atoi(c.Param("datacenter"))
+	if err := d.FindByID(id); err != nil {
+		return err
 	}
 
+	if body, err = json.Marshal(d); err != nil {
+		return err
+	}
+
+	return c.JSONBlob(http.StatusOK, body)
+}
+
+// createDatacenterHandler : responds to POST /datacenters/ by creating a
+// datacenter on the data store
+func createDatacenterHandler(c echo.Context) (err error) {
+	var d Datacenter
+	var existing Datacenter
+	var body []byte
+
 	au := authenticatedUser(c)
+
 	if au.GroupID == 0 {
 		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
 	}
+
+	if d.Map(c) != nil {
+		return ErrBadReqBody
+	}
+
 	d.GroupID = au.GroupID
 
-	data, err := json.Marshal(d)
-	if err != nil {
-		return ErrInternal
+	if err := existing.FindByName(d.Name, &existing); err == nil {
+		return echo.NewHTTPError(409, "Specified datacenter already exists")
 	}
 
-	// Does the datacenter already exist
-	msg, err := n.Request("datacenter.get", []byte(`{"name":"`+d.Name+`"}`), 1*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-	if string(msg.Data) != `{"error":"not found"}` {
-		return c.JSONBlob(409, []byte("Datacenter name already in use"))
+	d.Save()
+
+	if body, err = json.Marshal(d); err != nil {
+		return err
 	}
 
-	msg, err = n.Request("datacenter.set", data, 1*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	return c.JSONBlob(http.StatusOK, body)
 }
 
-// updateDatacenterHandler : Updates a datacenter through its store
-func updateDatacenterHandler(c echo.Context) error {
+// updateDatacenterHandler : responds to PUT /datacenters/:id: by updating
+// an existing datacenter
+func updateDatacenterHandler(c echo.Context) (err error) {
 	var d Datacenter
+	var existing Datacenter
+	var body []byte
+
 	if d.Map(c) != nil {
 		return ErrBadReqBody
 	}
 
 	au := authenticatedUser(c)
-	if au.Admin != true || d.GroupID != au.GroupID {
+	if au.Admin != true {
 		return ErrUnauthorized
 	}
 
-	data, err := json.Marshal(d)
-	if err != nil {
+	if err := existing.FindByName(d.Name, &existing); err != nil {
+		return echo.NewHTTPError(404, "Specified datacenter does not exists")
+	}
+
+	d.Save()
+
+	if body, err = json.Marshal(d); err != nil {
 		return ErrInternal
 	}
 
-	msg, err := n.Request("datacenter.set", data, 5*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
-	}
-
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
-	}
-
-	return c.JSONBlob(http.StatusOK, msg.Data)
+	return c.JSONBlob(http.StatusOK, body)
 }
 
-// deleteDatacenterHandler : Deletes a datancenter though its store
+// deleteDatacenterHandler : responds to DELETE /datacenters/:id: by deleting an
+// existing datacenter
 func deleteDatacenterHandler(c echo.Context) error {
+	var d Datacenter
+
 	au := authenticatedUser(c)
 
-	query := fmt.Sprintf(`{"id": %s, "group_id": %d}`, c.Param("datacenter"), au.GroupID)
-	msg, err := n.Request("datacenter.del", []byte(query), 1*time.Second)
-	if err != nil {
-		return ErrGatewayTimeout
+	id, err := strconv.Atoi(c.Param("datacenter"))
+	if err = d.FindByID(id); err != nil {
+		return err
 	}
 
-	if re := responseErr(msg); re != nil {
-		return re.HTTPError
+	if au.GroupID != d.GroupID {
+		return ErrUnauthorized
+	}
+
+	if err := d.Delete(); err != nil {
+		return err
 	}
 
 	return c.String(http.StatusOK, "")

@@ -5,9 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -74,81 +72,53 @@ func generateStreamID(salt string) string {
 }
 
 func getDatacenter(name string, group int) (datacenter []byte, err error) {
-	var msg *nats.Msg
+	var d Datacenter
+	var datacenters []Datacenter
 
-	query := fmt.Sprintf(`{"name": "%s", "group_id": %d}`, name, group)
-	if msg, err = n.Request("datacenter.find", []byte(query), 1*time.Second); err != nil {
-		return datacenter, ErrGatewayTimeout
+	if err := d.FindByNameAndGroupID(name, group, &datacenters); err != nil {
+		return datacenter, err
 	}
-	if string(msg.Data) == `[]` {
+
+	if len(datacenters) == 0 {
 		return datacenter, errors.New(`"Specified datacenter does not exist"`)
 	}
 
-	// Get only the first datcenter
-	datacenters := make([]interface{}, 0)
-	json.Unmarshal(msg.Data, &datacenters)
-	res, err := json.Marshal(datacenters[0])
+	datacenter, err = json.Marshal(datacenters[0])
 	if err != nil {
 		return datacenter, errors.New("Internal error trying to get the datacenter")
 	}
 
-	return res, nil
-}
-
-func getDatacenterByID(id int) (user []byte, err error) {
-	var msg *nats.Msg
-
-	query := fmt.Sprintf(`{"id": %d}`, id)
-	if msg, err = n.Request("datacenter.get", []byte(query), 1*time.Second); err != nil {
-		return user, ErrGatewayTimeout
-	}
-	if strings.Contains(string(msg.Data), `"error"`) {
-		return user, errors.New(`"Specified datacenter does not exist"`)
-	}
-	return msg.Data, nil
-}
-
-func getUser(id int) (user []byte, err error) {
-	var msg *nats.Msg
-
-	query := fmt.Sprintf(`{"id": %d}`, id)
-	if msg, err = n.Request("user.get", []byte(query), 1*time.Second); err != nil {
-		return user, ErrGatewayTimeout
-	}
-	if strings.Contains(string(msg.Data), `"error"`) {
-		return user, errors.New(`"Specified user does not exist"`)
-	}
-	return msg.Data, nil
+	return datacenter, nil
 }
 
 func getGroup(id int) (group []byte, err error) {
-	var msg *nats.Msg
+	var g Group
 
-	query := fmt.Sprintf(`{"id": %d}`, id)
-	if msg, err = n.Request("group.get", []byte(query), 1*time.Second); err != nil {
-		return group, ErrGatewayTimeout
-	}
-	if strings.Contains(string(msg.Data), `"error"`) {
+	if err = g.FindByID(id); err != nil {
 		return group, errors.New(`"Specified group does not exist"`)
 	}
-	return msg.Data, nil
+
+	if group, err = json.Marshal(g); err != nil {
+		return group, errors.New(`"Internal error"`)
+	}
+	println(group)
+
+	return group, nil
 }
 
 func getService(name string, group int) (service *Service, err error) {
-	var msg *nats.Msg
+	var s Service
+	var services []Service
 
-	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, group)
-	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
+	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
 		return service, ErrGatewayTimeout
 	}
 
-	p := []Service{}
-	json.Unmarshal(msg.Data, &p)
-	if len(p) == 0 {
+	if len(services) == 0 {
 		return nil, nil
 	}
 
-	return &p[0], nil
+	return &services[0], nil
 }
 
 func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
@@ -175,181 +145,33 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 }
 
 func getServiceRaw(name string, group int) (service []byte, err error) {
-	var msg *nats.Msg
+	var s Service
+	var services []Service
 
-	query := fmt.Sprintf(`{"name":"%s","group_id":%d}`, name, group)
-	if msg, err = n.Request("service.find", []byte(query), 1*time.Second); err != nil {
-		return service, ErrGatewayTimeout
-	}
-	p := []*json.RawMessage{}
-
-	if err = json.Unmarshal(msg.Data, &p); err != nil {
+	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
 		return nil, errors.New(`"Internal error"`)
 	}
 
-	if len(p) == 0 {
+	if len(services) == 0 {
 		return nil, errors.New(`"Service not found"`)
 	}
 
-	if body, err := p[0].MarshalJSON(); err != nil {
+	if body, err := json.Marshal(services[0]); err != nil {
 		return nil, errors.New("Internal error")
+
 	} else {
 		return body, nil
 	}
 }
 
-type OutputService struct {
-	ID           string `json:"id"`
-	DatacenterID int    `json:"datacenter_id"`
-	Name         string `json:"name"`
-	Version      string `json:"version"`
-	Status       string `json:"status"`
-	Options      string `json:"options"`
-	Endpoint     string `json:"endpoint"`
-	Definition   string `json:"definition"`
-	VpcID        string `json:"vpc_id"`
-	Networks     []struct {
-		Name   string `json:"name"`
-		Subnet string `json:"network_aws_id"`
-	} `json:"networks"`
-	Instances []struct {
-		Name          string `json:"name"`
-		InstanceAWSID string `json:"instance_aws_id"`
-		PublicIP      string `json:"public_ip"`
-		IP            string `json:"ip"`
-	} `json:"instances"`
-	Nats []struct {
-		Name            string `json:"name"`
-		NatGatewayAWSID string `json:"nat_gateway_aws_id"`
-	} `json:"nats"`
-	SecurityGroups []struct {
-		Name               string `json:"name"`
-		SecurityGroupAWSID string `json:"security_group_aws_id"`
-	} `json:"security_groups"`
-}
+func getServicesOutput(filter map[string]interface{}) (list []ServiceRender, err error) {
+	var s Service
+	var services []Service
+	var o ServiceRender
 
-type ServiceMapping struct {
-	Vpcs struct {
-		Items []struct {
-			VpcID string `json:"vpc_id"`
-		} `json:"items"`
-	} `json:"vpcs"`
-	Networks struct {
-		Items []struct {
-			Name   string `json:"name"`
-			Subnet string `json:"network_aws_id"`
-		} `json:"items"`
-	} `json:"networks"`
-	Instances struct {
-		Items []struct {
-			Name          string `json:"name"`
-			InstanceAWSID string `json:"instance_aws_id"`
-			PublicIP      string `json:"public_ip"`
-			IP            string `json:"ip"`
-		} `json:"items"`
-	} `json:"instances"`
-	Nats struct {
-		Items []struct {
-			Name            string `json:"name"`
-			NatGatewayAWSID string `json:"nat_gateway_aws_id"`
-		} `json:"items"`
-	} `json:"nats"`
-	SecurityGroups struct {
-		Items []struct {
-			Name               string `json:"name"`
-			SecurityGroupAWSID string `json:"security_group_aws_id"`
-		} `json:"items"`
-	} `json:"firewalls"`
-}
-
-func getServicesOutput(filter map[string]interface{}) (list []OutputService, err error) {
-	var msg *nats.Msg
-
-	query, err := json.Marshal(filter)
-	if err != nil {
+	if err := s.Find(filter, &services); err != nil {
 		return list, err
 	}
 
-	if msg, err = n.Request("service.find", query, 1*time.Second); err != nil {
-		return list, ErrGatewayTimeout
-	}
-
-	if err := json.Unmarshal(msg.Data, &list); err != nil {
-		return list, errors.New("Internal error")
-	}
-
-	// Popolate service with detailedd info
-	for i, v := range list {
-		mapping := ServiceMapping{}
-		if msg, err = n.Request("service.get.mapping", []byte(`{"id":"`+v.ID+`"}`), 1*time.Second); err != nil {
-			return list, ErrGatewayTimeout
-		}
-
-		if err := json.Unmarshal(msg.Data, &mapping); err != nil {
-			return list, errors.New("Internal error")
-		}
-		if len(mapping.Vpcs.Items) > 0 {
-			list[i].VpcID = mapping.Vpcs.Items[0].VpcID
-		}
-
-		list[i].Networks = mapping.Networks.Items
-		list[i].SecurityGroups = mapping.SecurityGroups.Items
-		list[i].Nats = mapping.Nats.Items
-		list[i].Instances = mapping.Instances.Items
-	}
-
-	return list, nil
-}
-
-func resetService(au User, name string) (status int, err error) {
-	var list []OutputService
-	filter := make(map[string]interface{})
-	filter["group_id"] = au.GroupID
-	filter["name"] = name
-
-	if list, err = getServicesOutput(filter); err != nil {
-		return 500, errors.New("Internal error")
-	}
-	if len(list) == 0 {
-		return 404, errors.New(`No services found with for '` + name + `'`)
-	}
-	if list[0].Status != "in_progress" {
-		return 200, errors.New("Reset only applies to 'in progress' serices, however service '" + name + "' is on status '" + list[0].Status)
-	}
-
-	query := `{"id":"` + list[0].ID + `","status":"errored"}`
-	if _, err := n.Request("service.set", []byte(query), 1*time.Second); err != nil {
-		return 500, errors.New("Could not update the service")
-	}
-
-	return 200, nil
-}
-func saveService(id string, name string, t string, v time.Time, s string, o string, d string, m string, group uint, datacenter uint) {
-	var payload struct {
-		Uuid         string    `json:"id"`
-		GroupID      uint      `json:"group_id"`
-		DatacenterID uint      `json:"datacenter_id"`
-		Name         string    `json:"name"`
-		Type         string    `json:"type"`
-		Version      time.Time `json:"version"`
-		Status       string    `json:"status"`
-		Options      string    `json:"options"`
-		Definition   string    `json:"definition"`
-		Mapping      string    `json:"mapping"`
-	}
-
-	payload.Uuid = id
-	payload.Name = name
-	payload.Type = t
-	payload.GroupID = group
-	payload.DatacenterID = datacenter
-	payload.Version = v
-	payload.Status = s
-	payload.Options = o
-	payload.Definition = d
-	payload.Mapping = m
-
-	body, _ := json.Marshal(payload)
-
-	n.Request("service.set", body, time.Second)
+	return o.RenderCollection(services)
 }
