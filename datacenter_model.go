@@ -16,6 +16,7 @@ import (
 type Datacenter struct {
 	ID              int    `json:"id"`
 	GroupID         int    `json:"group_id"`
+	GroupName       string `json:"group_name"`
 	Name            string `json:"name"`
 	Type            string `json:"type"`
 	Region          string `json:"region"`
@@ -138,4 +139,17 @@ func (d *Datacenter) Delete() (err error) {
 		return err
 	}
 	return nil
+}
+
+// Improve : adds extra data as group name
+func (d *Datacenter) Improve() {
+	g := d.Group()
+	d.GroupName = g.Name
+}
+
+// Group : Gets the related datacenter group if any
+func (d *Datacenter) Group() (group Group) {
+	group.FindByID(d.GroupID)
+
+	return group
 }

@@ -30,6 +30,10 @@ func getDatacentersHandler(c echo.Context) (err error) {
 		return err
 	}
 
+	for i := 0; i < len(datacenters); i++ {
+		datacenters[i].Improve()
+	}
+
 	if body, err = json.Marshal(datacenters); err != nil {
 		return err
 	}
