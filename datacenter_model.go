@@ -25,8 +25,8 @@ type Datacenter struct {
 	VCloudURL       string `json:"vcloud_url"`
 	VseURL          string `json:"vse_url"`
 	ExternalNetwork string `json:"external_network"`
-	Token           string `json:"token"`
-	Secret          string `json:"secret"`
+	Token           string `json:"token,omitempty"`
+	Secret          string `json:"secret,omitempty"`
 }
 
 // Validate the datacenter
@@ -139,6 +139,13 @@ func (d *Datacenter) Delete() (err error) {
 		return err
 	}
 	return nil
+}
+
+// Redact : removes all sensitive fields from the return
+// data before outputting to the user
+func (d *Datacenter) Redact() {
+	d.Token = ""
+	d.Secret = ""
 }
 
 // Improve : adds extra data as group name

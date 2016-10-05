@@ -31,6 +31,7 @@ func getDatacentersHandler(c echo.Context) (err error) {
 	}
 
 	for i := 0; i < len(datacenters); i++ {
+		datacenters[i].Redact()
 		datacenters[i].Improve()
 	}
 
