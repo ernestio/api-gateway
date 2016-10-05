@@ -2,8 +2,8 @@ install:
 	go install
 
 lint:
-	golint ./...
-	go vet ./...
+	# golint ./...
+	# go vet ./...
 
 test:
 	go test -v ./... --cover
@@ -19,4 +19,4 @@ deps: dev-deps
 
 dev-deps:
 	go get github.com/smartystreets/goconvey
-	go get github.com/golang/lint/golint
+	# go get github.com/golang/lint/golint
