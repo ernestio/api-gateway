@@ -92,8 +92,8 @@ func TestServices(t *testing.T) {
 			})
 		})
 		Convey("Given the service exists on the store", func() {
-			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
-			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 4)
+			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 3)
+			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 5)
 			Convey("And I call /service/:service on the api", func() {
 				var d ServiceRender
 				params := make(map[string]string)
@@ -104,6 +104,13 @@ func TestServices(t *testing.T) {
 					Convey("Then I should get the existing service", func() {
 
 						So(err, ShouldBeNil)
+						println("--------")
+						println("--------")
+						println("--------")
+						println(string(resp))
+						println("--------")
+						println("--------")
+						println("--------")
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, "1")
