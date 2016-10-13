@@ -60,6 +60,12 @@ type ServiceMapping struct {
 			SecurityGroupAWSID string `json:"security_group_aws_id"`
 		} `json:"items"`
 	} `json:"firewalls"`
+	Elbs struct {
+		Items []struct {
+			Name    string `json:"name"`
+			DNSName string `json:"dns_name"`
+		} `json:"items"`
+	} `json:"elbs"`
 }
 
 // Validate the service
