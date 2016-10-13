@@ -20,13 +20,28 @@ import (
 // services for current user group
 func getServicesHandler(c echo.Context) (err error) {
 	var services []Service
+	var list []Service
 	var body []byte
 	var service Service
 
 	au := authenticatedUser(c)
 	service.FindAll(au, &services)
+	for _, s := range services {
+		exists := false
+		for i, e := range list {
+			if e.Name == s.Name {
+				if e.Version.Before(s.Version) {
+					list[i] = s
+				}
+				exists = true
+			}
+		}
+		if exists == false {
+			list = append(list, s)
+		}
+	}
 
-	if body, err = json.Marshal(services); err != nil {
+	if body, err = json.Marshal(list); err != nil {
 		return err
 	}
 	return c.JSONBlob(http.StatusOK, body)
