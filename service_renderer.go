@@ -36,6 +36,10 @@ type ServiceRender struct {
 		Name               string `json:"name"`
 		SecurityGroupAWSID string `json:"security_group_aws_id"`
 	} `json:"security_groups"`
+	Elbs []struct {
+		Name    string `json:"name"`
+		DNSName string `json:"dns_name"`
+	}
 }
 
 func (o *ServiceRender) Render(s Service) (err error) {
@@ -62,6 +66,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	o.SecurityGroups = mapping.SecurityGroups.Items
 	o.Nats = mapping.Nats.Items
 	o.Instances = mapping.Instances.Items
+	o.Elbs = mapping.Elbs.Items
 
 	return err
 }
