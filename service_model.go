@@ -36,8 +36,9 @@ type ServiceMapping struct {
 	} `json:"vpcs"`
 	Networks struct {
 		Items []struct {
-			Name   string `json:"name"`
-			Subnet string `json:"network_aws_id"`
+			Name             string `json:"name"`
+			Subnet           string `json:"network_aws_id"`
+			AvailabilityZone string `json:"availability_zone"`
 		} `json:"items"`
 	} `json:"networks"`
 	Instances struct {
