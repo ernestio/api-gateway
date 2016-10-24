@@ -63,11 +63,6 @@ func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
 		return ErrBadReqBody
 	}
 
-	err = d.Validate()
-	if err != nil {
-		return ErrBadReqBody
-	}
-
 	return nil
 }
 

@@ -76,6 +76,11 @@ func createDatacenterHandler(c echo.Context) (err error) {
 		return ErrBadReqBody
 	}
 
+	err = d.Validate()
+	if err != nil {
+		return ErrBadReqBody
+	}
+
 	d.GroupID = au.GroupID
 
 	if err := existing.FindByName(d.Name, &existing); err == nil {
@@ -103,12 +108,14 @@ func updateDatacenterHandler(c echo.Context) (err error) {
 	}
 
 	au := authenticatedUser(c)
-	if au.Admin != true {
-		return ErrUnauthorized
+
+	id, err := strconv.Atoi(c.Param("datacenter"))
+	if err = existing.FindByID(id); err != nil {
+		return err
 	}
 
-	if err := existing.FindByName(d.Name, &existing); err != nil {
-		return echo.NewHTTPError(404, "Specified datacenter does not exists")
+	if au.GroupID != au.GroupID {
+		return ErrUnauthorized
 	}
 
 	existing.Username = d.Username
