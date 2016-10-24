@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -234,19 +233,17 @@ func createServiceHandler(c echo.Context) error {
 	}
 
 	var datacenterStruct struct {
-		ID   uint   `json:"id"`
+		ID   int    `json:"id"`
 		Type string `json:"type"`
 	}
 	json.Unmarshal(datacenter, &datacenterStruct)
-
-	datacenterID, _ := strconv.Atoi(string(datacenterStruct.ID))
 
 	ss := Service{
 		ID:           payload.ID,
 		Name:         s.Name,
 		Type:         datacenterStruct.Type,
 		GroupID:      au.GroupID,
-		DatacenterID: datacenterID,
+		DatacenterID: datacenterStruct.ID,
 		Version:      time.Now(),
 		Status:       "in_progress",
 		Definition:   string(definition),

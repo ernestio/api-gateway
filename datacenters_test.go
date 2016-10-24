@@ -144,6 +144,7 @@ func TestDatacenters(t *testing.T) {
 		Convey("Given a datacenter exists on the store", func() {
 			deleteDatacenterSubscriber()
 			getDatacenterSubscriber(2)
+			findServiceSubscriber()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				ft := generateTestToken(1, "test", false)
@@ -153,7 +154,7 @@ func TestDatacenters(t *testing.T) {
 				_, err := doRequest("DELETE", "/datacenters/:datacenter", params, nil, deleteDatacenterHandler, ft)
 
 				Convey("It should delete the datacenter and return ok", func() {
-					So(err, ShouldBeNil)
+					So(err.Error(), ShouldEqual, "Existing services are referring to this datacenter.")
 				})
 			})
 

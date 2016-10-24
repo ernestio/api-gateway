@@ -203,3 +203,13 @@ func (s *Service) Reset() (err error) {
 
 	return err
 }
+
+// FindByDatacenterID : find a services for the given datacenter id
+func (s *Service) FindByDatacenterID(id int, services *[]Service) (err error) {
+	query := make(map[string]interface{})
+	query["datacenter_id"] = id
+	if err := NewBaseModel("service").FindBy(query, services); err != nil {
+		return err
+	}
+	return nil
+}
