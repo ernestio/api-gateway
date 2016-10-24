@@ -160,3 +160,11 @@ func (d *Datacenter) Group() (group Group) {
 
 	return group
 }
+
+// Services : Get the services related with current datacenter
+func (d *Datacenter) Services() (services []Service, err error) {
+	var s Service
+	err = s.FindByDatacenterID(d.ID, &services)
+
+	return services, err
+}

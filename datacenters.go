@@ -111,7 +111,12 @@ func updateDatacenterHandler(c echo.Context) (err error) {
 		return echo.NewHTTPError(404, "Specified datacenter does not exists")
 	}
 
-	d.Save()
+	existing.Username = d.Username
+	existing.Password = d.Password
+	existing.Token = d.Token
+	existing.Secret = d.Secret
+
+	existing.Save()
 
 	if body, err = json.Marshal(d); err != nil {
 		return ErrInternal
@@ -134,6 +139,15 @@ func deleteDatacenterHandler(c echo.Context) error {
 
 	if au.GroupID != d.GroupID {
 		return ErrUnauthorized
+	}
+
+	ss, err := d.Services()
+	if err != nil {
+		return echo.NewHTTPError(500, err.Error())
+	}
+
+	if len(ss) > 0 {
+		return echo.NewHTTPError(400, "Existing services are referring to this datacenter.")
 	}
 
 	if err := d.Delete(); err != nil {
