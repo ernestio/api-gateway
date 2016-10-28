@@ -63,8 +63,9 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
 		return err
 	}
-
 	if err := json.Unmarshal(res, &o); err != nil {
+		println(string(res))
+		println(err.Error())
 		return ErrInternal
 	}
 
