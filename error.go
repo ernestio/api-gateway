@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
 	"strings"
 
 	"github.com/labstack/echo"
@@ -26,12 +27,10 @@ func responseErr(msg *nats.Msg) *ResponseError {
 		return nil
 	}
 
+	e.HTTPError = echo.NewHTTPError(http.StatusInternalServerError, e.Error)
+
 	if strings.Contains(e.Error, "not found") {
 		e.HTTPError = ErrNotFound
-	}
-
-	if strings.Contains(e.Error, "unexpected") {
-		e.HTTPError = ErrInternal
 	}
 
 	return &e

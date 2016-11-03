@@ -59,6 +59,12 @@ func setupRoutes(api *echo.Group) {
 	d.Put("/:datacenter", updateDatacenterHandler)
 	d.Delete("/:datacenter", deleteDatacenterHandler)
 
+	// Setup logger routes
+	l := api.Group("/loggers")
+	l.GET("/", getLoggersHandler)
+	l.Post("/", createLoggerHandler)
+	l.Delete("/:logger", deleteLoggerHandler)
+
 	// Setup service routes
 	s := api.Group("/services")
 	s.GET("/", getServicesHandler)
