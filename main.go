@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
+	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/middleware"
 	"github.com/nats-io/nats"
 )
@@ -30,5 +30,5 @@ func main() {
 	api.Use(middleware.JWT([]byte(secret)))
 	setupRoutes(api)
 
-	e.Run(standard.New(":8080"))
+	e.Run(echo.New(":8080"))
 }
