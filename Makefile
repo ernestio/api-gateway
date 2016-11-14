@@ -8,15 +8,8 @@ lint:
 test:
 	go test -v ./... --cover
 
-deps: dev-deps
-	go get golang.org/x/crypto/scrypt
-	go get github.com/nats-io/nats
-	go get github.com/labstack/echo
-	go get github.com/dgrijalva/jwt-go
-	go get github.com/nu7hatch/gouuid
-	go get github.com/ghodss/yaml
-	go get github.com/ernestio/ernest-config-client
+deps: 
+	go get github.com/Masterminds/glide
+	glide install
 
-dev-deps:
-	go get github.com/smartystreets/goconvey
-	# go get github.com/golang/lint/golint
+dev-deps: deps

@@ -1,0 +1,22 @@
+package: github.com/ernestio/api-gateway
+import:
+- package: github.com/dgrijalva/jwt-go
+  version: ~3.0.0
+- package: github.com/ernestio/ernest-config-client
+- package: github.com/ghodss/yaml
+- package: github.com/labstack/echo
+  version: ~2.2.0
+  subpackages:
+  - engine/standard
+  - middleware
+- package: github.com/nats-io/nats
+  version: ~1.2.2
+- package: github.com/nu7hatch/gouuid
+- package: golang.org/x/crypto
+  subpackages:
+  - scrypt
+testImport:
+- package: github.com/smartystreets/goconvey
+  version: ~1.6.2
+  subpackages:
+  - convey
