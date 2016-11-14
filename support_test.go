@@ -30,7 +30,7 @@ func doRequestHeaders(method string, path string, params map[string]string, data
 	}
 
 	rec := httptest.NewRecorder()
-	c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+	c := e.NewContext(req, echo.NewResponse(rec, e))
 
 	if ft == nil {
 		ft = generateTestToken(1, "admin", true)

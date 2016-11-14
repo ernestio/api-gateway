@@ -33,7 +33,7 @@ func TestAuth(t *testing.T) {
 				rec := httptest.NewRecorder()
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"test2"}}
 
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -52,7 +52,7 @@ func TestAuth(t *testing.T) {
 				rec := httptest.NewRecorder()
 
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong"}}
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -69,7 +69,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -99,7 +99,7 @@ func TestAuth(t *testing.T) {
 				req.Header.Add("Authorization", authHeader)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 
@@ -116,7 +116,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
@@ -136,7 +136,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(echo.NewRequest(req, e.Logger()), echo.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 

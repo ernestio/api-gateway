@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/middleware"
 	"github.com/nats-io/nats"
 )
@@ -23,12 +22,12 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Post("/auth", authenticate)
+	e.POST("/auth", authenticate)
 
 	// Setup JWT auth & protected routes
 	api := e.Group("/api")
 	api.Use(middleware.JWT([]byte(secret)))
 	setupRoutes(api)
 
-	e.Run(echo.New(":8080"))
+	e.Start(":8080")
 }

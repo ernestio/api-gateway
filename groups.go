@@ -188,7 +188,7 @@ func addUserToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	body := c.Request().Body()
+	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
 		return ErrBadReqBody
@@ -229,7 +229,7 @@ func addDatacenterToGroupHandler(c echo.Context) error {
 		return ErrBadReqBody
 	}
 
-	body := c.Request().Body()
+	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
 		return ErrBadReqBody
