@@ -1,18 +1,61 @@
-hash: 10d5f8a1f393cdf22281cc8de0a79b26e2a3386b089608b9af91861950aac4ea
-updated: 2016-11-14T09:45:55.768748398Z
+hash: 97e747a70c9140e30f5bc28570f6d2d9854a021be7eeac28128ba9100ed08fe7
+updated: 2016-11-14T11:01:08.770544517Z
 imports:
+- name: github.com/akavel/rsrc
+  version: ba14da1f827188454a4591717fff29999010887f
+  subpackages:
+  - binutil
+  - coff
+- name: github.com/cpuguy83/go-md2man
+  version: a65d4d2de4d5f7c74868dfa9b202a3c8be315aaa
+  subpackages:
+  - md2man
+- name: github.com/daaku/go.zipexe
+  version: a5fe2436ffcb3236e175e5149162b41cd28bd27d
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/denisenkom/go-mssqldb
+  version: fbf0a491e5ec011522c8870da9b0553135e2f9da
 - name: github.com/dgrijalva/jwt-go
   version: d2709f9f1f31ebcda9651b03077758c1f3a0018c
 - name: github.com/ernestio/ernest-config-client
   version: aea8a2de96eebc5a0e34cac5aa1d16ac42c9fc56
+- name: github.com/facebookgo/grace
+  version: 5729e484473f52048578af1b80d0008c7024089b
+- name: github.com/facebookgo/httpdown
+  version: a3b1354551a26449fbe05f5d855937f6e7acbd71
+- name: github.com/fsnotify/fsnotify
+  version: fd9ec7deca8bf46ecd2a795baaacf2b3a9be1197
+- name: github.com/GeertJohan/go.incremental
+  version: 92fd0ce4a694213e8b3dfd2d39b16e51d26d0fbf
+- name: github.com/GeertJohan/go.rice
+  version: 9fdfd46f9806a9228aae341d65ab75c5235c383c
 - name: github.com/ghodss/yaml
   version: bea76d6a4713e18b7f5321a2b020738552def3ea
+- name: github.com/go-sql-driver/mysql
+  version: 8f6c67f0228a4a6a962008d6c3d1e694e4532e71
+- name: github.com/golang/protobuf
+  version: 4bd1920723d7b7c925de087aa32e2187708897f7
+- name: github.com/gorilla/websocket
+  version: e8f0f8aaa98dfb6586cbdf2978d511e3199a960a
+- name: github.com/jessevdk/go-flags
+  version: 8bc97d602c3bfeb5fc6fc9b5a9c898f245495637
 - name: github.com/jinzhu/gorm
   version: 066abcef408f2522f0a89952e44ab17eac176ed0
   subpackages:
   - dialects/postgres
 - name: github.com/jinzhu/inflection
   version: 74387dc39a75e970e7a3ae6a3386b5bd2e5c5cff
+- name: github.com/kardianos/osext
+  version: c2c54e542fb797ad986b31721e1baedf214ca413
+- name: github.com/klauspost/compress
+  version: e3b7981a12dd3cab49afa1d3a50e715846f23732
+  subpackages:
+  - flate
+  - gzip
+  - zlib
 - name: github.com/labstack/echo
   version: e08070379af60f5b9c0fb5bb2d1527ba9624fe43
   subpackages:
@@ -34,23 +77,50 @@ imports:
   subpackages:
   - hstore
   - oid
+  - tree/master/oid
 - name: github.com/mattn/go-colorable
   version: d228849504861217f796da67fae4f6e347643f15
 - name: github.com/mattn/go-isatty
   version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
+- name: github.com/mattn/go-sqlite3
+  version: fba66eb11643069e747022997e9be3b502b2c6fb
+- name: github.com/nats-io/gnatsd
+  version: cd0712cc58f7890a0b024168b18dba1cb8eceba0
 - name: github.com/nats-io/nats
   version: 61923ed1eaf8398000991fbbee2ef11ab5a5be0d
   subpackages:
   - encoders/builtin
   - util
 - name: github.com/nats-io/nuid
-  version: 289cccf02c178dc782430d534e3c1f5b72af807f
+  version: a5152d67cf63cbfb5d992a395458722a45194715
+- name: github.com/neelance/sourcemap
+  version: 8c68805598ab8d5637b1a72b5f7d381ea0f39c31
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/PuerkitoBio/goquery
+  version: 152b1a2c8f5d0340f658bb656032a39b94e52958
+- name: github.com/spf13/cobra
+  version: 6e91dded25d73176bf7f60b40dd7aa1f0bf9be8d
+- name: github.com/spf13/pflag
+  version: 5ccb023bc27df288a957c5e994cd44fd19619465
+- name: github.com/spf13/viper
+  version: 651d9d916abc3c3d6a91a12549495caba5edffd2
+- name: github.com/stretchr/testify
+  version: 976c720a22c8eb4eb6a0b4348ad85ad12491a506
+- name: github.com/tylerb/graceful
+  version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
+- name: github.com/urfave/negroni
+  version: e0e50f7dc431c043cb33f91b09c3419d48b7cff5
+- name: github.com/valyala/bytebufferpool
+  version: e746df99fe4a3986f4d4f79e13c1e0117ce9c2f7
+- name: github.com/valyala/fasthttp
+  version: 89fe89ae7451443b184bf5796e11ff0e4e5480d1
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
+- name: github.com/valyala/tcplisten
+  version: 934ae7559c05625eb8be6fee12a9dd935cef3c09
 - name: golang.org/x/crypto
-  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
+  version: 9e7f5dc375abeb9619ea3c5c58502c428f457aa2
   subpackages:
   - pbkdf2
   - scrypt
@@ -62,6 +132,17 @@ imports:
   version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: a263ba8db058568bb9beba166777d9c9dbe75d68
+  subpackages:
+  - encoding
+  - golang.org/x/text/encoding/charmap
+  - golang.org/x/text/encoding/htmlindex
+  - transform
+- name: golang.org/x/tools
+  version: 5e2ae75eb72a62985e086eed33a5982a929e4fff
+  subpackages:
+  - go/types/typeutil
 - name: gopkg.in/bsm/ratelimit.v1
   version: db14e161995a5177acef654cb0dd785e8ee8bc22
 - name: gopkg.in/redis.v3
@@ -71,6 +152,8 @@ imports:
   - internal/consistenthash
   - internal/hashtag
   - internal/pool
+- name: gopkg.in/tylerb/graceful.v1
+  version: 50a48b6e73fcc75b45e22c05b79629a67c79e938
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports:

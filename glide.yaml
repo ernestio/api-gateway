@@ -15,6 +15,59 @@ import:
 - package: golang.org/x/crypto
   subpackages:
   - scrypt
+- package: github.com/fsnotify/fsnotify
+- package: github.com/kardianos/osext
+- package: github.com/neelance/sourcemap
+- package: github.com/spf13/cobra
+- package: github.com/spf13/pflag
+- package: golang.org/x/tools
+  subpackages:
+  - go/types/typeutil
+- package: github.com/denisenkom/go-mssqldb
+- package: github.com/go-sql-driver/mysql
+- package: github.com/mattn/go-sqlite3
+- package: github.com/valyala/fasthttp
+- package: github.com/stretchr/testify
+- package: github.com/GeertJohan/go.rice
+- package: github.com/facebookgo/grace
+- package: github.com/tylerb/graceful
+- package: github.com/gorilla/websocket
+- package: github.com/golang/protobuf
+- package: github.com/nats-io/gnatsd
+- package: golang.org/x/text
+  subpackages:
+  - encoding
+  - golang.org/x/text/encoding/charmap
+  - golang.org/x/text/encoding/htmlindex
+  - transform
+- package: github.com/daaku/go.zipexe
+- package: github.com/davecgh/go-spew
+  subpackages:
+  - spew
+- package: github.com/GeertJohan/go.incremental
+- package: github.com/akavel/rsrc
+  subpackages:
+  - binutil
+  - coff
+- package: github.com/jessevdk/go-flags
+- package: github.com/facebookgo/httpdown
+- package: github.com/klauspost/compress
+  subpackages:
+  - flate
+  - gzip
+  - zlib
+- package: github.com/valyala/bytebufferpool
+- package: github.com/PuerkitoBio/goquery
+- package: github.com/spf13/viper
+- package: github.com/cpuguy83/go-md2man
+  subpackages:
+  - md2man
+- package: github.com/urfave/negroni
+- package: gopkg.in/tylerb/graceful.v1
+- package: github.com/valyala/tcplisten
+- package: github.com/lib/pq
+  subpackages:
+  - tree/master/oid
 testImport:
 - package: github.com/smartystreets/goconvey
   version: ~1.6.2
