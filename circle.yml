@@ -3,13 +3,24 @@ machine:
     - docker
   environment:
     NATS_URI_TEST:  nats://127.0.0.1:4222
+    GOPATH: /home/ubuntu/go
+    PATH: '/usr/local/go/bin:/home/ubuntu/go/bin:$PATH'
+    ROOTPATH: /home/ubuntu/go/src/github.com/ernestio/api-gateway/
+
+checkout:
+  post:
+    - mkdir -p $ROOTPATH
+    - cp -r "/home/ubuntu/$(basename $ROOTPATH)" $(dirname $ROOTPATH)
 
 dependencies:
+  pre: 
+    - go get github.com/Masterminds/glide
   override:
-    - docker run -d -p 4222:4222 nats
-    - make deps
+    - cd $ROOTPATH && docker run -d -p 4222:4222 nats
+    - cd $ROOTPATH && make dev-deps
 
 test:
   override:
-    - make test
-    - make lint
+    - echo "Hola"
+    - cd $ROOTPATH && make test
+    - cd $ROOTPATH && make lint
