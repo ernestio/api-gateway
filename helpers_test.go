@@ -5,17 +5,18 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/test"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestGetParamFilter(t *testing.T) {
 	e := echo.New()
-	req := test.NewRequest(echo.GET, "/", nil)
-	rec := test.NewResponseRecorder()
+	req := new(http.Request)
+	rec := httptest.NewRecorder()
 	Convey("Scenario: getting an empty http context", t, func() {
 		c := e.NewContext(req, rec)
 		Convey("when it is converted to a query", func() {

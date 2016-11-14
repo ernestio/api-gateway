@@ -88,7 +88,7 @@ func (s *Service) Validate() error {
 
 // Map : maps a service from a request's body and validates the input
 func (s *Service) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
+	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
 		return ErrBadReqBody

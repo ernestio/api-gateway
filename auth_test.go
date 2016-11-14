@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -34,7 +33,7 @@ func TestAuth(t *testing.T) {
 				rec := httptest.NewRecorder()
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"test2"}}
 
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -53,7 +52,7 @@ func TestAuth(t *testing.T) {
 				rec := httptest.NewRecorder()
 
 				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong"}}
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -70,7 +69,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
 				err := authenticate(c)
@@ -100,7 +99,7 @@ func TestAuth(t *testing.T) {
 				req.Header.Add("Authorization", authHeader)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 
@@ -117,7 +116,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
@@ -137,7 +136,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 				h := middleware.JWT([]byte(secret))(getUsersHandler)
 

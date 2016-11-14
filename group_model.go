@@ -29,7 +29,7 @@ func (g *Group) Validate() error {
 
 // Map : maps a group from a request's body and validates the input
 func (g *Group) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
+	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
 		return ErrBadReqBody

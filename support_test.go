@@ -12,7 +12,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 )
 
 type handle func(c echo.Context) error
@@ -31,7 +30,7 @@ func doRequestHeaders(method string, path string, params map[string]string, data
 	}
 
 	rec := httptest.NewRecorder()
-	c := e.NewContext(standard.NewRequest(req, e.Logger()), standard.NewResponse(rec, e.Logger()))
+	c := e.NewContext(req, echo.NewResponse(rec, e))
 
 	if ft == nil {
 		ft = generateTestToken(1, "admin", true)

@@ -52,7 +52,7 @@ func (d *Datacenter) Validate() error {
 
 // Map : maps a datacenter from a request's body and validates the input
 func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body()
+	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
 		return ErrBadReqBody

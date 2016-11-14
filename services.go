@@ -169,7 +169,7 @@ func createUUIDHandler(c echo.Context) error {
 		ID string `json:"id"`
 	}
 	req := c.Request()
-	body, err := ioutil.ReadAll(req.Body())
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return c.JSONBlob(500, []byte("Invalid input"))
 	}
