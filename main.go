@@ -23,6 +23,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.POST("/auth", authenticate)
+	e.GET("/status", getStatusHandler)
 
 	// Setup JWT auth & protected routes
 	api := e.Group("/api")
