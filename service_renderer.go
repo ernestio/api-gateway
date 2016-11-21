@@ -9,16 +9,17 @@ import (
 )
 
 type ServiceRender struct {
-	ID           string `json:"id"`
-	DatacenterID int    `json:"datacenter_id"`
-	Name         string `json:"name"`
-	Version      string `json:"version"`
-	Status       string `json:"status"`
-	Options      string `json:"options"`
-	Endpoint     string `json:"endpoint"`
-	Definition   string `json:"definition"`
-	VpcID        string `json:"vpc_id"`
-	Networks     []struct {
+	ID             string `json:"id"`
+	DatacenterID   int    `json:"datacenter_id"`
+	Name           string `json:"name"`
+	Version        string `json:"version"`
+	Status         string `json:"status"`
+	LastKnownError string `json:"last_known_error"`
+	Options        string `json:"options"`
+	Endpoint       string `json:"endpoint"`
+	Definition     string `json:"definition"`
+	VpcID          string `json:"vpc_id"`
+	Networks       []struct {
 		Name             string `json:"name"`
 		Subnet           string `json:"network_aws_id"`
 		AvailabilityZone string `json:"availability_zone"`
@@ -63,6 +64,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 		o.VpcID = mapping.Vpcs.Items[0].VpcID
 	}
 
+	o.LastKnownError = mapping.LastKnownError
 	o.Networks = mapping.Networks.Items
 	o.SecurityGroups = mapping.SecurityGroups.Items
 	o.Nats = mapping.Nats.Items
