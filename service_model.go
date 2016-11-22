@@ -28,8 +28,10 @@ type Service struct {
 	Maped        string      `json:"mapping"`
 }
 
+// ServiceMapping struct representation of a service mapping
 type ServiceMapping struct {
-	Vpcs struct {
+	LastKnownError string `json:"last_known_error"`
+	Vpcs           struct {
 		Items []struct {
 			VpcID string `json:"vpc_id"`
 		} `json:"items"`
