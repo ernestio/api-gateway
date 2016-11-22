@@ -183,3 +183,14 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 
 	return ds, err
 }
+
+// FindAllKeyValue : Finds all users on a id:name hash
+func (u *User) FindAllKeyValue() (list map[int]string) {
+	var users []User
+	list = make(map[int]string)
+	u.FindAll(&users)
+	for _, v := range users {
+		list[v.ID] = v.Username
+	}
+	return list
+}

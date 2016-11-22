@@ -14,6 +14,8 @@ type ServiceRender struct {
 	Name           string `json:"name"`
 	Version        string `json:"version"`
 	Status         string `json:"status"`
+	UserID         int    `json:"user_id"`
+	UserName       string `json:"user_name"`
 	LastKnownError string `json:"last_known_error"`
 	Options        string `json:"options"`
 	Endpoint       string `json:"endpoint"`
@@ -52,6 +54,8 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	o.Name = s.Name
 	o.Version = s.Version.String()
 	o.Status = s.Status
+	o.UserID = s.UserID
+	o.UserName = s.UserName
 	o.Endpoint = s.Endpoint
 	if def, ok := s.Definition.(string); ok == true {
 		o.Definition = def
