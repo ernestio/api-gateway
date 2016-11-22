@@ -22,6 +22,9 @@ func getServicesHandler(c echo.Context) (err error) {
 	var list []Service
 	var body []byte
 	var service Service
+	var user User
+
+	users := user.FindAllKeyValue()
 
 	au := authenticatedUser(c)
 	service.FindAll(au, &services)
@@ -36,6 +39,11 @@ func getServicesHandler(c echo.Context) (err error) {
 			}
 		}
 		if exists == false {
+			for id, name := range users {
+				if id == s.UserID {
+					s.UserName = name
+				}
+			}
 			list = append(list, s)
 		}
 	}
@@ -49,6 +57,9 @@ func getServicesHandler(c echo.Context) (err error) {
 // getServiceBuildsHandler : gets the list of builds for the specified
 // service
 func getServiceBuildsHandler(c echo.Context) error {
+	var user User
+
+	users := user.FindAllKeyValue()
 	au := authenticatedUser(c)
 
 	query := getParamFilter(c)
@@ -59,6 +70,13 @@ func getServiceBuildsHandler(c echo.Context) error {
 	list, err := getServicesOutput(query)
 	if err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
+	}
+	for i := range list {
+		for id, name := range users {
+			if id == list[i].UserID {
+				list[i].UserName = name
+			}
+		}
 	}
 
 	return c.JSON(http.StatusOK, list)
@@ -211,6 +229,8 @@ func createServiceHandler(c echo.Context) error {
 		return c.JSONBlob(http.StatusNotFound, []byte(err.Error()))
 	}
 	payload.Group = (*json.RawMessage)(&group)
+	var currentUser User
+	currentUser.FindByUserName(au.Username, &currentUser)
 
 	// Generate service ID
 	payload.ID = generateServiceID(s.Name + "-" + s.Datacenter)
@@ -243,12 +263,14 @@ func createServiceHandler(c echo.Context) error {
 		Name:         s.Name,
 		Type:         datacenterStruct.Type,
 		GroupID:      au.GroupID,
+		UserID:       currentUser.ID,
 		DatacenterID: datacenterStruct.ID,
 		Version:      time.Now(),
 		Status:       "in_progress",
 		Definition:   string(definition),
 		Maped:        string(service),
 	}
+
 	if err := ss.Save(); err != nil {
 		return echo.NewHTTPError(500, err.Error())
 	}

@@ -17,6 +17,8 @@ import (
 type Service struct {
 	ID           string      `json:"id"`
 	GroupID      int         `json:"group_id"`
+	UserID       int         `json:"user_id"`
+	UserName     string      `json:"user_name,omitempty"`
 	DatacenterID int         `json:"datacenter_id"`
 	Name         string      `json:"name"`
 	Type         string      `json:"type"`
