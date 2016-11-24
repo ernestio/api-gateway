@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 )
 
 type ServiceRender struct {
@@ -62,6 +63,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	}
 
 	if mapping, err = s.Mapping(); err != nil {
+		log.Println(err.Error())
 		return err
 	}
 	if len(mapping.Vpcs.Items) > 0 {
