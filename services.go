@@ -315,3 +315,22 @@ func deleteServiceHandler(c echo.Context) error {
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`","stream_id":"`+stream+`"}`))
 }
+
+// Deletes a service by name forcing it
+func forceServiceDeletionHandler(c echo.Context) error {
+	var raw []byte
+	var err error
+
+	au := authenticatedUser(c)
+
+	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
+		return echo.NewHTTPError(404, err.Error())
+	}
+
+	s := Service{}
+	json.Unmarshal(raw, &s)
+
+	n.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`))
+
+	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`"}`))
+}
