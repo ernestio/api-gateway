@@ -77,4 +77,5 @@ func setupRoutes(api *echo.Group) {
 	s.POST("/:service/reset/", resetServiceHandler)
 	s.PUT("/:service", updateServiceHandler)
 	s.DELETE("/:name", deleteServiceHandler)
+	s.DELETE("/:name/force/", forceServiceDeletionHandler)
 }
