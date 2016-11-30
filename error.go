@@ -15,7 +15,8 @@ import (
 
 // ResponseError is
 type ResponseError struct {
-	Error     string          `json:"error"`
+	Error     string          `json:"_error"`
+	Code      string          `json:"_code"`
 	HTTPError *echo.HTTPError `json:"-"`
 }
 
