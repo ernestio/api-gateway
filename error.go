@@ -29,7 +29,7 @@ func responseErr(msg *nats.Msg) *ResponseError {
 
 	e.HTTPError = echo.NewHTTPError(http.StatusInternalServerError, e.Error)
 
-	if strings.Contains(e.Error, "not found") {
+	if strings.Contains(e.Error, "Not found") {
 		e.HTTPError = ErrNotFound
 	}
 
