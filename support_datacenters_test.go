@@ -43,7 +43,7 @@ func getDatacenterSubscriber(max int) {
 				}
 			}
 		}
-		n.Publish(msg.Reply, []byte(`{"error":"not found"}`))
+		n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`))
 	})
 	sub.AutoUnsubscribe(max)
 }
