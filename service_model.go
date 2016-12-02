@@ -71,6 +71,18 @@ type ServiceMapping struct {
 			DNSName string `json:"dns_name"`
 		} `json:"items"`
 	} `json:"elbs"`
+	RDSClusters struct {
+		Items []struct {
+			Name     string `json:"name"`
+			Endpoint string `json:"endpoint"`
+		} `json:"items"`
+	} `json:"rds_clusters"`
+	RDSInstances struct {
+		Items []struct {
+			Name     string `json:"name"`
+			Endpoint string `json:"endpoint"`
+		} `json:"items"`
+	} `json:"rds_instances"`
 }
 
 // Validate the service

@@ -45,6 +45,14 @@ type ServiceRender struct {
 		Name    string `json:"name"`
 		DNSName string `json:"dns_name"`
 	}
+	RDSClusters []struct {
+		Name     string `json:"name"`
+		Endpoint string `json:"endpoint"`
+	} `json:"rds_clusters"`
+	RDSInstances []struct {
+		Name     string `json:"name"`
+		Endpoint string `json:"endpoint"`
+	} `json:"rds_instances"`
 }
 
 func (o *ServiceRender) Render(s Service) (err error) {
@@ -76,6 +84,8 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	o.Nats = mapping.Nats.Items
 	o.Instances = mapping.Instances.Items
 	o.Elbs = mapping.Elbs.Items
+	o.RDSClusters = mapping.RDSClusters.Items
+	o.RDSInstances = mapping.RDSInstances.Items
 
 	return err
 }
