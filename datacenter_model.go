@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 
 	"github.com/labstack/echo"
 )
@@ -25,8 +26,8 @@ type Datacenter struct {
 	VCloudURL       string `json:"vcloud_url"`
 	VseURL          string `json:"vse_url"`
 	ExternalNetwork string `json:"external_network"`
-	Token           string `json:"token,omitempty"`
-	Secret          string `json:"secret,omitempty"`
+	AccessKeyID     string `json:"aws_access_key_id,omitempty"`
+	SecretAccessKey string `json:"aws_secret_access_key,omitempty"`
 }
 
 // Validate the datacenter
@@ -139,8 +140,8 @@ func (d *Datacenter) Delete() (err error) {
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (d *Datacenter) Redact() {
-	d.Token = ""
-	d.Secret = ""
+	d.AccessKeyID = ""
+	d.SecretAccessKey = ""
 }
 
 // Improve : adds extra data as group name
@@ -151,7 +152,9 @@ func (d *Datacenter) Improve() {
 
 // Group : Gets the related datacenter group if any
 func (d *Datacenter) Group() (group Group) {
-	group.FindByID(d.GroupID)
+	if err := group.FindByID(d.GroupID); err != nil {
+		log.Println(err)
+	}
 
 	return group
 }

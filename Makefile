@@ -2,13 +2,12 @@ install:
 	go install
 
 lint:
-	# golint ./...
-	# go vet ./...
+	gometalinter --config .linter.conf
 
 test:
 	go test -v ./... --cover
 
-deps: dev-deps
+deps:
 	go get golang.org/x/crypto/scrypt
 	go get github.com/nats-io/nats
 	go get github.com/labstack/echo
@@ -17,6 +16,7 @@ deps: dev-deps
 	go get github.com/ghodss/yaml
 	go get github.com/ernestio/ernest-config-client
 
-dev-deps:
+dev-deps: deps
 	go get github.com/smartystreets/goconvey
-	# go get github.com/golang/lint/golint
+	go get github.com/alecthomas/gometalinter
+	gometalinter --install

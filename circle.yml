@@ -3,11 +3,12 @@ machine:
     - docker
   environment:
     NATS_URI_TEST:  nats://127.0.0.1:4222
+    ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
 
 dependencies:
   override:
     - docker run -d -p 4222:4222 nats
-    - make deps
+    - make dev-deps
 
 test:
   override:

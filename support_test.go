@@ -6,6 +6,7 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -52,6 +53,10 @@ func doRequestHeaders(method string, path string, params map[string]string, data
 }
 
 func testsSetup() {
-	os.Setenv("JWT_SECRET", "test")
-	os.Setenv("NATS_URI", os.Getenv("NATS_URI_TEST"))
+	if err := os.Setenv("JWT_SECRET", "test"); err != nil {
+		log.Println(err)
+	}
+	if err := os.Setenv("NATS_URI", os.Getenv("NATS_URI_TEST")); err != nil {
+		log.Println(err)
+	}
 }

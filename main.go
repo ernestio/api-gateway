@@ -30,5 +30,7 @@ func main() {
 	api.Use(middleware.JWT([]byte(secret)))
 	setupRoutes(api)
 
-	e.Start(":8080")
+	if err := e.Start(":8080"); err != nil {
+		panic(err)
+	}
 }

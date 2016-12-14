@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/nats-io/nats"
 )
@@ -29,29 +30,39 @@ func getUserSubscriber(max int) {
 		var qu User
 
 		if len(msg.Data) > 0 {
-			json.Unmarshal(msg.Data, &qu)
+			if err := json.Unmarshal(msg.Data, &qu); err != nil {
+				log.Println(err)
+			}
 
 			for _, user := range mockUsers {
 				if qu.GroupID != 0 {
 					if user.ID == qu.ID && user.GroupID == qu.GroupID ||
 						user.Username == qu.Username && user.GroupID == qu.GroupID {
 						data, _ := json.Marshal(user)
-						n.Publish(msg.Reply, data)
+						if err := n.Publish(msg.Reply, data); err != nil {
+							log.Println(err)
+						}
 						return
 					}
 				} else {
 					if user.ID == qu.ID || user.Username == qu.Username {
 						data, _ := json.Marshal(user)
-						n.Publish(msg.Reply, data)
+						if err := n.Publish(msg.Reply, data); err != nil {
+							log.Println(err)
+						}
 						return
 					}
 				}
 			}
 		}
 
-		n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`))
+		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(max)
+	if err := sub.AutoUnsubscribe(max); err != nil {
+		log.Println(err)
+	}
 }
 
 func findUserSubscriber() {
@@ -61,11 +72,15 @@ func findUserSubscriber() {
 
 		if len(msg.Data) == 0 {
 			data, _ := json.Marshal(mockUsers)
-			n.Publish(msg.Reply, data)
+			if err := n.Publish(msg.Reply, data); err != nil {
+				log.Println(err)
+			}
 			return
 		}
 
-		json.Unmarshal(msg.Data, &qu)
+		if err := json.Unmarshal(msg.Data, &qu); err != nil {
+			log.Println(err)
+		}
 
 		for _, user := range mockUsers {
 			if user.Username == qu.Username || user.GroupID == qu.GroupID || user.ID == qu.ID {
@@ -74,39 +89,57 @@ func findUserSubscriber() {
 		}
 
 		data, _ := json.Marshal(ur)
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func setUserSubscriber() {
 	sub, _ := n.Subscribe("user.set", func(msg *nats.Msg) {
 		var u User
 
-		json.Unmarshal(msg.Data, &u)
+		if err := json.Unmarshal(msg.Data, &u); err != nil {
+			log.Println(err)
+		}
 		if u.ID == 0 {
 			u.ID = 3
 		}
 
 		data, _ := json.Marshal(u)
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func deleteUserSubscriber() {
 	sub, _ := n.Subscribe("user.del", func(msg *nats.Msg) {
 		var u User
-		json.Unmarshal(msg.Data, &u)
+		if err := json.Unmarshal(msg.Data, &u); err != nil {
+			log.Println(err)
+		}
 
 		for _, user := range mockUsers {
 			if user.ID == u.ID {
-				n.Publish(msg.Reply, []byte{})
+				if err := n.Publish(msg.Reply, []byte{}); err != nil {
+					log.Println(err)
+				}
 				return
 			}
 		}
 
-		n.Publish(msg.Reply, []byte(`{"_error": "Not found"}`))
+		if err := n.Publish(msg.Reply, []byte(`{"_error": "Not found"}`)); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }

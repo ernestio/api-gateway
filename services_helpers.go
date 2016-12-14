@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -20,6 +21,7 @@ type ServiceInput struct {
 	Name       string `json:"name"`
 }
 
+// ServicePayload : payload to be sent to workflow manager
 type ServicePayload struct {
 	ID         string           `json:"id"`
 	PrevID     string           `json:"previous_id"`
@@ -67,7 +69,9 @@ func generateServiceID(salt string) string {
 func generateStreamID(salt string) string {
 	compose := []byte(salt)
 	hasher := md5.New()
-	hasher.Write(compose)
+	if _, err := hasher.Write(compose); err != nil {
+		log.Println(err)
+	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
@@ -136,7 +140,10 @@ func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
 		Error string `json:"error"`
 	}
 
-	json.Unmarshal(msg.Data, &s)
+	if err := json.Unmarshal(msg.Data, &s); err != nil {
+		log.Println(err)
+		return body, err
+	}
 	if s.Error != "" {
 		return body, errors.New(s.Error)
 	}
@@ -156,12 +163,11 @@ func getServiceRaw(name string, group int) (service []byte, err error) {
 		return nil, errors.New(`"Service not found"`)
 	}
 
-	if body, err := json.Marshal(services[0]); err != nil {
+	body, err := json.Marshal(services[0])
+	if err != nil {
 		return nil, errors.New("Internal error")
-
-	} else {
-		return body, nil
 	}
+	return body, nil
 }
 
 func getServicesOutput(filter map[string]interface{}) (list []ServiceRender, err error) {
