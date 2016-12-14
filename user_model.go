@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"strconv"
 
 	"github.com/labstack/echo"
@@ -170,7 +171,9 @@ func (u *User) ValidPassword(pw string) bool {
 
 // Group : Gets the related user group if any
 func (u *User) Group() (group Group) {
-	group.FindByID(u.GroupID)
+	if err := group.FindByID(u.GroupID); err != nil {
+		log.Println(err)
+	}
 
 	return group
 }
@@ -188,7 +191,9 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 func (u *User) FindAllKeyValue() (list map[int]string) {
 	var users []User
 	list = make(map[int]string)
-	u.FindAll(&users)
+	if err := u.FindAll(&users); err != nil {
+		log.Println(err)
+	}
 	for _, v := range users {
 		list[v.ID] = v.Username
 	}

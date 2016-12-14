@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -22,9 +23,13 @@ func getGroupsHandler(c echo.Context) (err error) {
 
 	au := authenticatedUser(c)
 	if au.Admin == true {
-		group.FindAll(au, &groups)
+		if err := group.FindAll(au, &groups); err != nil {
+			log.Println(err)
+		}
 	} else {
-		group.FindByID(au.GroupID)
+		if err := group.FindByID(au.GroupID); err != nil {
+			log.Println(err)
+		}
 		groups = append(groups, group)
 	}
 
@@ -71,7 +76,9 @@ func createGroupHandler(c echo.Context) (err error) {
 		return echo.NewHTTPError(409, "Specified group already exists")
 	}
 
-	g.Save()
+	if err = g.Save(); err != nil {
+		log.Println(err)
+	}
 
 	if body, err = json.Marshal(g); err != nil {
 		return err
@@ -100,7 +107,9 @@ func updateGroupHandler(c echo.Context) (err error) {
 		return echo.NewHTTPError(404, "Specified group does not exists")
 	}
 
-	g.Save()
+	if err = g.Save(); err != nil {
+		log.Println(err)
+	}
 
 	if body, err = json.Marshal(g); err != nil {
 		return ErrInternal
@@ -161,7 +170,9 @@ func deleteUserFromGroupHandler(c echo.Context) error {
 		return ErrUnauthorized
 	}
 
-	user.FindByID(c.Param("user"), &user)
+	if err := user.FindByID(c.Param("user"), &user); err != nil {
+		log.Println(err)
+	}
 	user.GroupID = 0
 	user.Password = ""
 	user.Salt = ""
@@ -254,7 +265,9 @@ func addDatacenterToGroupHandler(c echo.Context) error {
 	}
 
 	datacenter.GroupID = groupID
-	datacenter.Save()
+	if err = datacenter.Save(); err != nil {
+		log.Println(err)
+	}
 
 	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully added to group "+group.Name))
 }
@@ -281,7 +294,9 @@ func deleteDatacenterFromGroupHandler(c echo.Context) error {
 	}
 
 	datacenter.GroupID = 0
-	datacenter.Save()
+	if err = datacenter.Save(); err != nil {
+		log.Println(err)
+	}
 
 	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully removed from group "+group.Name))
 }

@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/nats-io/nats"
 )
@@ -29,53 +30,80 @@ func getDatacenterSubscriber(max int) {
 	sub, _ := n.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qd := Datacenter{}
-			json.Unmarshal(msg.Data, &qd)
+			if err := json.Unmarshal(msg.Data, &qd); err != nil {
+				log.Println(err)
+				return
+			}
 
 			for _, datacenter := range mockDatacenters {
 				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
-					n.Publish(msg.Reply, data)
+					if err := n.Publish(msg.Reply, data); err != nil {
+						log.Println(err)
+					}
 					return
 				} else if qd.GroupID == 0 && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
-					n.Publish(msg.Reply, data)
+					if err := n.Publish(msg.Reply, data); err != nil {
+						log.Println(err)
+					}
 					return
 				}
 			}
 		}
-		n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`))
+		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(max)
+	if err := sub.AutoUnsubscribe(max); err != nil {
+		log.Println(err)
+	}
 }
 
 func findDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.find", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockDatacenters)
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func createDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.set", func(msg *nats.Msg) {
 		var d Datacenter
 
-		json.Unmarshal(msg.Data, &d)
+		if err := json.Unmarshal(msg.Data, &d); err != nil {
+			log.Println(err)
+		}
 		d.ID = 3
 		data, _ := json.Marshal(d)
 
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func deleteDatacenterSubscriber() {
 	sub, _ := n.Subscribe("datacenter.del", func(msg *nats.Msg) {
 		var u Datacenter
 
-		json.Unmarshal(msg.Data, &u)
+		if err := json.Unmarshal(msg.Data, &u); err != nil {
+			log.Println(err)
+		}
 
-		n.Publish(msg.Reply, []byte{})
+		if err := n.Publish(msg.Reply, []byte{}); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }

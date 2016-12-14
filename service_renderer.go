@@ -9,6 +9,7 @@ import (
 	"log"
 )
 
+// ServiceRender : Service representation to be rendered on the frontend
 type ServiceRender struct {
 	ID             string `json:"id"`
 	DatacenterID   int    `json:"datacenter_id"`
@@ -55,6 +56,7 @@ type ServiceRender struct {
 	} `json:"rds_instances"`
 }
 
+// Render : Map a Service to a ServiceRender
 func (o *ServiceRender) Render(s Service) (err error) {
 	var mapping ServiceMapping
 
@@ -90,6 +92,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	return err
 }
 
+// RenderCollection : Maps a collection of Service on a collection of ServiceRender
 func (o *ServiceRender) RenderCollection(services []Service) (list []ServiceRender, err error) {
 	for _, s := range services {
 		var output ServiceRender
@@ -101,6 +104,7 @@ func (o *ServiceRender) RenderCollection(services []Service) (list []ServiceRend
 	return list, nil
 }
 
-func (o *ServiceRender) ToJson() ([]byte, error) {
+// ToJSON : Converts a ServiceRender to json string
+func (o *ServiceRender) ToJSON() ([]byte, error) {
 	return json.Marshal(o)
 }

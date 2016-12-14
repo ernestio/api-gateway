@@ -27,7 +27,9 @@ func getServicesHandler(c echo.Context) (err error) {
 	users := user.FindAllKeyValue()
 
 	au := authenticatedUser(c)
-	service.FindAll(au, &services)
+	if err := service.FindAll(au, &services); err != nil {
+		log.Println(err)
+	}
 	for _, s := range services {
 		exists := false
 		for i, e := range list {
@@ -88,6 +90,7 @@ func getServiceHandler(c echo.Context) (err error) {
 	var s Service
 	var services []Service
 	var o ServiceRender
+	var body []byte
 
 	au := authenticatedUser(c)
 	query := getParamFilter(c)
@@ -100,12 +103,14 @@ func getServiceHandler(c echo.Context) (err error) {
 	}
 
 	if len(services) > 0 {
-		o.Render(services[0])
-		if body, err := o.ToJson(); err != nil {
-			return c.JSONBlob(500, []byte(err.Error()))
-		} else {
-			return c.JSONBlob(http.StatusOK, body)
+		if err := o.Render(services[0]); err != nil {
+			log.Println(err)
+			return err
 		}
+		if body, err = o.ToJSON(); err != nil {
+			return c.JSONBlob(500, []byte(err.Error()))
+		}
+		return c.JSONBlob(http.StatusOK, body)
 	}
 	return c.JSON(http.StatusNotFound, nil)
 }
@@ -192,7 +197,10 @@ func createUUIDHandler(c echo.Context) error {
 		return c.JSONBlob(500, []byte("Invalid input"))
 	}
 
-	json.Unmarshal(body, &s)
+	if err := json.Unmarshal(body, &s); err != nil {
+		log.Println(err)
+		return err
+	}
 	id := generateStreamID(s.ID)
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"uuid":"`+id+`"}`))
@@ -206,6 +214,7 @@ func createServiceHandler(c echo.Context) error {
 	var definition []byte
 	var datacenter []byte
 	var group []byte
+	var previous *Service
 
 	payload := ServicePayload{}
 	au := authenticatedUser(c)
@@ -230,20 +239,23 @@ func createServiceHandler(c echo.Context) error {
 	}
 	payload.Group = (*json.RawMessage)(&group)
 	var currentUser User
-	currentUser.FindByUserName(au.Username, &currentUser)
+	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	// Generate service ID
 	payload.ID = generateServiceID(s.Name + "-" + s.Datacenter)
 
 	// Get previous service if exists
-	if previous, err := getService(s.Name, au.GroupID); err != nil {
+	if previous, err = getService(s.Name, au.GroupID); err != nil {
 		return c.JSONBlob(http.StatusNotFound, []byte(err.Error()))
-	} else {
-		if previous != nil {
-			payload.PrevID = previous.ID
-			if previous.Status == "in_progress" {
-				return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
-			}
+	}
+
+	if previous != nil {
+		payload.PrevID = previous.ID
+		if previous.Status == "in_progress" {
+			return c.JSONBlob(http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`))
 		}
 	}
 
@@ -256,7 +268,10 @@ func createServiceHandler(c echo.Context) error {
 		ID   int    `json:"id"`
 		Type string `json:"type"`
 	}
-	json.Unmarshal(datacenter, &datacenterStruct)
+	if err := json.Unmarshal(datacenter, &datacenterStruct); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	ss := Service{
 		ID:           payload.ID,
@@ -276,7 +291,10 @@ func createServiceHandler(c echo.Context) error {
 	}
 
 	// Apply changes
-	n.Publish("service.create", service)
+	if err := n.Publish("service.create", service); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
@@ -297,17 +315,23 @@ func deleteServiceHandler(c echo.Context) error {
 	}
 
 	s := Service{}
-	json.Unmarshal(raw, &s)
+	if err := json.Unmarshal(raw, &s); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	if s.Status == "in_progress" {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
 	query := []byte(`{"previous_id":"` + s.ID + `","datacenter":{"type":"` + s.Type + `"}}`)
-	if msg, err := n.Request("definition.map.deletion", query, 1*time.Second); err != nil {
+	msg, err := n.Request("definition.map.deletion", query, 1*time.Second)
+	if err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
-	} else {
-		n.Publish("service.delete", msg.Data)
+	}
+	if err := n.Publish("service.delete", msg.Data); err != nil {
+		log.Println(err)
+		return c.JSONBlob(500, []byte(`"Couldn't call service.delete"`))
 	}
 
 	parts := strings.Split(s.ID, "-")
@@ -328,9 +352,15 @@ func forceServiceDeletionHandler(c echo.Context) error {
 	}
 
 	s := Service{}
-	json.Unmarshal(raw, &s)
+	if err := json.Unmarshal(raw, &s); err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(500, err.Error())
+	}
 
-	n.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`))
+	if err := n.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`)); err != nil {
+		log.Println(err)
+		return echo.NewHTTPError(500, err.Error())
+	}
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`"}`))
 }

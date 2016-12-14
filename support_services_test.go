@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/nats-io/nats"
@@ -38,24 +39,32 @@ var (
 )
 
 func getServiceSubscriber() {
-	n.Subscribe("service.get", func(msg *nats.Msg) {
+	_, _ = n.Subscribe("service.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qs := Service{}
-			json.Unmarshal(msg.Data, &qs)
+			if err := json.Unmarshal(msg.Data, &qs); err != nil {
+				log.Println(err)
+			}
 
 			for _, service := range mockServices {
 				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
-					n.Publish(msg.Reply, data)
+					if err := n.Publish(msg.Reply, data); err != nil {
+						log.Println(err)
+					}
 					return
 				} else if qs.GroupID == 0 && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
-					n.Publish(msg.Reply, data)
+					if err := n.Publish(msg.Reply, data); err != nil {
+						log.Println(err)
+					}
 					return
 				}
 			}
 		}
-		n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`))
+		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+			log.Println(err)
+		}
 	})
 }
 
@@ -63,11 +72,15 @@ func findServiceSubscriber() {
 	sub, _ := n.Subscribe("service.find", func(msg *nats.Msg) {
 		var s []Service
 		var qs Service
-		json.Unmarshal(msg.Data, &qs)
+		if err := json.Unmarshal(msg.Data, &qs); err != nil {
+			log.Println(err)
+		}
 
 		if qs.Name == "" && qs.ID == "" {
 			data, _ := json.Marshal(mockServices)
-			n.Publish(msg.Reply, data)
+			if err := n.Publish(msg.Reply, data); err != nil {
+				log.Println(err)
+			}
 			return
 		}
 
@@ -80,43 +93,63 @@ func findServiceSubscriber() {
 		}
 
 		data, _ := json.Marshal(s)
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(1)
+	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func createServiceSubscriber() {
-	n.Subscribe("service.set", func(msg *nats.Msg) {
+	_, _ = n.Subscribe("service.set", func(msg *nats.Msg) {
 		var s Service
 
-		json.Unmarshal(msg.Data, &s)
+		if err := json.Unmarshal(msg.Data, &s); err != nil {
+			log.Println(err)
+		}
 		s.ID = "3"
 		data, _ := json.Marshal(s)
 
-		n.Publish(msg.Reply, data)
+		if err := n.Publish(msg.Reply, data); err != nil {
+			log.Println(err)
+		}
 	})
 }
 
 func deleteServiceSubscriber() {
-	n.Subscribe("service.del", func(msg *nats.Msg) {
+	_, _ = n.Subscribe("service.del", func(msg *nats.Msg) {
 		var s Service
 
-		json.Unmarshal(msg.Data, &s)
+		if err := json.Unmarshal(msg.Data, &s); err != nil {
+			log.Println(err)
+		}
 
-		n.Publish(msg.Reply, []byte{})
+		if err := n.Publish(msg.Reply, []byte{}); err != nil {
+			log.Println(err)
+		}
 	})
 }
 
 func notFoundSubscriber(subject string, max int) {
 	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
-		n.Publish(msg.Reply, []byte(`{"_error","Not found"}`))
+		if err := n.Publish(msg.Reply, []byte(`{"_error","Not found"}`)); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(max)
+	if err := sub.AutoUnsubscribe(max); err != nil {
+		log.Println(err)
+	}
 }
 
 func foundSubscriber(subject string, resp string, max int) {
 	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
-		n.Publish(msg.Reply, []byte(resp))
+		if err := n.Publish(msg.Reply, []byte(resp)); err != nil {
+			log.Println(err)
+		}
 	})
-	sub.AutoUnsubscribe(max)
+	if err := sub.AutoUnsubscribe(max); err != nil {
+		log.Println(err)
+	}
 }

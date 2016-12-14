@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -87,7 +88,9 @@ func createDatacenterHandler(c echo.Context) (err error) {
 		return echo.NewHTTPError(409, "Specified datacenter already exists")
 	}
 
-	d.Save()
+	if err = d.Save(); err != nil {
+		log.Println(err)
+	}
 
 	if body, err = json.Marshal(d); err != nil {
 		return err
@@ -120,10 +123,12 @@ func updateDatacenterHandler(c echo.Context) (err error) {
 
 	existing.Username = d.Username
 	existing.Password = d.Password
-	existing.Token = d.Token
-	existing.Secret = d.Secret
+	existing.AccessKeyID = d.AccessKeyID
+	existing.SecretAccessKey = d.SecretAccessKey
 
-	existing.Save()
+	if err = existing.Save(); err != nil {
+		log.Println(err)
+	}
 
 	if body, err = json.Marshal(d); err != nil {
 		return ErrInternal

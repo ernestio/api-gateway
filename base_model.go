@@ -11,11 +11,12 @@ import (
 	"time"
 )
 
-// Group holds the group response from group-store
+// BaseModel : Group holds the group response from group-store
 type BaseModel struct {
 	Type string
 }
 
+// NewBaseModel : Constructor
 func NewBaseModel(t string) *BaseModel {
 	return &BaseModel{Type: t}
 }
@@ -88,6 +89,7 @@ func (b *BaseModel) Delete(query map[string]interface{}) (err error) {
 	return nil
 }
 
+// Query : Allows a free query by subject
 func (b *BaseModel) Query(subject, query string) ([]byte, error) {
 	var res []byte
 	msg, err := n.Request(subject, []byte(query), 5*time.Second)
