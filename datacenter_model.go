@@ -9,7 +9,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"os"
 
+	aes "github.com/ernestio/crypto/aes"
 	"github.com/labstack/echo"
 )
 
@@ -142,6 +144,12 @@ func (d *Datacenter) Delete() (err error) {
 func (d *Datacenter) Redact() {
 	d.AccessKeyID = ""
 	d.SecretAccessKey = ""
+	crypto := aes.New()
+	key := os.Getenv("ERNEST_CRYPTO_KEY")
+	if d.Username != "" {
+		d.Username, _ = crypto.Decrypt(d.Username, key)
+	}
+	d.Password = ""
 }
 
 // Improve : adds extra data as group name
