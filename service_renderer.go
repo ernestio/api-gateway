@@ -54,6 +54,10 @@ type ServiceRender struct {
 		Name     string `json:"name"`
 		Endpoint string `json:"endpoint"`
 	} `json:"rds_instances"`
+	EBSVolumes []struct {
+		Name        string `json:"name"`
+		VolumeAWSID string `json:"volume_aws_id"`
+	} `json:"ebs_volumes"`
 }
 
 // Render : Map a Service to a ServiceRender
@@ -88,6 +92,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 	o.Elbs = mapping.Elbs.Items
 	o.RDSClusters = mapping.RDSClusters.Items
 	o.RDSInstances = mapping.RDSInstances.Items
+	o.EBSVolumes = mapping.EBSVolumes.Items
 
 	return err
 }
