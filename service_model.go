@@ -83,6 +83,12 @@ type ServiceMapping struct {
 			Endpoint string `json:"endpoint"`
 		} `json:"items"`
 	} `json:"rds_instances"`
+	EBSVolumes struct {
+		Items []struct {
+			Name        string `json:"name"`
+			VolumeAWSID string `json:"volume_aws_id"`
+		} `json:"items"`
+	} `json:"ebs_volumes"`
 }
 
 // Validate the service
