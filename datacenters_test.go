@@ -154,7 +154,7 @@ func TestDatacenters(t *testing.T) {
 				_, err := doRequest("DELETE", "/datacenters/:datacenter", params, nil, deleteDatacenterHandler, ft)
 
 				Convey("It should delete the datacenter and return ok", func() {
-					So(err.Error(), ShouldEqual, "Existing services are referring to this datacenter.")
+					So(err.Error(), ShouldEqual, "code=400, message=Existing services are referring to this datacenter.")
 				})
 			})
 

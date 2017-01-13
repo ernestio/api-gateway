@@ -220,8 +220,12 @@ func createServiceHandler(c echo.Context) error {
 	au := authenticatedUser(c)
 
 	if au.GroupID == 0 {
-		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
+		body := "Current user does not belong to any group."
+		body += "\nPlease assign the user to a group before performing this action"
+		return c.JSONBlob(401, []byte(body))
 	}
+
+	// Parse the input service as usual
 	if s, definition, body, err = mapInputService(c); err != nil {
 		return c.JSONBlob(400, []byte(err.Error()))
 	}
@@ -260,7 +264,13 @@ func createServiceHandler(c echo.Context) error {
 	}
 
 	var service []byte
-	if service, err = mapCreateDefinition(payload); err != nil {
+	isAnImport := strings.Contains(c.Path(), "/import/")
+
+	mapSubject := "definition.map.creation"
+	if isAnImport == true {
+		mapSubject = "definition.map.import"
+	}
+	if service, err = mapDefinition(payload, mapSubject); err != nil {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
@@ -291,7 +301,11 @@ func createServiceHandler(c echo.Context) error {
 	}
 
 	// Apply changes
-	if err := n.Publish("service.create", service); err != nil {
+	subject := "service.create"
+	if isAnImport == true {
+		subject = "service.import"
+	}
+	if err := n.Publish(subject, service); err != nil {
 		log.Println(err)
 		return err
 	}
