@@ -73,6 +73,7 @@ func setupRoutes(api *echo.Group) {
 	s.GET("/:service/builds/", getServiceBuildsHandler)
 	s.GET("/:service/builds/:build", getServiceBuildHandler)
 	s.POST("/", createServiceHandler)
+	s.POST("/import/", createServiceHandler)
 	s.POST("/uuid/", createUUIDHandler)
 	s.POST("/:service/reset/", resetServiceHandler)
 	s.PUT("/:service", updateServiceHandler)

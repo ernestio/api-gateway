@@ -391,7 +391,7 @@ func TestServices(t *testing.T) {
 			Convey("When I call DELETE /services/:service", func() {
 				_, err := doRequest("DELETE", "/services/:service", params, nil, deleteServiceHandler, ft)
 				Convey("Then I should get a 400 response", func() {
-					So(err.Error(), ShouldEqual, `"Service not found"`)
+					So(err.Error(), ShouldEqual, `code=404, message="Service not found"`)
 				})
 			})
 		})

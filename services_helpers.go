@@ -30,7 +30,9 @@ type ServicePayload struct {
 	Service    *json.RawMessage `json:"service"`
 }
 
-// Maps input as a valid Serviceinput
+// Given an echo context, it will extract the json or yml
+// request body and will processes it in order to extract
+// a valid defintion
 func mapInputService(c echo.Context) (s ServiceInput, definition []byte, jsonbody []byte, err error) {
 	req := c.Request()
 	definition, err = ioutil.ReadAll(req.Body)
@@ -58,7 +60,8 @@ func mapInputService(c echo.Context) (s ServiceInput, definition []byte, jsonbod
 	return s, definition, jsonbody, nil
 }
 
-// Generates a service ID based on an input service
+// Generates a service id composed by a random uuid, and
+// a valid generated stream id
 func generateServiceID(salt string) string {
 	sufix := generateStreamID(salt)
 	prefix, _ := uuid.NewV4()
@@ -125,14 +128,14 @@ func getService(name string, group int) (service *Service, err error) {
 	return &services[0], nil
 }
 
-func mapCreateDefinition(payload ServicePayload) (body []byte, err error) {
+func mapDefinition(payload ServicePayload, subject string) (body []byte, err error) {
 	var msg *nats.Msg
 
 	if body, err = json.Marshal(payload); err != nil {
 		return body, errors.New("Provided yaml is not valid")
 	}
 
-	if msg, err = n.Request("definition.map.creation", body, 1*time.Second); err != nil {
+	if msg, err = n.Request(subject, body, 1*time.Second); err != nil {
 		return body, errors.New("Provided yaml is not valid")
 	}
 
