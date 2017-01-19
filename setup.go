@@ -79,4 +79,19 @@ func setupRoutes(api *echo.Group) {
 	s.PUT("/:service", updateServiceHandler)
 	s.DELETE("/:name", deleteServiceHandler)
 	s.DELETE("/:name/force/", forceServiceDeletionHandler)
+
+	// Setup components
+	comp := api.Group("/components")
+	comp.GET("/nats/", getAllComponentsHandler)
+	comp.GET("/network/", getAllComponentsHandler)
+	comp.GET("/route53/", getAllComponentsHandler)
+	comp.GET("/s3/", getAllComponentsHandler)
+	comp.GET("/elb/", getAllComponentsHandler)
+	comp.GET("/vpc/", getAllComponentsHandler)
+	comp.GET("/instance/", getAllComponentsHandler)
+	comp.GET("/firewall/", getAllComponentsHandler)
+	comp.GET("/ebs_volume/", getAllComponentsHandler)
+	comp.GET("/rds_cluster/", getAllComponentsHandler)
+	comp.GET("/rds_instance/", getAllComponentsHandler)
+
 }
