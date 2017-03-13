@@ -2,24 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"encoding/json"
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
-// getLoggersHandler : responds to GET /loggers/ with a list of all
+// GetLoggersHandler : responds to GET /loggers/ with a list of all
 // loggers
-func getLoggersHandler(c echo.Context) (err error) {
-	var loggers []Logger
+func GetLoggersHandler(c echo.Context) (err error) {
+	var loggers []models.Logger
 	var body []byte
-	var logger Logger
+	var logger models.Logger
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	au := AuthenticatedUser(c)
+	if au.Admin == false {
+		return h.ErrUnauthorized
 	}
 
 	if err = logger.FindAll(&loggers); err != nil {
@@ -32,18 +35,19 @@ func getLoggersHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// createLoggerHandler : responds to POST /loggers/ by creating a logger
+// CreateLoggerHandler : responds to POST /loggers/ by creating a logger
 // on the data store
-func createLoggerHandler(c echo.Context) (err error) {
-	var l Logger
+func CreateLoggerHandler(c echo.Context) (err error) {
+	var l models.Logger
 	var body []byte
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	au := AuthenticatedUser(c)
+	if au.Admin == false {
+		return h.ErrUnauthorized
 	}
 
 	if l.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err = l.Save(); err != nil {
@@ -56,17 +60,18 @@ func createLoggerHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// deleteLoggerHandler : responds to DELETE /loggers/:id: by deleting an
+// DeleteLoggerHandler : responds to DELETE /loggers/:id: by deleting an
 // existing logger
-func deleteLoggerHandler(c echo.Context) (err error) {
-	var l Logger
+func DeleteLoggerHandler(c echo.Context) (err error) {
+	var l models.Logger
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	au := AuthenticatedUser(c)
+	if au.Admin == false {
+		return h.ErrUnauthorized
 	}
 
 	if l.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := l.Delete(); err != nil {

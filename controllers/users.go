@@ -2,21 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
-// getUsersHandler : responds to GET /users/ with a list of all
+// GetUsersHandler : responds to GET /users/ with a list of all
 // users for admin, and all users in your group for other
 // users
-func getUsersHandler(c echo.Context) error {
-	var users []User
+func GetUsersHandler(c echo.Context) error {
+	var users []models.User
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if err := au.FindAll(&users); err != nil {
 		return err
 	}
@@ -29,12 +31,12 @@ func getUsersHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, users)
 }
 
-// getUserHandler : responds to GET /users/:id:/ with the specified
+// GetUserHandler : responds to GET /users/:id:/ with the specified
 // user details
-func getUserHandler(c echo.Context) error {
-	var user User
+func GetUserHandler(c echo.Context) error {
+	var user models.User
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if err := au.FindByID(c.Param("user"), &user); err != nil {
 		return err
 	}
@@ -43,18 +45,18 @@ func getUserHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
-// createUserHandler : responds to POST /users/ by creating a user
+// CreateUserHandler : responds to POST /users/ by creating a user
 // on the data store
-func createUserHandler(c echo.Context) error {
-	var u User
-	var existing User
+func CreateUserHandler(c echo.Context) error {
+	var u models.User
+	var existing models.User
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	if AuthenticatedUser(c).Admin != true {
+		return h.ErrUnauthorized
 	}
 
 	if u.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
@@ -70,20 +72,20 @@ func createUserHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, u)
 }
 
-// updateUserHandler : responds to PUT /users/:id: by updating an existing
+// UpdateUserHandler : responds to PUT /users/:id: by updating an existing
 // user
-func updateUserHandler(c echo.Context) error {
-	var u User
-	var existing User
+func UpdateUserHandler(c echo.Context) error {
+	var u models.User
+	var existing models.User
 
 	if u.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	// Check if authenticated user is admin or updating itself
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if au.Username != u.Username && au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	// Check user exists
@@ -92,17 +94,17 @@ func updateUserHandler(c echo.Context) error {
 	}
 
 	if existing.ID == 0 {
-		return ErrNotFound
+		return h.ErrNotFound
 	}
 
 	// Check a non-admin user is not trying to change their group
 	if au.Admin != true && u.GroupID != existing.GroupID {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	// Check the old password if it is present
 	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	if err := u.Save(); err != nil {
@@ -114,13 +116,13 @@ func updateUserHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, u)
 }
 
-// deleteUserHandler : responds to DELETE /users/:id: by deleting an
+// DeleteUserHandler : responds to DELETE /users/:id: by deleting an
 // existing user
-func deleteUserHandler(c echo.Context) error {
-	var au User
+func DeleteUserHandler(c echo.Context) error {
+	var au models.User
 
-	if au = authenticatedUser(c); au.Admin != true {
-		return ErrUnauthorized
+	if au = AuthenticatedUser(c); au.Admin != true {
+		return h.ErrUnauthorized
 	}
 
 	if err := au.Delete(c.Param("user")); err != nil {

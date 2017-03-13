@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package helpers
 
 import (
 	"encoding/json"
@@ -20,7 +20,8 @@ type ResponseError struct {
 	HTTPError *echo.HTTPError `json:"-"`
 }
 
-func responseErr(msg *nats.Msg) *ResponseError {
+// ResponseErr : ..
+func ResponseErr(msg *nats.Msg) *ResponseError {
 	var e ResponseError
 
 	err := json.Unmarshal(msg.Data, &e)

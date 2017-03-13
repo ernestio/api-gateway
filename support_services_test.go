@@ -9,26 +9,27 @@ import (
 	"log"
 	"time"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
 )
 
 var (
-	mockServices = []Service{
-		Service{
+	mockServices = []models.Service{
+		models.Service{
 			ID:           "1",
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
-		Service{
+		models.Service{
 			ID:           "3",
 			Name:         "test",
 			GroupID:      1,
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
-		Service{
+		models.Service{
 			ID:           "2",
 			Name:         "test2",
 			GroupID:      2,
@@ -39,9 +40,9 @@ var (
 )
 
 func getServiceSubscriber() {
-	_, _ = n.Subscribe("service.get", func(msg *nats.Msg) {
+	_, _ = models.N.Subscribe("service.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
-			qs := Service{}
+			qs := models.Service{}
 			if err := json.Unmarshal(msg.Data, &qs); err != nil {
 				log.Println(err)
 			}
@@ -49,36 +50,36 @@ func getServiceSubscriber() {
 			for _, service := range mockServices {
 				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
-					if err := n.Publish(msg.Reply, data); err != nil {
+					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				} else if qs.GroupID == 0 && service.ID == qs.ID {
 					data, _ := json.Marshal(service)
-					if err := n.Publish(msg.Reply, data); err != nil {
+					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
 			}
 		}
-		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})
 }
 
 func findServiceSubscriber() {
-	sub, _ := n.Subscribe("service.find", func(msg *nats.Msg) {
-		var s []Service
-		var qs Service
+	sub, _ := models.N.Subscribe("service.find", func(msg *nats.Msg) {
+		var s []models.Service
+		var qs models.Service
 		if err := json.Unmarshal(msg.Data, &qs); err != nil {
 			log.Println(err)
 		}
 
 		if qs.Name == "" && qs.ID == "" {
 			data, _ := json.Marshal(mockServices)
-			if err := n.Publish(msg.Reply, data); err != nil {
+			if err := models.N.Publish(msg.Reply, data); err != nil {
 				log.Println(err)
 			}
 			return
@@ -93,7 +94,7 @@ func findServiceSubscriber() {
 		}
 
 		data, _ := json.Marshal(s)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -103,8 +104,8 @@ func findServiceSubscriber() {
 }
 
 func createServiceSubscriber() {
-	_, _ = n.Subscribe("service.set", func(msg *nats.Msg) {
-		var s Service
+	_, _ = models.N.Subscribe("service.set", func(msg *nats.Msg) {
+		var s models.Service
 
 		if err := json.Unmarshal(msg.Data, &s); err != nil {
 			log.Println(err)
@@ -112,29 +113,29 @@ func createServiceSubscriber() {
 		s.ID = "3"
 		data, _ := json.Marshal(s)
 
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
 }
 
 func deleteServiceSubscriber() {
-	_, _ = n.Subscribe("service.del", func(msg *nats.Msg) {
-		var s Service
+	_, _ = models.N.Subscribe("service.del", func(msg *nats.Msg) {
+		var s models.Service
 
 		if err := json.Unmarshal(msg.Data, &s); err != nil {
 			log.Println(err)
 		}
 
-		if err := n.Publish(msg.Reply, []byte{}); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
 			log.Println(err)
 		}
 	})
 }
 
 func notFoundSubscriber(subject string, max int) {
-	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
-		if err := n.Publish(msg.Reply, []byte(`{"_error","Not found"}`)); err != nil {
+	sub, _ := models.N.Subscribe(subject, func(msg *nats.Msg) {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error","Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})
@@ -144,8 +145,8 @@ func notFoundSubscriber(subject string, max int) {
 }
 
 func foundSubscriber(subject string, resp string, max int) {
-	sub, _ := n.Subscribe(subject, func(msg *nats.Msg) {
-		if err := n.Publish(msg.Reply, []byte(resp)); err != nil {
+	sub, _ := models.N.Subscribe(subject, func(msg *nats.Msg) {
+		if err := models.N.Publish(msg.Reply, []byte(resp)); err != nil {
 			log.Println(err)
 		}
 	})

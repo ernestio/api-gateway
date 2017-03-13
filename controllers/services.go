@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -12,21 +12,24 @@ import (
 	"strings"
 	"time"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/api-gateway/views"
 	"github.com/labstack/echo"
 )
 
-// getServicesHandler : responds to GET /services/ with a list of all
+// GetServicesHandler : responds to GET /services/ with a list of all
 // services for current user group
-func getServicesHandler(c echo.Context) (err error) {
-	var services []Service
-	var list []Service
+func GetServicesHandler(c echo.Context) (err error) {
+	var services []models.Service
+	var list []models.Service
 	var body []byte
-	var service Service
-	var user User
+	var service models.Service
+	var user models.User
 
 	users := user.FindAllKeyValue()
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if err := service.FindAll(au, &services); err != nil {
 		log.Println(err)
 	}
@@ -56,15 +59,15 @@ func getServicesHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// getServiceBuildsHandler : gets the list of builds for the specified
+// GetServiceBuildsHandler : gets the list of builds for the specified
 // service
-func getServiceBuildsHandler(c echo.Context) error {
-	var user User
+func GetServiceBuildsHandler(c echo.Context) error {
+	var user models.User
 
 	users := user.FindAllKeyValue()
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
-	query := getParamFilter(c)
+	query := h.GetParamFilter(c)
 	if au.Admin != true {
 		query["group_id"] = au.GroupID
 	}
@@ -84,16 +87,16 @@ func getServiceBuildsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, list)
 }
 
-// getServiceHandler : responds to GET /services/:service with the
+// GetServiceHandler : responds to GET /services/:service with the
 // details of an existing service
-func getServiceHandler(c echo.Context) (err error) {
-	var s Service
-	var services []Service
-	var o ServiceRender
+func GetServiceHandler(c echo.Context) (err error) {
+	var s models.Service
+	var services []models.Service
+	var o views.ServiceRender
 	var body []byte
 
-	au := authenticatedUser(c)
-	query := getParamFilter(c)
+	au := AuthenticatedUser(c)
+	query := h.GetParamFilter(c)
 	if au.Admin != true {
 		query["group_id"] = au.GroupID
 	}
@@ -115,12 +118,12 @@ func getServiceHandler(c echo.Context) (err error) {
 	return c.JSON(http.StatusNotFound, nil)
 }
 
-// getServiceBuildHandler : gets the details of a specific service build
-func getServiceBuildHandler(c echo.Context) (err error) {
-	var list []ServiceRender
+// GetServiceBuildHandler : gets the details of a specific service build
+func GetServiceBuildHandler(c echo.Context) (err error) {
+	var list []views.ServiceRender
 
-	au := authenticatedUser(c)
-	query := getParamFilter(c)
+	au := AuthenticatedUser(c)
+	query := h.GetParamFilter(c)
 	if au.Admin != true {
 		query["group_id"] = au.GroupID
 	}
@@ -135,32 +138,32 @@ func getServiceBuildHandler(c echo.Context) (err error) {
 	return c.JSON(http.StatusNotFound, nil)
 }
 
-// TODO : WTF is this doing??
-func searchServicesHandler(c echo.Context) error {
-	au := authenticatedUser(c)
+// SearchServicesHandler : TODO : WTF is this doing??
+func SearchServicesHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
 
-	query := getSearchFilter(c)
+	query := h.GetSearchFilter(c)
 	if au.Admin != true {
 		query["group_id"] = au.GroupID
 	}
 
 	list, err := getServicesOutput(query)
 	if err != nil {
-		return ErrInternal
+		return h.ErrInternal
 	}
 
 	return c.JSON(http.StatusOK, list)
 }
 
-// resetServiceHandler : Respons to POST /services/:service/reset/ and updates the
+// ResetServiceHandler : Respons to POST /services/:service/reset/ and updates the
 // service status to errored from in_progress
-func resetServiceHandler(c echo.Context) error {
-	var s Service
-	var services []Service
+func ResetServiceHandler(c echo.Context) error {
+	var s models.Service
+	var services []models.Service
 
 	name := c.Param("service")
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	filter := make(map[string]interface{})
 	filter["group_id"] = au.GroupID
 	filter["name"] = name
@@ -187,7 +190,8 @@ func resetServiceHandler(c echo.Context) error {
 	return c.String(200, "success")
 }
 
-func createUUIDHandler(c echo.Context) error {
+// CreateUUIDHandler : TODO
+func CreateUUIDHandler(c echo.Context) error {
 	var s struct {
 		ID string `json:"id"`
 	}
@@ -206,18 +210,18 @@ func createUUIDHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, []byte(`{"uuid":"`+id+`"}`))
 }
 
-// createServiceHandler : Will receive a service application
-func createServiceHandler(c echo.Context) error {
+// CreateServiceHandler : Will receive a service application
+func CreateServiceHandler(c echo.Context) error {
 	var s ServiceInput
 	var err error
 	var body []byte
 	var definition []byte
 	var datacenter []byte
 	var group []byte
-	var previous *Service
+	var previous *models.Service
 
 	payload := ServicePayload{}
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if au.GroupID == 0 {
 		body := "Current user does not belong to any group."
@@ -242,7 +246,7 @@ func createServiceHandler(c echo.Context) error {
 		return c.JSONBlob(http.StatusNotFound, []byte(err.Error()))
 	}
 	payload.Group = (*json.RawMessage)(&group)
-	var currentUser User
+	var currentUser models.User
 	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
 		log.Println(err)
 		return err
@@ -283,7 +287,7 @@ func createServiceHandler(c echo.Context) error {
 		return err
 	}
 
-	ss := Service{
+	ss := models.Service{
 		ID:           payload.ID,
 		Name:         s.Name,
 		Type:         datacenterStruct.Type,
@@ -305,7 +309,8 @@ func createServiceHandler(c echo.Context) error {
 	if isAnImport == true {
 		subject = "service.import"
 	}
-	if err := n.Publish(subject, service); err != nil {
+	// TODO : Do not publish stuff from here
+	if err := models.N.Publish(subject, service); err != nil {
 		log.Println(err)
 		return err
 	}
@@ -313,22 +318,23 @@ func createServiceHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
 
-func updateServiceHandler(c echo.Context) error {
+// UpdateServiceHandler : TODO
+func UpdateServiceHandler(c echo.Context) error {
 	return echo.NewHTTPError(405, "Not implemented")
 }
 
-// Deletes a service by name
-func deleteServiceHandler(c echo.Context) error {
+// DeleteServiceHandler : Deletes a service by name
+func DeleteServiceHandler(c echo.Context) error {
 	var raw []byte
 	var err error
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
 		return echo.NewHTTPError(404, err.Error())
 	}
 
-	s := Service{}
+	s := models.Service{}
 	if err := json.Unmarshal(raw, &s); err != nil {
 		log.Println(err)
 		return err
@@ -338,12 +344,13 @@ func deleteServiceHandler(c echo.Context) error {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
+	// TODO : Do not publish stuff from here
 	query := []byte(`{"previous_id":"` + s.ID + `","datacenter":{"type":"` + s.Type + `"}}`)
-	msg, err := n.Request("definition.map.deletion", query, 1*time.Second)
+	msg, err := models.N.Request("definition.map.deletion", query, 1*time.Second)
 	if err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	}
-	if err := n.Publish("service.delete", msg.Data); err != nil {
+	if err := models.N.Publish("service.delete", msg.Data); err != nil {
 		log.Println(err)
 		return c.JSONBlob(500, []byte(`"Couldn't call service.delete"`))
 	}
@@ -354,24 +361,25 @@ func deleteServiceHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`","stream_id":"`+stream+`"}`))
 }
 
-// Deletes a service by name forcing it
-func forceServiceDeletionHandler(c echo.Context) error {
+// ForceServiceDeletionHandler : Deletes a service by name forcing it
+func ForceServiceDeletionHandler(c echo.Context) error {
 	var raw []byte
 	var err error
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
 		return echo.NewHTTPError(404, err.Error())
 	}
 
-	s := Service{}
+	s := models.Service{}
 	if err := json.Unmarshal(raw, &s); err != nil {
 		log.Println(err)
 		return echo.NewHTTPError(500, err.Error())
 	}
 
-	if err := n.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`)); err != nil {
+	// TODO : Do not publish stuff from the controller
+	if err := models.N.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`)); err != nil {
 		log.Println(err)
 		return echo.NewHTTPError(500, err.Error())
 	}

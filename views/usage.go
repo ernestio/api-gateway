@@ -1,8 +1,14 @@
-package main
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+package views
 
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/ernestio/api-gateway/models"
 )
 
 // UsageRender : usage struct to be rendered
@@ -15,7 +21,8 @@ type UsageRender struct {
 	To      *time.Time `json:"to"`
 }
 
-func renderUsageReport(reportables []Usage) ([]byte, error) {
+// RenderUsageReport : TODO
+func RenderUsageReport(reportables []models.Usage) ([]byte, error) {
 	result := make(map[string][]UsageRender)
 
 	for _, r := range reportables {
@@ -29,7 +36,7 @@ func renderUsageReport(reportables []Usage) ([]byte, error) {
 	return json.Marshal(result)
 }
 
-func mapUsage(u Usage) UsageRender {
+func mapUsage(u models.Usage) UsageRender {
 	var from, to time.Time
 	if u.From != 0 {
 		from = time.Unix(u.From, 0)

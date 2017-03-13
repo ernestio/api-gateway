@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -20,7 +21,7 @@ func TestGetParamFilter(t *testing.T) {
 	Convey("Scenario: getting an empty http context", t, func() {
 		c := e.NewContext(req, rec)
 		Convey("when it is converted to a query", func() {
-			query := getParamFilter(c)
+			query := h.GetParamFilter(c)
 			Convey("the query is also empty", func() {
 				So(query, ShouldNotBeNil)
 				So(len(query), ShouldEqual, 0)
@@ -34,7 +35,7 @@ func TestGetParamFilter(t *testing.T) {
 			c.SetParamNames("name")
 			c.SetParamValues("somename")
 			Convey("and it is converted to a query", func() {
-				query := getParamFilter(c)
+				query := h.GetParamFilter(c)
 				Convey("the query has the name and its value", func() {
 					So(query, ShouldNotBeNil)
 					So(len(query), ShouldEqual, 1)
@@ -50,7 +51,7 @@ func TestGetParamFilter(t *testing.T) {
 			c.SetParamNames("service")
 			c.SetParamValues("somename")
 			Convey("and it is converted to a query", func() {
-				query := getParamFilter(c)
+				query := h.GetParamFilter(c)
 				Convey("the query has the name and its value", func() {
 					So(query, ShouldNotBeNil)
 					So(len(query), ShouldEqual, 1)
@@ -66,7 +67,7 @@ func TestGetParamFilter(t *testing.T) {
 			c.SetParamNames("build")
 			c.SetParamValues("someid")
 			Convey("and it is converted to a query", func() {
-				query := getParamFilter(c)
+				query := h.GetParamFilter(c)
 				Convey("the query has the id and its value", func() {
 					So(query, ShouldNotBeNil)
 					So(len(query), ShouldEqual, 1)

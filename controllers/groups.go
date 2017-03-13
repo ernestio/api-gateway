@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -11,17 +11,19 @@ import (
 	"net/http"
 	"strconv"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
-// getGroupsHandler : responds to GET /groups/ with a list of all
+// GetGroupsHandler : responds to GET /groups/ with a list of all
 // groups
-func getGroupsHandler(c echo.Context) (err error) {
-	var groups []Group
+func GetGroupsHandler(c echo.Context) (err error) {
+	var groups []models.Group
 	var body []byte
-	var group Group
+	var group models.Group
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if au.Admin == true {
 		if err := group.FindAll(au, &groups); err != nil {
 			log.Println(err)
@@ -39,10 +41,10 @@ func getGroupsHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// getGroupHandler : responds to GET /groups/:id:/ with the specified
+// GetGroupHandler : responds to GET /groups/:id:/ with the specified
 // group details
-func getGroupHandler(c echo.Context) (err error) {
-	var g Group
+func GetGroupHandler(c echo.Context) (err error) {
+	var g models.Group
 	var body []byte
 
 	id, _ := strconv.Atoi(c.Param("group"))
@@ -57,19 +59,19 @@ func getGroupHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// createGroupHandler : responds to POST /groups/ by creating a group
+// CreateGroupHandler : responds to POST /groups/ by creating a group
 // on the data store
-func createGroupHandler(c echo.Context) (err error) {
-	var g Group
-	var existing Group
+func CreateGroupHandler(c echo.Context) (err error) {
+	var g models.Group
+	var existing models.Group
 	var body []byte
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	if AuthenticatedUser(c).Admin != true {
+		return h.ErrUnauthorized
 	}
 
 	if g.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := existing.FindByName(g.Name, &existing); err == nil {
@@ -87,20 +89,20 @@ func createGroupHandler(c echo.Context) (err error) {
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// updateGroupHandler : responds to PUT /groups/:id: by updating an existing
+// UpdateGroupHandler : responds to PUT /groups/:id: by updating an existing
 // group
-func updateGroupHandler(c echo.Context) (err error) {
-	var g Group
-	var existing Group
+func UpdateGroupHandler(c echo.Context) (err error) {
+	var g models.Group
+	var existing models.Group
 	var body []byte
 
 	if g.Map(c) != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	if err := existing.FindByName(g.Name, &existing); err != nil {
@@ -112,23 +114,23 @@ func updateGroupHandler(c echo.Context) (err error) {
 	}
 
 	if body, err = json.Marshal(g); err != nil {
-		return ErrInternal
+		return h.ErrInternal
 	}
 
 	return c.JSONBlob(http.StatusOK, body)
 }
 
-// deleteGroupHandler : responds to DELETE /groups/:id: by deleting an
+// DeleteGroupHandler : responds to DELETE /groups/:id: by deleting an
 // existing group
-func deleteGroupHandler(c echo.Context) (err error) {
-	var g Group
-	var users []User
-	var datacenters []Datacenter
+func DeleteGroupHandler(c echo.Context) (err error) {
+	var g models.Group
+	var users []models.User
+	var datacenters []models.Datacenter
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	id, err := strconv.Atoi(c.Param("group"))
@@ -161,13 +163,13 @@ func deleteGroupHandler(c echo.Context) (err error) {
 	return c.String(http.StatusOK, "")
 }
 
-// deleteUserFromGroupHandler : Deletes an user from a group
-func deleteUserFromGroupHandler(c echo.Context) error {
-	var user User
-	au := authenticatedUser(c)
+// DeleteUserFromGroupHandler : Deletes an user from a group
+func DeleteUserFromGroupHandler(c echo.Context) error {
+	var user models.User
+	au := AuthenticatedUser(c)
 
 	if au.Admin == false {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	if err := user.FindByID(c.Param("user"), &user); err != nil {
@@ -177,37 +179,37 @@ func deleteUserFromGroupHandler(c echo.Context) error {
 	user.Password = ""
 	user.Salt = ""
 	if err := user.Save(); err != nil {
-		return ErrGatewayTimeout
+		return h.ErrGatewayTimeout
 	}
 
 	return c.JSONBlob(http.StatusOK, []byte("User "+user.Username+" successfully removed from group"))
 }
 
-// addUserToGroupHandler : Adds an user to a group
-func addUserToGroupHandler(c echo.Context) error {
-	var group Group
-	var user User
+// AddUserToGroupHandler : Adds an user to a group
+func AddUserToGroupHandler(c echo.Context) error {
+	var group models.Group
+	var user models.User
 	var payload map[string]string
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	if err := group.FindByName(c.Param("group"), &group); err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = json.Unmarshal(data, &payload)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := user.FindByUserName(payload["username"], &user); err != nil {
@@ -224,44 +226,44 @@ func addUserToGroupHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, []byte("User "+user.Username+" successfully added to group "+group.Name))
 }
 
-// addDatacenterToGroupHandler : Adds a datacenter to a group
-func addDatacenterToGroupHandler(c echo.Context) error {
-	var group Group
-	var datacenter Datacenter
+// AddDatacenterToGroupHandler : Adds a datacenter to a group
+func AddDatacenterToGroupHandler(c echo.Context) error {
+	var group models.Group
+	var datacenter models.Datacenter
 	var payload map[string]string
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 	if au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	groupID, err := strconv.Atoi(c.Param("group"))
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = json.Unmarshal(data, &payload)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	datacenterID, err := strconv.Atoi(payload["datacenterid"])
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := group.FindByID(groupID); err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if err := datacenter.FindByID(datacenterID); err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	datacenter.GroupID = groupID
@@ -272,15 +274,15 @@ func addDatacenterToGroupHandler(c echo.Context) error {
 	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully added to group "+group.Name))
 }
 
-// deleteDatacenterFromGroupHandler : Deletes a datacenter from a group
-func deleteDatacenterFromGroupHandler(c echo.Context) error {
-	var group Group
-	var datacenter Datacenter
+// DeleteDatacenterFromGroupHandler : Deletes a datacenter from a group
+func DeleteDatacenterFromGroupHandler(c echo.Context) error {
+	var group models.Group
+	var datacenter models.Datacenter
 
-	au := authenticatedUser(c)
+	au := AuthenticatedUser(c)
 
 	if au.Admin != true {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	groupid, err := strconv.Atoi(c.Param("group"))

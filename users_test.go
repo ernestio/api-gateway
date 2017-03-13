@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ernestio/api-gateway/controllers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -22,9 +24,9 @@ func TestUsers(t *testing.T) {
 			Convey("And I'm authenticated as an admin user", func() {
 				params := make(map[string]string)
 				ft := generateTestToken(1, "admin", true)
-				resp, err := doRequest("GET", "/users/", params, nil, getUsersHandler, ft)
+				resp, err := doRequest("GET", "/users/", params, nil, controllers.GetUsersHandler, ft)
 				Convey("It should show all users", func() {
-					var u []User
+					var u []models.User
 
 					So(err, ShouldBeNil)
 
@@ -39,10 +41,10 @@ func TestUsers(t *testing.T) {
 			Convey("And I'm authenticated as a non-admin user", func() {
 				params := make(map[string]string)
 				ft := generateTestToken(1, "test", false)
-				resp, err := doRequest("GET", "/users/", params, nil, getUsersHandler, ft)
+				resp, err := doRequest("GET", "/users/", params, nil, controllers.GetUsersHandler, ft)
 
 				Convey("It should return only the users in the same group", func() {
-					var u []User
+					var u []models.User
 
 					So(err, ShouldBeNil)
 
@@ -67,10 +69,10 @@ func TestUsers(t *testing.T) {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(1, "admin", true)
-					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+					resp, err := doRequest("GET", "/users/:user", params, nil, controllers.GetUserHandler, ft)
 
 					Convey("It should return the correct set of data", func() {
-						var u User
+						var u models.User
 
 						So(err, ShouldBeNil)
 
@@ -87,10 +89,10 @@ func TestUsers(t *testing.T) {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(1, "test", false)
-					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+					resp, err := doRequest("GET", "/users/:user", params, nil, controllers.GetUserHandler, ft)
 
 					Convey("It should return the correct set of data", func() {
-						var u User
+						var u models.User
 
 						So(err, ShouldBeNil)
 
@@ -107,7 +109,7 @@ func TestUsers(t *testing.T) {
 					params := make(map[string]string)
 					params["user"] = "1"
 					ft := generateTestToken(2, "test2", false)
-					resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+					resp, err := doRequest("GET", "/users/:user", params, nil, controllers.GetUserHandler, ft)
 
 					Convey("It should return a 404", func() {
 						So(err, ShouldNotBeNil)
@@ -124,7 +126,7 @@ func TestUsers(t *testing.T) {
 				params := make(map[string]string)
 				params["user"] = "99"
 				ft := generateTestToken(2, "test2", false)
-				resp, err := doRequest("GET", "/users/:user", params, nil, getUserHandler, ft)
+				resp, err := doRequest("GET", "/users/:user", params, nil, controllers.GetUserHandler, ft)
 
 				Convey("It should return a 404", func() {
 					So(err, ShouldNotBeNil)
@@ -146,10 +148,10 @@ func TestUsers(t *testing.T) {
 				Convey("And I'm authenticated as an admin user", func() {
 					Convey("With a valid payload", func() {
 						ft := generateTestToken(1, "admin", true)
-						resp, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
+						resp, err := doRequest("POST", "/users/", nil, data, controllers.CreateUserHandler, ft)
 
 						Convey("It should create the user and return the correct set of data", func() {
-							var u User
+							var u models.User
 
 							So(err, ShouldBeNil)
 
@@ -165,7 +167,7 @@ func TestUsers(t *testing.T) {
 					Convey("With an invalid payload", func() {
 						invalidData := []byte(`{"group_id": 1, "username": "fail"}`)
 						ft := generateTestToken(1, "admin", true)
-						_, err := doRequest("POST", "/users/", nil, invalidData, createUserHandler, ft)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
 
 						Convey("It should error with 400 bad request", func() {
 							So(err, ShouldNotBeNil)
@@ -175,7 +177,7 @@ func TestUsers(t *testing.T) {
 				})
 				Convey("And I'm authenticated as a non-admin user", func() {
 					ft := generateTestToken(1, "test2", false)
-					_, err := doRequest("POST", "/users/", nil, data, createUserHandler, ft)
+					_, err := doRequest("POST", "/users/", nil, data, controllers.CreateUserHandler, ft)
 					Convey("It should return with 403 unauthorized", func() {
 						So(err, ShouldNotBeNil)
 						So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
@@ -190,7 +192,7 @@ func TestUsers(t *testing.T) {
 			Convey("When I create a user by calling /users/ on the api", func() {
 				Convey("And the user already exists", func() {
 					ft := generateTestToken(1, "admin", true)
-					_, err := doRequest("POST", "/users/", nil, existingData, createUserHandler, ft)
+					_, err := doRequest("POST", "/users/", nil, existingData, controllers.CreateUserHandler, ft)
 
 					Convey("It should return with 409", func() {
 						So(err, ShouldNotBeNil)
@@ -213,9 +215,9 @@ func TestUsers(t *testing.T) {
 					params["user"] = "1"
 					ft := generateTestToken(1, "admin", true)
 					Convey("With a valid payload", func() {
-						resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+						resp, err := doRequest("PUT", "/users/:user", params, data, controllers.UpdateUserHandler, ft)
 						Convey("It should update the user and return the correct set of data", func() {
-							var u User
+							var u models.User
 
 							So(err, ShouldBeNil)
 
@@ -231,7 +233,7 @@ func TestUsers(t *testing.T) {
 					})
 					Convey("With an invalid payload", func() {
 						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
-						_, err := doRequest("PUT", "/users/:user", params, invalidData, updateUserHandler, ft)
+						_, err := doRequest("PUT", "/users/:user", params, invalidData, controllers.UpdateUserHandler, ft)
 						Convey("It should update the user and return the correct set of data", func() {
 							So(err, ShouldNotBeNil)
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
@@ -247,9 +249,9 @@ func TestUsers(t *testing.T) {
 						params := make(map[string]string)
 						params["user"] = "1"
 						ft := generateTestToken(1, "test", false)
-						resp, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+						resp, err := doRequest("PUT", "/users/:user", params, data, controllers.UpdateUserHandler, ft)
 						Convey("It should update the user and return the correct set of data", func() {
-							var u User
+							var u models.User
 
 							So(err, ShouldBeNil)
 
@@ -268,7 +270,7 @@ func TestUsers(t *testing.T) {
 						params := make(map[string]string)
 						params["user"] = "1"
 						ft := generateTestToken(1, "test", false)
-						_, err := doRequest("PUT", "/users/:user", params, invalidData, updateUserHandler, ft)
+						_, err := doRequest("PUT", "/users/:user", params, invalidData, controllers.UpdateUserHandler, ft)
 						Convey("It should update the user and return the correct set of data", func() {
 							So(err, ShouldNotBeNil)
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 403)
@@ -280,7 +282,7 @@ func TestUsers(t *testing.T) {
 					ft := generateTestToken(1, "test2", false)
 					params := make(map[string]string)
 					params["user"] = "2"
-					_, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+					_, err := doRequest("PUT", "/users/:user", params, data, controllers.UpdateUserHandler, ft)
 
 					Convey("It should return with 403 unauthorized", func() {
 						So(err, ShouldNotBeNil)
@@ -297,7 +299,7 @@ func TestUsers(t *testing.T) {
 				ft := generateTestToken(1, "admin", true)
 				params := make(map[string]string)
 				params["user"] = "99"
-				_, err := doRequest("PUT", "/users/:user", params, data, updateUserHandler, ft)
+				_, err := doRequest("PUT", "/users/:user", params, data, controllers.UpdateUserHandler, ft)
 
 				Convey("It should error with 404 doesn't exist", func() {
 					So(err, ShouldNotBeNil)
@@ -317,7 +319,7 @@ func TestUsers(t *testing.T) {
 					ft := generateTestToken(1, "admin", true)
 					params := make(map[string]string)
 					params["user"] = "1"
-					_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
+					_, err := doRequest("DELETE", "/users/:user", params, nil, controllers.DeleteUserHandler, ft)
 
 					Convey("It should delete the user and return a 200 ok", func() {
 						So(err, ShouldBeNil)
@@ -327,7 +329,7 @@ func TestUsers(t *testing.T) {
 					ft := generateTestToken(1, "test", false)
 					params := make(map[string]string)
 					params["user"] = "1"
-					_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
+					_, err := doRequest("DELETE", "/users/:user", params, nil, controllers.DeleteUserHandler, ft)
 
 					Convey("It should return a 403 not authorized", func() {
 						So(err, ShouldNotBeNil)
@@ -341,7 +343,7 @@ func TestUsers(t *testing.T) {
 				ft := generateTestToken(1, "admin", true)
 				params := make(map[string]string)
 				params["user"] = "99"
-				_, err := doRequest("DELETE", "/users/:user", params, nil, deleteUserHandler, ft)
+				_, err := doRequest("DELETE", "/users/:user", params, nil, controllers.DeleteUserHandler, ft)
 
 				Convey("It should return a 404 ok", func() {
 					So(err, ShouldNotBeNil)

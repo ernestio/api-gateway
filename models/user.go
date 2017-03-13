@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package models
 
 import (
 	"crypto/subtle"
@@ -13,6 +13,7 @@ import (
 	"log"
 	"strconv"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 	"golang.org/x/crypto/scrypt"
 )
@@ -54,17 +55,17 @@ func (u *User) Map(c echo.Context) *echo.HTTPError {
 	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = json.Unmarshal(data, &u)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = u.Validate()
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	return nil

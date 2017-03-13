@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"crypto/md5"
@@ -9,6 +9,9 @@ import (
 	"log"
 	"time"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/api-gateway/views"
 	"github.com/ghodss/yaml"
 	"github.com/labstack/echo"
 	"github.com/nats-io/nats"
@@ -79,8 +82,8 @@ func generateStreamID(salt string) string {
 }
 
 func getDatacenter(name string, group int) (datacenter []byte, err error) {
-	var d Datacenter
-	var datacenters []Datacenter
+	var d models.Datacenter
+	var datacenters []models.Datacenter
 
 	if err := d.FindByNameAndGroupID(name, group, &datacenters); err != nil {
 		return datacenter, err
@@ -99,7 +102,7 @@ func getDatacenter(name string, group int) (datacenter []byte, err error) {
 }
 
 func getGroup(id int) (group []byte, err error) {
-	var g Group
+	var g models.Group
 
 	if err = g.FindByID(id); err != nil {
 		return group, errors.New(`"Specified group does not exist"`)
@@ -113,12 +116,12 @@ func getGroup(id int) (group []byte, err error) {
 	return group, nil
 }
 
-func getService(name string, group int) (service *Service, err error) {
-	var s Service
-	var services []Service
+func getService(name string, group int) (service *models.Service, err error) {
+	var s models.Service
+	var services []models.Service
 
 	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
-		return service, ErrGatewayTimeout
+		return service, h.ErrGatewayTimeout
 	}
 
 	if len(services) == 0 {
@@ -135,7 +138,8 @@ func mapDefinition(payload ServicePayload, subject string) (body []byte, err err
 		return body, errors.New("Provided yaml is not valid")
 	}
 
-	if msg, err = n.Request(subject, body, 1*time.Second); err != nil {
+	// TODO : Do not call nats from here, move it to a model instead
+	if msg, err = models.N.Request(subject, body, 1*time.Second); err != nil {
 		return body, errors.New("Provided yaml is not valid")
 	}
 
@@ -155,8 +159,8 @@ func mapDefinition(payload ServicePayload, subject string) (body []byte, err err
 }
 
 func getServiceRaw(name string, group int) (service []byte, err error) {
-	var s Service
-	var services []Service
+	var s models.Service
+	var services []models.Service
 
 	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
 		return nil, errors.New(`"Internal error"`)
@@ -173,10 +177,10 @@ func getServiceRaw(name string, group int) (service []byte, err error) {
 	return body, nil
 }
 
-func getServicesOutput(filter map[string]interface{}) (list []ServiceRender, err error) {
-	var s Service
-	var services []Service
-	var o ServiceRender
+func getServicesOutput(filter map[string]interface{}) (list []views.ServiceRender, err error) {
+	var s models.Service
+	var services []models.Service
+	var o views.ServiceRender
 
 	if err := s.Find(filter, &services); err != nil {
 		return list, err

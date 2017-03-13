@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ernestio/api-gateway/controllers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	. "github.com/smartystreets/goconvey/convey"
@@ -36,7 +37,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := authenticate(c)
+				err := controllers.Authenticate(c)
 				resp := rec.Body.String()
 
 				Convey("It should return a jwt token", func() {
@@ -55,7 +56,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := authenticate(c)
+				err := controllers.Authenticate(c)
 				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {
@@ -72,7 +73,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := authenticate(c)
+				err := controllers.Authenticate(c)
 				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {
@@ -101,7 +102,7 @@ func TestAuth(t *testing.T) {
 
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
-				h := middleware.JWT([]byte(secret))(getUsersHandler)
+				h := middleware.JWT([]byte(controllers.Secret))(controllers.GetUsersHandler)
 
 				Convey("It should return the correct data", func() {
 					err := h(c)
@@ -119,7 +120,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
 
-				h := middleware.JWT([]byte(secret))(getUsersHandler)
+				h := middleware.JWT([]byte(controllers.Secret))(controllers.GetUsersHandler)
 
 				err := h(c)
 				resp := rec.Body.String()
@@ -138,7 +139,7 @@ func TestAuth(t *testing.T) {
 
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/users/")
-				h := middleware.JWT([]byte(secret))(getUsersHandler)
+				h := middleware.JWT([]byte(controllers.Secret))(controllers.GetUsersHandler)
 
 				err := h(c)
 				resp := rec.Body.String()

@@ -2,14 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package models
 
 import (
 	"encoding/json"
 	"errors"
 	"strings"
 	"time"
+
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/nats-io/nats"
 )
+
+// TODO : This should probably be implementing an internal interface
+
+// N : Nats connection
+var N *nats.Conn
 
 // BaseModel : Group holds the group response from group-store
 type BaseModel struct {
@@ -21,7 +29,8 @@ func NewBaseModel(t string) *BaseModel {
 	return &BaseModel{Type: t}
 }
 
-func (b *BaseModel) callStoreBy(verb string, query map[string]interface{}, o interface{}) (err error) {
+// CallStoreBy : ...
+func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o interface{}) (err error) {
 	var res []byte
 	var req []byte
 	if len(query) > 0 {
@@ -41,12 +50,12 @@ func (b *BaseModel) callStoreBy(verb string, query map[string]interface{}, o int
 
 // GetBy : interface to call component.get on the specific store
 func (b *BaseModel) GetBy(query map[string]interface{}, o interface{}) (err error) {
-	return b.callStoreBy("get", query, o)
+	return b.CallStoreBy("get", query, o)
 }
 
 // FindBy : interface to call component.find on the specific store
 func (b *BaseModel) FindBy(query map[string]interface{}, o interface{}) (err error) {
-	return b.callStoreBy("find", query, o)
+	return b.CallStoreBy("find", query, o)
 }
 
 // Save : interface to call component.set on the specific store
@@ -55,7 +64,7 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 
 	data, err := json.Marshal(o)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
@@ -64,7 +73,7 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 	if err := json.Unmarshal(res, &o); err != nil {
 		println(string(res))
 		println(err.Error())
-		return ErrInternal
+		return h.ErrInternal
 	}
 
 	return nil
@@ -92,12 +101,12 @@ func (b *BaseModel) Delete(query map[string]interface{}) (err error) {
 // Query : Allows a free query by subject
 func (b *BaseModel) Query(subject, query string) ([]byte, error) {
 	var res []byte
-	msg, err := n.Request(subject, []byte(query), 5*time.Second)
+	msg, err := N.Request(subject, []byte(query), 5*time.Second)
 	if err != nil {
-		return res, ErrGatewayTimeout
+		return res, h.ErrGatewayTimeout
 	}
 
-	if re := responseErr(msg); re != nil {
+	if re := h.ResponseErr(msg); re != nil {
 		return res, re.HTTPError
 	}
 

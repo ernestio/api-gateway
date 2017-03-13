@@ -4,18 +4,19 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
 )
 
 var (
-	mockUsers = []User{
-		User{
+	mockUsers = []models.User{
+		models.User{
 			ID:       1,
 			GroupID:  1,
 			Username: "test",
 			Password: "test",
 		},
-		User{
+		models.User{
 			ID:       2,
 			GroupID:  2,
 			Username: "test2",
@@ -26,8 +27,8 @@ var (
 )
 
 func getUserSubscriber(max int) {
-	sub, _ := n.Subscribe("user.get", func(msg *nats.Msg) {
-		var qu User
+	sub, _ := models.N.Subscribe("user.get", func(msg *nats.Msg) {
+		var qu models.User
 
 		if len(msg.Data) > 0 {
 			if err := json.Unmarshal(msg.Data, &qu); err != nil {
@@ -39,7 +40,7 @@ func getUserSubscriber(max int) {
 					if user.ID == qu.ID && user.GroupID == qu.GroupID ||
 						user.Username == qu.Username && user.GroupID == qu.GroupID {
 						data, _ := json.Marshal(user)
-						if err := n.Publish(msg.Reply, data); err != nil {
+						if err := models.N.Publish(msg.Reply, data); err != nil {
 							log.Println(err)
 						}
 						return
@@ -47,7 +48,7 @@ func getUserSubscriber(max int) {
 				} else {
 					if user.ID == qu.ID || user.Username == qu.Username {
 						data, _ := json.Marshal(user)
-						if err := n.Publish(msg.Reply, data); err != nil {
+						if err := models.N.Publish(msg.Reply, data); err != nil {
 							log.Println(err)
 						}
 						return
@@ -56,7 +57,7 @@ func getUserSubscriber(max int) {
 			}
 		}
 
-		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})
@@ -66,13 +67,13 @@ func getUserSubscriber(max int) {
 }
 
 func findUserSubscriber() {
-	sub, _ := n.Subscribe("user.find", func(msg *nats.Msg) {
-		var qu User
-		var ur []User
+	sub, _ := models.N.Subscribe("user.find", func(msg *nats.Msg) {
+		var qu models.User
+		var ur []models.User
 
 		if len(msg.Data) == 0 {
 			data, _ := json.Marshal(mockUsers)
-			if err := n.Publish(msg.Reply, data); err != nil {
+			if err := models.N.Publish(msg.Reply, data); err != nil {
 				log.Println(err)
 			}
 			return
@@ -89,7 +90,7 @@ func findUserSubscriber() {
 		}
 
 		data, _ := json.Marshal(ur)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -99,8 +100,8 @@ func findUserSubscriber() {
 }
 
 func setUserSubscriber() {
-	sub, _ := n.Subscribe("user.set", func(msg *nats.Msg) {
-		var u User
+	sub, _ := models.N.Subscribe("user.set", func(msg *nats.Msg) {
+		var u models.User
 
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)
@@ -110,7 +111,7 @@ func setUserSubscriber() {
 		}
 
 		data, _ := json.Marshal(u)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -120,22 +121,22 @@ func setUserSubscriber() {
 }
 
 func deleteUserSubscriber() {
-	sub, _ := n.Subscribe("user.del", func(msg *nats.Msg) {
-		var u User
+	sub, _ := models.N.Subscribe("user.del", func(msg *nats.Msg) {
+		var u models.User
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)
 		}
 
 		for _, user := range mockUsers {
 			if user.ID == u.ID {
-				if err := n.Publish(msg.Reply, []byte{}); err != nil {
+				if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
 					log.Println(err)
 				}
 				return
 			}
 		}
 
-		if err := n.Publish(msg.Reply, []byte(`{"_error": "Not found"}`)); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error": "Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})

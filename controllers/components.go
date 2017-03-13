@@ -2,21 +2,21 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"encoding/json"
-	// "log"
 	"net/http"
 	"strings"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
-// getAllComponentsHandler : ...
-func getAllComponentsHandler(c echo.Context) (err error) {
+// GetAllComponentsHandler : ...
+func GetAllComponentsHandler(c echo.Context) (err error) {
 	var body []byte
-	var d Datacenter
+	var d models.Datacenter
 
 	parts := strings.Split(c.Path(), "/")
 	component := parts[len(parts)-2] + "s"
@@ -38,7 +38,8 @@ func getAllComponentsHandler(c echo.Context) (err error) {
 	}
 
 	components := make(map[string]interface{})
-	if err = NewBaseModel(component).callStoreBy("find.aws", query, &components); err != nil {
+	// TODO : CallStoredBy must be private create a Component model instead
+	if err = models.NewBaseModel(component).CallStoreBy("find.aws", query, &components); err != nil {
 		return c.JSONBlob(500, []byte("An internal error occured"))
 	}
 

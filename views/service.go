@@ -2,11 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package views
 
 import (
 	"encoding/json"
 	"log"
+
+	"github.com/ernestio/api-gateway/models"
 )
 
 // ServiceRender : Service representation to be rendered on the frontend
@@ -61,8 +63,8 @@ type ServiceRender struct {
 }
 
 // Render : Map a Service to a ServiceRender
-func (o *ServiceRender) Render(s Service) (err error) {
-	var mapping ServiceMapping
+func (o *ServiceRender) Render(s models.Service) (err error) {
+	var mapping models.ServiceMapping
 
 	o.ID = s.ID
 	o.DatacenterID = s.DatacenterID
@@ -98,7 +100,7 @@ func (o *ServiceRender) Render(s Service) (err error) {
 }
 
 // RenderCollection : Maps a collection of Service on a collection of ServiceRender
-func (o *ServiceRender) RenderCollection(services []Service) (list []ServiceRender, err error) {
+func (o *ServiceRender) RenderCollection(services []models.Service) (list []ServiceRender, err error) {
 	for _, s := range services {
 		var output ServiceRender
 		if err := output.Render(s); err == nil {

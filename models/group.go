@@ -2,13 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package models
 
 import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -32,17 +33,17 @@ func (g *Group) Map(c echo.Context) *echo.HTTPError {
 	body := c.Request().Body
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = json.Unmarshal(data, &g)
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	err = g.Validate()
 	if err != nil {
-		return ErrBadReqBody
+		return h.ErrBadReqBody
 	}
 
 	return nil

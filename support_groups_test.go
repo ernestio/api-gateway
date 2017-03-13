@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
 )
 
 var (
-	mockGroups = []Group{
-		Group{
+	mockGroups = []models.Group{
+		models.Group{
 			ID:   1,
 			Name: "test",
 		},
-		Group{
+		models.Group{
 			ID:   2,
 			Name: "test2",
 		},
@@ -21,9 +22,9 @@ var (
 )
 
 func getGroupSubscriber() {
-	sub, _ := n.Subscribe("group.get", func(msg *nats.Msg) {
+	sub, _ := models.N.Subscribe("group.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
-			qg := Group{}
+			qg := models.Group{}
 			if err := json.Unmarshal(msg.Data, &qg); err != nil {
 				log.Println(err)
 				return
@@ -32,14 +33,14 @@ func getGroupSubscriber() {
 			for _, group := range mockGroups {
 				if group.ID == qg.ID || group.Name == qg.Name {
 					data, _ := json.Marshal(group)
-					if err := n.Publish(msg.Reply, data); err != nil {
+					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
 			}
 		}
-		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})
@@ -49,8 +50,8 @@ func getGroupSubscriber() {
 }
 
 func createGroupSubscriber() {
-	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
-		var g Group
+	sub, _ := models.N.Subscribe("group.set", func(msg *nats.Msg) {
+		var g models.Group
 
 		if err := json.Unmarshal(msg.Data, &g); err != nil {
 			log.Println(err)
@@ -58,7 +59,7 @@ func createGroupSubscriber() {
 		g.ID = 3
 		data, _ := json.Marshal(g)
 
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -68,13 +69,13 @@ func createGroupSubscriber() {
 }
 
 func findGroupSubscriber() {
-	sub, _ := n.Subscribe("group.find", func(msg *nats.Msg) {
-		var qu Group
-		var ur []Group
+	sub, _ := models.N.Subscribe("group.find", func(msg *nats.Msg) {
+		var qu models.Group
+		var ur []models.Group
 
 		if len(msg.Data) == 0 {
 			data, _ := json.Marshal(mockGroups)
-			if err := n.Publish(msg.Reply, data); err != nil {
+			if err := models.N.Publish(msg.Reply, data); err != nil {
 				log.Println(err)
 			}
 			return
@@ -91,7 +92,7 @@ func findGroupSubscriber() {
 		}
 
 		data, _ := json.Marshal(ur)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -101,8 +102,8 @@ func findGroupSubscriber() {
 }
 
 func setGroupSubscriber() {
-	sub, _ := n.Subscribe("group.set", func(msg *nats.Msg) {
-		var u Group
+	sub, _ := models.N.Subscribe("group.set", func(msg *nats.Msg) {
+		var u models.Group
 
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)
@@ -112,7 +113,7 @@ func setGroupSubscriber() {
 		}
 
 		data, _ := json.Marshal(u)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -122,14 +123,14 @@ func setGroupSubscriber() {
 }
 
 func deleteGroupSubscriber() {
-	sub, _ := n.Subscribe("group.del", func(msg *nats.Msg) {
-		var g Group
+	sub, _ := models.N.Subscribe("group.del", func(msg *nats.Msg) {
+		var g models.Group
 
 		if err := json.Unmarshal(msg.Data, &g); err != nil {
 			log.Println(err)
 		}
 
-		if err := n.Publish(msg.Reply, []byte{}); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
 			log.Println(err)
 		}
 	})

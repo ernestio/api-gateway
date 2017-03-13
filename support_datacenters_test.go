@@ -8,17 +8,18 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
 )
 
 var (
-	mockDatacenters = []Datacenter{
-		Datacenter{
+	mockDatacenters = []models.Datacenter{
+		models.Datacenter{
 			ID:      1,
 			Name:    "test",
 			GroupID: 1,
 		},
-		Datacenter{
+		models.Datacenter{
 			ID:      2,
 			Name:    "test2",
 			GroupID: 2,
@@ -27,9 +28,9 @@ var (
 )
 
 func getDatacenterSubscriber(max int) {
-	sub, _ := n.Subscribe("datacenter.get", func(msg *nats.Msg) {
+	sub, _ := models.N.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
-			qd := Datacenter{}
+			qd := models.Datacenter{}
 			if err := json.Unmarshal(msg.Data, &qd); err != nil {
 				log.Println(err)
 				return
@@ -38,20 +39,20 @@ func getDatacenterSubscriber(max int) {
 			for _, datacenter := range mockDatacenters {
 				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
-					if err := n.Publish(msg.Reply, data); err != nil {
+					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				} else if qd.GroupID == 0 && datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
-					if err := n.Publish(msg.Reply, data); err != nil {
+					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
 			}
 		}
-		if err := n.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
 			log.Println(err)
 		}
 	})
@@ -61,9 +62,9 @@ func getDatacenterSubscriber(max int) {
 }
 
 func findDatacenterSubscriber() {
-	sub, _ := n.Subscribe("datacenter.find", func(msg *nats.Msg) {
+	sub, _ := models.N.Subscribe("datacenter.find", func(msg *nats.Msg) {
 		data, _ := json.Marshal(mockDatacenters)
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -73,8 +74,8 @@ func findDatacenterSubscriber() {
 }
 
 func createDatacenterSubscriber() {
-	sub, _ := n.Subscribe("datacenter.set", func(msg *nats.Msg) {
-		var d Datacenter
+	sub, _ := models.N.Subscribe("datacenter.set", func(msg *nats.Msg) {
+		var d models.Datacenter
 
 		if err := json.Unmarshal(msg.Data, &d); err != nil {
 			log.Println(err)
@@ -82,7 +83,7 @@ func createDatacenterSubscriber() {
 		d.ID = 3
 		data, _ := json.Marshal(d)
 
-		if err := n.Publish(msg.Reply, data); err != nil {
+		if err := models.N.Publish(msg.Reply, data); err != nil {
 			log.Println(err)
 		}
 	})
@@ -92,14 +93,14 @@ func createDatacenterSubscriber() {
 }
 
 func deleteDatacenterSubscriber() {
-	sub, _ := n.Subscribe("datacenter.del", func(msg *nats.Msg) {
-		var u Datacenter
+	sub, _ := models.N.Subscribe("datacenter.del", func(msg *nats.Msg) {
+		var u models.Datacenter
 
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)
 		}
 
-		if err := n.Publish(msg.Reply, []byte{}); err != nil {
+		if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
 			log.Println(err)
 		}
 	})

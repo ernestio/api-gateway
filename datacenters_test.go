@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ernestio/api-gateway/controllers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -20,9 +22,9 @@ func TestDatacenters(t *testing.T) {
 		Convey("Given datacenters exist on the store", func() {
 			findDatacenterSubscriber()
 			Convey("When I call /datacenters/", func() {
-				resp, err := doRequest("GET", "/datacenters/", nil, nil, getDatacentersHandler, nil)
+				resp, err := doRequest("GET", "/datacenters/", nil, nil, controllers.GetDatacentersHandler, nil)
 				Convey("Then I should have a response with existing datacenters", func() {
-					var d []Datacenter
+					var d []models.Datacenter
 					So(err, ShouldBeNil)
 
 					err = json.Unmarshal(resp, &d)
@@ -45,11 +47,11 @@ func TestDatacenters(t *testing.T) {
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				params := make(map[string]string)
 				params["datacenter"] = "1"
-				resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, nil)
+				resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, controllers.GetDatacenterHandler, nil)
 
 				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should get the existing datacenter", func() {
-						var d Datacenter
+						var d models.Datacenter
 
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
@@ -65,10 +67,10 @@ func TestDatacenters(t *testing.T) {
 
 					params := make(map[string]string)
 					params["datacenter"] = "1"
-					resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
+					resp, err := doRequest("GET", "/datacenters/:datacenter", params, nil, controllers.GetDatacenterHandler, ft)
 
 					Convey("Then I should get the existing datacenter", func() {
-						var d Datacenter
+						var d models.Datacenter
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
@@ -81,7 +83,7 @@ func TestDatacenters(t *testing.T) {
 					ft := generateTestToken(2, "test2", false)
 					params := make(map[string]string)
 					params["datacenter"] = "1"
-					_, err := doRequest("GET", "/datacenters/:datacenter", params, nil, getDatacenterHandler, ft)
+					_, err := doRequest("GET", "/datacenters/:datacenter", params, nil, controllers.GetDatacenterHandler, ft)
 
 					Convey("Then I should get a 404 error as it doesn't exist", func() {
 						So(err, ShouldNotBeNil)
@@ -96,7 +98,7 @@ func TestDatacenters(t *testing.T) {
 		Convey("Given the datacenter does not exist on the store ", func() {
 			createDatacenterSubscriber()
 
-			mockDC := Datacenter{
+			mockDC := models.Datacenter{
 				GroupID:   1,
 				Name:      "new-test",
 				Type:      "vcloud",
@@ -111,10 +113,10 @@ func TestDatacenters(t *testing.T) {
 				params := make(map[string]string)
 				params["datacenter"] = "test"
 				Convey("And I am logged in as an admin", func() {
-					resp, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, nil)
+					resp, err := doRequest("POST", "/datacenters/", params, data, controllers.CreateDatacenterHandler, nil)
 
 					Convey("Then a datacenter should be created", func() {
-						var d Datacenter
+						var d models.Datacenter
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
@@ -125,10 +127,10 @@ func TestDatacenters(t *testing.T) {
 
 				SkipConvey("And the datacenter group matches the authenticated users group", func() {
 					ft := generateTestToken(1, "test", false)
-					resp, err := doRequest("POST", "/datacenters/", params, data, createDatacenterHandler, ft)
+					resp, err := doRequest("POST", "/datacenters/", params, data, controllers.CreateDatacenterHandler, ft)
 
 					Convey("It should create the datacenter and return the correct set of data", func() {
-						var d Datacenter
+						var d models.Datacenter
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
@@ -151,7 +153,7 @@ func TestDatacenters(t *testing.T) {
 
 				params := make(map[string]string)
 				params["datacenter"] = "1"
-				_, err := doRequest("DELETE", "/datacenters/:datacenter", params, nil, deleteDatacenterHandler, ft)
+				_, err := doRequest("DELETE", "/datacenters/:datacenter", params, nil, controllers.DeleteDatacenterHandler, ft)
 
 				Convey("It should delete the datacenter and return ok", func() {
 					So(err.Error(), ShouldEqual, "code=400, message=Existing services are referring to this datacenter.")

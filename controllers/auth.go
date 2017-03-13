@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"encoding/json"
@@ -11,33 +11,56 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
-func authenticate(c echo.Context) error {
-	var u User
+// Secret : TODO
+var Secret string
+
+// AuthenticatedUser : Get the authenticated user from the JWT Token
+func AuthenticatedUser(c echo.Context) models.User {
+	var u models.User
+
+	user := c.Get("user").(*jwt.Token)
+
+	claims, ok := user.Claims.(jwt.MapClaims)
+	if ok {
+		u.Username = claims["username"].(string)
+		u.GroupID = int(claims["group_id"].(float64))
+		u.Admin = claims["admin"].(bool)
+	}
+
+	return u
+}
+
+// Authenticate : ..
+func Authenticate(c echo.Context) error {
+	var u models.User
 
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
 	// Find user, sending the auth request as payload
 	req := fmt.Sprintf(`{"username": "%s"}`, username)
-	msg, err := n.Request("user.get", []byte(req), 5*time.Second)
+	// TODO : DO not publish stuff from the controller
+	msg, err := models.N.Request("user.get", []byte(req), 5*time.Second)
 	if err != nil {
-		return ErrGatewayTimeout
+		return h.ErrGatewayTimeout
 	}
 
-	if responseErr(msg) != nil {
-		return ErrUnauthorized
+	if h.ResponseErr(msg) != nil {
+		return h.ErrUnauthorized
 	}
 
 	err = json.Unmarshal(msg.Data, &u)
 	if err != nil {
-		return ErrInternal
+		return h.ErrInternal
 	}
 
 	if u.ID == 0 {
-		return ErrUnauthorized
+		return h.ErrUnauthorized
 	}
 
 	if u.Username == username && u.ValidPassword(password) {
@@ -52,7 +75,7 @@ func authenticate(c echo.Context) error {
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 		// Generate encoded token and send it as response.
-		t, err := token.SignedString([]byte(secret))
+		t, err := token.SignedString([]byte(Secret))
 		if err != nil {
 			return err
 		}
@@ -61,5 +84,5 @@ func authenticate(c echo.Context) error {
 		})
 	}
 
-	return ErrUnauthorized
+	return h.ErrUnauthorized
 }

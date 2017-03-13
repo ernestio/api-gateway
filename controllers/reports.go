@@ -2,24 +2,29 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package controllers
 
 import (
 	"log"
 	"net/http"
 	"time"
 
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/api-gateway/views"
 	"github.com/labstack/echo"
 )
 
-func getUsageReportHandler(c echo.Context) (err error) {
-	var usage Usage
-	var reportables []Usage
+// GetUsageReportHandler : ...
+func GetUsageReportHandler(c echo.Context) (err error) {
+	var usage models.Usage
+	var reportables []models.Usage
 	var body []byte
 	var from, to int64
 
-	if authenticatedUser(c).Admin != true {
-		return ErrUnauthorized
+	au := AuthenticatedUser(c)
+	if au.Admin == false {
+		return h.ErrUnauthorized
 	}
 
 	layout := "2006-01-02"
@@ -47,7 +52,7 @@ func getUsageReportHandler(c echo.Context) (err error) {
 		return err
 	}
 
-	if body, err = renderUsageReport(reportables); err != nil {
+	if body, err = views.RenderUsageReport(reportables); err != nil {
 		return err
 	}
 

@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ernestio/api-gateway/controllers"
+	"github.com/ernestio/api-gateway/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -19,9 +21,9 @@ func TestGroups(t *testing.T) {
 		Convey("Given groups exist on the store", func() {
 			findGroupSubscriber()
 			Convey("When I call /groups/", func() {
-				resp, err := doRequest("GET", "/groups/", nil, nil, getGroupsHandler, nil)
+				resp, err := doRequest("GET", "/groups/", nil, nil, controllers.GetGroupsHandler, nil)
 				Convey("Then I should have a response existing groups", func() {
-					var g []Group
+					var g []models.Group
 					So(err, ShouldBeNil)
 
 					err = json.Unmarshal(resp, &g)
@@ -44,11 +46,11 @@ func TestGroups(t *testing.T) {
 			Convey("And I call /groups/:group on the api", func() {
 				params := make(map[string]string)
 				params["group"] = "1"
-				resp, err := doRequest("GET", "/groups/:group", params, nil, getGroupHandler, nil)
+				resp, err := doRequest("GET", "/groups/:group", params, nil, controllers.GetGroupHandler, nil)
 
 				Convey("When I'm authenticated as admin user", func() {
 					Convey("Then I should get the existing group", func() {
-						var g Group
+						var g models.Group
 
 						So(err, ShouldBeNil)
 
@@ -68,7 +70,7 @@ func TestGroups(t *testing.T) {
 			createGroupSubscriber()
 			getGroupSubscriber()
 
-			mockG := Group{
+			mockG := models.Group{
 				ID:   1,
 				Name: "new-test",
 			}
@@ -78,9 +80,9 @@ func TestGroups(t *testing.T) {
 			Convey("When I do a post to /groups/", func() {
 				params := make(map[string]string)
 				params["group"] = "test"
-				resp, err := doRequest("POST", "/groups/", params, data, createGroupHandler, nil)
+				resp, err := doRequest("POST", "/groups/", params, data, controllers.CreateGroupHandler, nil)
 				Convey("Then a group hould be created", func() {
-					var g Group
+					var g models.Group
 					So(err, ShouldBeNil)
 					err = json.Unmarshal(resp, &g)
 					So(err, ShouldBeNil)
@@ -100,7 +102,7 @@ func TestGroups(t *testing.T) {
 				Convey("And I am logged in as an admin", func() {
 					params := make(map[string]string)
 					params["group"] = "test"
-					_, err := doRequest("DELETE", "/groups/:group", params, nil, deleteGroupHandler, nil)
+					_, err := doRequest("DELETE", "/groups/:group", params, nil, controllers.DeleteGroupHandler, nil)
 
 					SkipConvey("It should delete the group and return ok", func() {
 						So(err, ShouldBeNil)
