@@ -94,4 +94,8 @@ func setupRoutes(api *echo.Group) {
 	comp.GET("/rds_cluster/", getAllComponentsHandler)
 	comp.GET("/rds_instance/", getAllComponentsHandler)
 
+	// Setup reports
+	rep := api.Group("/reports")
+	rep.GET("/usage/", getUsageReportHandler)
+
 }
