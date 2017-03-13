@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package main
+package config
 
 import (
 	"os"
@@ -14,7 +14,8 @@ import (
 	"github.com/labstack/echo"
 )
 
-func setup() {
+// Setup : TODO
+func Setup() {
 	models.N = ecc.NewConfig(os.Getenv("NATS_URI")).Nats()
 
 	// TODO : Move this query to a model
@@ -29,7 +30,8 @@ func setup() {
 	}
 }
 
-func setupRoutes(api *echo.Group) {
+// SetupRoutes : TODO
+func SetupRoutes(api *echo.Group) {
 	// Setup session routes
 	ss := api.Group("/session")
 	ss.GET("/", controllers.GetSessionsHandler)

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
@@ -16,7 +17,7 @@ import (
 
 func TestDatacenters(t *testing.T) {
 	testsSetup()
-	setup()
+	config.Setup()
 
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {

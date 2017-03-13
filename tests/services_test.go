@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers"
 	"github.com/ernestio/api-gateway/views"
 
@@ -17,7 +18,7 @@ import (
 
 func TestServices(t *testing.T) {
 	testsSetup()
-	setup()
+	config.Setup()
 
 	Convey("Scenario: reeting a service", t, func() {
 		foundSubscriber("service.set", `"success"`, 1)

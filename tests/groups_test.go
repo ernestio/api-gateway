@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers"
 	"github.com/ernestio/api-gateway/models"
 	. "github.com/smartystreets/goconvey/convey"
@@ -15,7 +16,7 @@ import (
 
 func TestGroups(t *testing.T) {
 	testsSetup()
-	setup()
+	config.Setup()
 
 	Convey("Scenario: getting a list of groups", t, func() {
 		Convey("Given groups exist on the store", func() {

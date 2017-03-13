@@ -2,15 +2,20 @@ machine:
   services:
     - docker
   environment:
+    ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio
     NATS_URI_TEST:  nats://127.0.0.1:4222
     ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
 
 dependencies:
-  override:
+  pre:
     - docker run -d -p 4222:4222 nats
-    - make dev-deps
+    - mkdir -p $ROOTPATH/
+    - rm -rf $ROOTPATH/api-gateway
+    - cp -R /home/ubuntu/api-gateway $ROOTPATH/api-gateway
+    - cd $ROOTPATH/api-gateway/ && make dev-deps
 
 test:
   override:
-    - make test
-    - make lint
+    - cd $ROOTPATH/api-gateway/ && make test
+    - cd $ROOTPATH/api-gateway/ && make lint
+

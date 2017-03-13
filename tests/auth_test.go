@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -23,7 +24,7 @@ var mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImV4cC
 func TestAuth(t *testing.T) {
 	Convey("Given the auth handler", t, func() {
 		testsSetup()
-		setup()
+		config.Setup()
 
 		Convey("When attempting to login", func() {
 			getUserSubscriber(1)
@@ -86,7 +87,7 @@ func TestAuth(t *testing.T) {
 
 	Convey("Given a protected route", t, func() {
 		testsSetup()
-		setup()
+		config.Setup()
 
 		Convey("When attempting to retrieve data", func() {
 			getUserSubscriber(1)
