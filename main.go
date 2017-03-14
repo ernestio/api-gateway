@@ -5,30 +5,10 @@
 package main
 
 import (
-	"log"
-
 	"github.com/ernestio/api-gateway/config"
-	"github.com/ernestio/api-gateway/controllers"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
 func main() {
-	log.Println("starting gateway")
 	config.Setup()
-
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.POST("/auth", controllers.Authenticate)
-	e.GET("/status", controllers.GetStatusHandler)
-
-	// Setup JWT auth & protected routes
-	api := e.Group("/api")
-	api.Use(middleware.JWT([]byte(controllers.Secret)))
-	config.SetupRoutes(api)
-
-	if err := e.Start(":8080"); err != nil {
-		panic(err)
-	}
+	config.Route()
 }
