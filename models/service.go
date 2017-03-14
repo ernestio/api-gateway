@@ -205,6 +205,16 @@ func (s *Service) Delete() (err error) {
 	return nil
 }
 
+// DeleteByName : will delete a service by its name
+func (s *Service) DeleteByName(name string) (err error) {
+	query := make(map[string]interface{})
+	query["name"] = name
+	if err := NewBaseModel("service").Delete(query); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Mapping : will get a service mapping
 func (s *Service) Mapping() (m ServiceMapping, err error) {
 	query := make(map[string]interface{})
@@ -232,6 +242,33 @@ func (s *Service) FindByDatacenterID(id int, services *[]Service) (err error) {
 	query := make(map[string]interface{})
 	query["datacenter_id"] = id
 	if err := NewBaseModel("service").FindBy(query, services); err != nil {
+		return err
+	}
+	return nil
+}
+
+// RequestCreation : calls service.create with the given raw message
+func (s *Service) RequestCreation(raw []byte) error {
+	if err := N.Publish("service.create", raw); err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+// RequestImport : calls service.import with the given raw message
+func (s *Service) RequestImport(raw []byte) error {
+	if err := N.Publish("service.import", raw); err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+// RequestDeletion : calls service.delete with the given raw message
+func (s *Service) RequestDeletion(raw []byte) error {
+	if err := N.Publish("service.delete", raw); err != nil {
+		h.L.Error(err.Error())
 		return err
 	}
 	return nil

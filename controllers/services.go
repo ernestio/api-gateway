@@ -138,7 +138,7 @@ func GetServiceBuildHandler(c echo.Context) (err error) {
 	return c.JSON(http.StatusNotFound, nil)
 }
 
-// SearchServicesHandler : TODO : WTF is this doing??
+// SearchServicesHandler : Finds all services
 func SearchServicesHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 
@@ -190,7 +190,7 @@ func ResetServiceHandler(c echo.Context) error {
 	return c.String(200, "success")
 }
 
-// CreateUUIDHandler : TODO
+// CreateUUIDHandler : Creates an unique id
 func CreateUUIDHandler(c echo.Context) error {
 	var s struct {
 		ID string `json:"id"`
@@ -270,11 +270,17 @@ func CreateServiceHandler(c echo.Context) error {
 	var service []byte
 	isAnImport := strings.Contains(c.Path(), "/import/")
 
-	mapSubject := "definition.map.creation"
-	if isAnImport == true {
-		mapSubject = "definition.map.import"
+	if body, err = json.Marshal(payload); err != nil {
+		return h.ErrInternal
 	}
-	if service, err = mapDefinition(payload, mapSubject); err != nil {
+	var def models.Definition
+	if isAnImport == true {
+		service, err = def.MapImport(body)
+	} else {
+		service, err = def.MapCreation(body)
+	}
+
+	if err != nil {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
@@ -305,21 +311,23 @@ func CreateServiceHandler(c echo.Context) error {
 	}
 
 	// Apply changes
-	subject := "service.create"
 	if isAnImport == true {
-		subject = "service.import"
+		err = ss.RequestImport(service)
+	} else {
+		err = ss.RequestCreation(service)
 	}
-	// TODO : Do not publish stuff from here
-	if err := models.N.Publish(subject, service); err != nil {
-		log.Println(err)
+
+	if err != nil {
+		h.L.Error(err.Error())
 		return err
 	}
 
 	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+payload.ID+`"}`))
 }
 
-// UpdateServiceHandler : TODO
+// UpdateServiceHandler : Not implemented
 func UpdateServiceHandler(c echo.Context) error {
+	h.L.Warning("UpdateServiceHandler not implemented")
 	return echo.NewHTTPError(405, "Not implemented")
 }
 
@@ -327,6 +335,7 @@ func UpdateServiceHandler(c echo.Context) error {
 func DeleteServiceHandler(c echo.Context) error {
 	var raw []byte
 	var err error
+	var def models.Definition
 
 	au := AuthenticatedUser(c)
 
@@ -344,14 +353,11 @@ func DeleteServiceHandler(c echo.Context) error {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
-	// TODO : Do not publish stuff from here
-	query := []byte(`{"previous_id":"` + s.ID + `","datacenter":{"type":"` + s.Type + `"}}`)
-	msg, err := models.N.Request("definition.map.deletion", query, 1*time.Second)
+	body, err := def.MapDeletion(s.ID, s.Type)
 	if err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	}
-	if err := models.N.Publish("service.delete", msg.Data); err != nil {
-		log.Println(err)
+	if err := s.RequestDeletion(body); err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't call service.delete"`))
 	}
 
@@ -365,6 +371,7 @@ func DeleteServiceHandler(c echo.Context) error {
 func ForceServiceDeletionHandler(c echo.Context) error {
 	var raw []byte
 	var err error
+	var service models.Service
 
 	au := AuthenticatedUser(c)
 
@@ -378,8 +385,7 @@ func ForceServiceDeletionHandler(c echo.Context) error {
 		return echo.NewHTTPError(500, err.Error())
 	}
 
-	// TODO : Do not publish stuff from the controller
-	if err := models.N.Publish("service.del", []byte(`{"name":"`+c.Param("name")+`"}`)); err != nil {
+	if err := service.DeleteByName(c.Param("name")); err != nil {
 		log.Println(err)
 		return echo.NewHTTPError(500, err.Error())
 	}

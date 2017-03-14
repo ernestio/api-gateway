@@ -7,14 +7,12 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
-	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/api-gateway/views"
 	"github.com/ghodss/yaml"
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
 	"github.com/nu7hatch/gouuid"
 )
 
@@ -129,33 +127,6 @@ func getService(name string, group int) (service *models.Service, err error) {
 	}
 
 	return &services[0], nil
-}
-
-func mapDefinition(payload ServicePayload, subject string) (body []byte, err error) {
-	var msg *nats.Msg
-
-	if body, err = json.Marshal(payload); err != nil {
-		return body, errors.New("Provided yaml is not valid")
-	}
-
-	// TODO : Do not call nats from here, move it to a model instead
-	if msg, err = models.N.Request(subject, body, 1*time.Second); err != nil {
-		return body, errors.New("Provided yaml is not valid")
-	}
-
-	var s struct {
-		Error string `json:"error"`
-	}
-
-	if err := json.Unmarshal(msg.Data, &s); err != nil {
-		log.Println(err)
-		return body, err
-	}
-	if s.Error != "" {
-		return body, errors.New(s.Error)
-	}
-
-	return msg.Data, nil
 }
 
 func getServiceRaw(name string, group int) (service []byte, err error) {

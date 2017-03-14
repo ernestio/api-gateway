@@ -6,6 +6,7 @@ package config
 
 import (
 	"github.com/ernestio/api-gateway/controllers"
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -17,11 +18,11 @@ func Route() *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	L.Info("Setting up root routes")
+	h.L.Info("Setting up root routes")
 	setupRoot(e)
-	L.Info("Setting up api routes")
+	h.L.Info("Setting up api routes")
 	setupAPI(e)
-	L.Info("Starting server")
+	h.L.Info("Starting server")
 	start(e)
 
 	return e

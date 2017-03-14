@@ -25,37 +25,19 @@ func GetAllComponentsHandler(c echo.Context) (err error) {
 		return err
 	}
 
-	query := make(map[string]interface{})
-	query["expects_response"] = true
-	query["aws_access_key_id"] = d.AccessKeyID
-	query["aws_secret_access_key"] = d.SecretAccessKey
-	query["datacenter_region"] = d.Region
+	tags := make(map[string]string)
 	service := c.QueryParam("service")
 	if service != "" {
-		tags := make(map[string]string)
 		tags["ernest.service"] = c.QueryParam("service")
-		query["tags"] = tags
 	}
-
-	components := make(map[string]interface{})
-	// TODO : CallStoredBy must be private create a Component model instead
-	if err = models.NewBaseModel(component).CallStoreBy("find.aws", query, &components); err != nil {
+	aws := models.AWSComponent{
+		Datacenter: &d,
+		Name:       component,
+		Tags:       tags,
+	}
+	list, err := aws.FindBy()
+	if err != nil {
 		return c.JSONBlob(500, []byte("An internal error occured"))
-	}
-
-	if components["components"] == nil {
-		return c.JSONBlob(200, []byte("[]"))
-	}
-
-	list := components["components"].([]interface{})
-	for i := range list {
-		component := list[i].(map[string]interface{})
-		delete(component, "_uuid")
-		delete(component, "_batch_id")
-		delete(component, "_type")
-		delete(component, "aws_access_key_id")
-		delete(component, "aws_secret_access_key")
-		delete(component, "_uuid")
 	}
 
 	if body, err = json.Marshal(list); err != nil {

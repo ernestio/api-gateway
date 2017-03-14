@@ -5,8 +5,6 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -42,21 +40,8 @@ func Authenticate(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
-	// Find user, sending the auth request as payload
-	req := fmt.Sprintf(`{"username": "%s"}`, username)
-	// TODO : DO not publish stuff from the controller
-	msg, err := models.N.Request("user.get", []byte(req), 5*time.Second)
-	if err != nil {
+	if err := u.FindByUserName(username, &u); err != nil {
 		return h.ErrGatewayTimeout
-	}
-
-	if h.ResponseErr(msg) != nil {
-		return h.ErrUnauthorized
-	}
-
-	err = json.Unmarshal(msg.Data, &u)
-	if err != nil {
-		return h.ErrInternal
 	}
 
 	if u.ID == 0 {
