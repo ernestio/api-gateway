@@ -5,7 +5,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -32,18 +31,16 @@ func GetUsageReportHandler(c echo.Context) (err error) {
 	if c.QueryParam("from") != "" {
 		fromTime, err := time.Parse(layout, c.QueryParam("from"))
 		if err != nil {
-			log.Println("Invalid from date on usage report")
-			log.Println(err.Error())
-			return err
+			h.L.Warning(err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid from parameter")
 		}
 		from = fromTime.Unix()
 	}
 	if c.QueryParam("to") != "" {
 		toTime, err := time.Parse(layout, c.QueryParam("to"))
 		if err != nil {
-			log.Println("Invalid to date on usage report")
-			log.Println(err.Error())
-			return err
+			h.L.Warning(err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, "Invalid to parameter")
 		}
 		to = toTime.Unix()
 	}

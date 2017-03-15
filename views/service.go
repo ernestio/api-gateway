@@ -6,8 +6,8 @@ package views
 
 import (
 	"encoding/json"
-	"log"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -79,7 +79,7 @@ func (o *ServiceRender) Render(s models.Service) (err error) {
 	}
 
 	if mapping, err = s.Mapping(); err != nil {
-		log.Println(err.Error())
+		h.L.Error(err.Error())
 		return err
 	}
 	if len(mapping.Vpcs.Items) > 0 {

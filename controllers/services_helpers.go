@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -74,7 +73,7 @@ func generateStreamID(salt string) string {
 	compose := []byte(salt)
 	hasher := md5.New()
 	if _, err := hasher.Write(compose); err != nil {
-		log.Println(err)
+		h.L.Warning(err.Error())
 	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }
@@ -109,7 +108,7 @@ func getGroup(id int) (group []byte, err error) {
 	if group, err = json.Marshal(g); err != nil {
 		return group, errors.New(`"Internal error"`)
 	}
-	println(group)
+	h.L.Info(group)
 
 	return group, nil
 }

@@ -7,7 +7,6 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -31,7 +30,7 @@ func GetServicesHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if err := service.FindAll(au, &services); err != nil {
-		log.Println(err)
+		h.L.Warning(err.Error())
 	}
 	for _, s := range services {
 		exists := false
@@ -107,8 +106,8 @@ func GetServiceHandler(c echo.Context) (err error) {
 
 	if len(services) > 0 {
 		if err := o.Render(services[0]); err != nil {
-			log.Println(err)
-			return err
+			h.L.Warning(err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		if body, err = o.ToJSON(); err != nil {
 			return c.JSONBlob(500, []byte(err.Error()))
@@ -168,7 +167,7 @@ func ResetServiceHandler(c echo.Context) error {
 	filter["group_id"] = au.GroupID
 	filter["name"] = name
 	if err := s.Find(filter, &services); err != nil {
-		log.Println(err.Error())
+		h.L.Warning(err.Error())
 		return c.JSONBlob(500, []byte("Internal Error"))
 	}
 
@@ -183,7 +182,7 @@ func ResetServiceHandler(c echo.Context) error {
 	}
 
 	if err := s.Reset(); err != nil {
-		log.Println(err.Error())
+		h.L.Error(err.Error())
 		return c.JSONBlob(500, []byte("Internal error"))
 	}
 
@@ -202,8 +201,8 @@ func CreateUUIDHandler(c echo.Context) error {
 	}
 
 	if err := json.Unmarshal(body, &s); err != nil {
-		log.Println(err)
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	id := generateStreamID(s.ID)
 
@@ -248,8 +247,8 @@ func CreateServiceHandler(c echo.Context) error {
 	payload.Group = (*json.RawMessage)(&group)
 	var currentUser models.User
 	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
-		log.Println(err)
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	// Generate service ID
@@ -289,8 +288,8 @@ func CreateServiceHandler(c echo.Context) error {
 		Type string `json:"type"`
 	}
 	if err := json.Unmarshal(datacenter, &datacenterStruct); err != nil {
-		log.Println(err)
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	ss := models.Service{
@@ -345,8 +344,8 @@ func DeleteServiceHandler(c echo.Context) error {
 
 	s := models.Service{}
 	if err := json.Unmarshal(raw, &s); err != nil {
-		log.Println(err)
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if s.Status == "in_progress" {
@@ -381,12 +380,12 @@ func ForceServiceDeletionHandler(c echo.Context) error {
 
 	s := models.Service{}
 	if err := json.Unmarshal(raw, &s); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(500, err.Error())
 	}
 
 	if err := service.DeleteByName(c.Param("name")); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(500, err.Error())
 	}
 

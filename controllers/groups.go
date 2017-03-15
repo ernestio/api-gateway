@@ -7,7 +7,6 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -26,17 +25,17 @@ func GetGroupsHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	if au.Admin == true {
 		if err := group.FindAll(au, &groups); err != nil {
-			log.Println(err)
+			h.L.Warning(err.Error())
 		}
 	} else {
 		if err := group.FindByID(au.GroupID); err != nil {
-			log.Println(err)
+			h.L.Warning(err.Error())
 		}
 		groups = append(groups, group)
 	}
 
 	if body, err = json.Marshal(groups); err != nil {
-		return err
+		return h.ErrBadReqBody
 	}
 	return c.JSONBlob(http.StatusOK, body)
 }
@@ -84,7 +83,7 @@ func CreateGroupHandler(c echo.Context) (err error) {
 	}
 
 	if err = g.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 
 	if body, err = json.Marshal(g); err != nil {
@@ -120,7 +119,7 @@ func UpdateGroupHandler(c echo.Context) (err error) {
 	}
 
 	if err = g.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 
 	if body, err = json.Marshal(g); err != nil {
@@ -183,7 +182,7 @@ func DeleteUserFromGroupHandler(c echo.Context) error {
 	}
 
 	if err := user.FindByID(c.Param("user"), &user); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 	user.GroupID = 0
 	user.Password = ""
@@ -278,7 +277,7 @@ func AddDatacenterToGroupHandler(c echo.Context) error {
 
 	datacenter.GroupID = groupID
 	if err = datacenter.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 
 	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully added to group "+group.Name))
@@ -307,7 +306,7 @@ func DeleteDatacenterFromGroupHandler(c echo.Context) error {
 
 	datacenter.GroupID = 0
 	if err = datacenter.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 
 	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully removed from group "+group.Name))

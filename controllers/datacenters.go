@@ -7,7 +7,6 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -97,7 +96,8 @@ func CreateDatacenterHandler(c echo.Context) (err error) {
 	}
 
 	if err = d.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
+		return h.ErrInternal
 	}
 
 	if body, err = json.Marshal(d); err != nil {
@@ -140,7 +140,8 @@ func UpdateDatacenterHandler(c echo.Context) (err error) {
 	existing.SecretAccessKey = d.SecretAccessKey
 
 	if err = existing.Save(); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
+		return h.ErrInternal
 	}
 
 	if body, err = json.Marshal(d); err != nil {
