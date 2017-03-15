@@ -38,7 +38,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := controllers.Authenticate(c)
+				err := controllers.AuthenticateHandler(c)
 				resp := rec.Body.String()
 
 				Convey("It should return a jwt token", func() {
@@ -57,7 +57,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := controllers.Authenticate(c)
+				err := controllers.AuthenticateHandler(c)
 				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {
@@ -74,7 +74,7 @@ func TestAuth(t *testing.T) {
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
-				err := controllers.Authenticate(c)
+				err := controllers.AuthenticateHandler(c)
 				resp := rec.Body.String()
 
 				Convey("It should not return a jwt token and error", func() {

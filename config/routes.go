@@ -29,7 +29,7 @@ func Route() *echo.Echo {
 }
 
 func setupRoot(e *echo.Echo) {
-	e.POST("/auth", controllers.Authenticate)
+	e.POST("/auth", controllers.AuthenticateHandler)
 	e.GET("/status", controllers.GetStatusHandler)
 }
 

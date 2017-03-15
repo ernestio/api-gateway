@@ -33,8 +33,8 @@ func AuthenticatedUser(c echo.Context) models.User {
 	return u
 }
 
-// Authenticate : ..
-func Authenticate(c echo.Context) error {
+// AuthenticateHandler : manages user authentication
+func AuthenticateHandler(c echo.Context) error {
 	var u models.User
 
 	username := c.FormValue("username")
