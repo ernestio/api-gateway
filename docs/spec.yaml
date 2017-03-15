@@ -1,0 +1,50 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Ernest API
+  description: Developer driven orchestration tool
+  version: "1.0.0"
+host: api.ernest.io
+schemes:
+  - https
+basePath: /
+produces:
+  - application/json
+paths:
+  /auth:
+    get:
+      summary: Authentication endpoint
+      description: |
+        Manages user authentication based on jwt tokens
+      parameters:
+        - name: username
+          in: query
+          description: Valid account username
+          required: true
+          type: string
+          format: double
+        - name: password
+          in: query
+          description: Valid account password
+          required: true
+          type: number
+          format: double
+      tags:
+        - Authentication
+      responses:
+        200:
+          description: A json string containing the token to be used to log in
+          schema:
+            $ref: '#/definitions/Error'
+        403:
+          description: You're not authorized to proceed with the login
+
+definitions:
+  Error:
+    type: object
+    properties:
+      token:
+        type: string
+        description: JWT Token to be used in future connections
+
