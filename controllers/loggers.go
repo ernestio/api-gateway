@@ -6,6 +6,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -46,7 +47,12 @@ func CreateLoggerHandler(c echo.Context) (err error) {
 		return h.ErrUnauthorized
 	}
 
-	if l.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if l.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 
@@ -70,7 +76,12 @@ func DeleteLoggerHandler(c echo.Context) (err error) {
 		return h.ErrUnauthorized
 	}
 
-	if l.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if l.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 

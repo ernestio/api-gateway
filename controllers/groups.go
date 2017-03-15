@@ -70,7 +70,12 @@ func CreateGroupHandler(c echo.Context) (err error) {
 		return h.ErrUnauthorized
 	}
 
-	if g.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if g.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 
@@ -96,7 +101,12 @@ func UpdateGroupHandler(c echo.Context) (err error) {
 	var existing models.Group
 	var body []byte
 
-	if g.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if g.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 

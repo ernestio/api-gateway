@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/nats-io/nats"
 )
@@ -64,16 +65,19 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 
 	data, err := json.Marshal(o)
 	if err != nil {
-		return h.ErrBadReqBody
+		return NewError(InvalidInputCode, "Can't marshal provided component to json")
 	}
 
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
 		return err
 	}
 	if err := json.Unmarshal(res, &o); err != nil {
-		println(string(res))
-		println(err.Error())
-		return h.ErrInternal
+		msg := "An internal error occurred saving component " + b.Type
+		h.L.WithFields(logrus.Fields{
+			"response":      string(res),
+			"error_message": err.Error(),
+		}).Error(msg)
+		return NewError(InternalCode, msg)
 	}
 
 	return nil
@@ -103,7 +107,9 @@ func (b *BaseModel) Query(subject, query string) ([]byte, error) {
 	var res []byte
 	msg, err := N.Request(subject, []byte(query), 5*time.Second)
 	if err != nil {
-		return res, h.ErrGatewayTimeout
+		eMsg := "An internal error happened trying to reach the data store"
+		h.L.Error(eMsg)
+		return res, NewError(TimeoutCode, eMsg)
 	}
 
 	if re := h.ResponseErr(msg); re != nil {

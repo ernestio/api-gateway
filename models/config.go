@@ -4,23 +4,11 @@ import (
 	"errors"
 	"os"
 	"time"
-
-	"github.com/labstack/echo"
 )
 
 // Config : TODO
 type Config struct {
 	JWT string `json:"jwt_token"`
-}
-
-// Validate : the config model
-func (c *Config) Validate() error {
-	return nil
-}
-
-// Map : maps echo context to config
-func (c *Config) Map(context echo.Context) *echo.HTTPError {
-	return nil
 }
 
 // FindByKey : Searches for a specific config by key

@@ -7,10 +7,9 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/labstack/echo"
 )
 
 // Group holds the group response from group-store
@@ -29,21 +28,20 @@ func (g *Group) Validate() error {
 }
 
 // Map : maps a group from a request's body and validates the input
-func (g *Group) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
+func (g *Group) Map(data []byte) error {
+	if err := json.Unmarshal(data, &g); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Couldn't unmarshal given input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	err = json.Unmarshal(data, &g)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = g.Validate()
-	if err != nil {
-		return h.ErrBadReqBody
+	if err := g.Validate(); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input":         string(data),
+			"error_message": err.Error(),
+		}).Error("Invalid input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
 	return nil

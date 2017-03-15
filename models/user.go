@@ -9,12 +9,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
 	"strconv"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/labstack/echo"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -51,21 +49,19 @@ func (u *User) Validate() error {
 }
 
 // Map a user from a request's body and validates the input
-func (u *User) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
+func (u *User) Map(data []byte) error {
+	if err := json.Unmarshal(data, &u); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Couldn't unmarshal given input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	err = json.Unmarshal(data, &u)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = u.Validate()
-	if err != nil {
-		return h.ErrBadReqBody
+	if err := u.Validate(); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Invalid input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
 	return nil
@@ -173,7 +169,7 @@ func (u *User) ValidPassword(pw string) bool {
 // Group : Gets the related user group if any
 func (u *User) Group() (group Group) {
 	if err := group.FindByID(u.GroupID); err != nil {
-		log.Println(err)
+		h.L.Warning(err.Error())
 	}
 
 	return group
@@ -193,7 +189,7 @@ func (u *User) FindAllKeyValue() (list map[int]string) {
 	var users []User
 	list = make(map[int]string)
 	if err := u.FindAll(&users); err != nil {
-		log.Println(err)
+		h.L.Warning(err.Error())
 	}
 	for _, v := range users {
 		list[v.ID] = v.Username

@@ -7,13 +7,11 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
-	"log"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
-	"github.com/labstack/echo"
 )
 
 // Datacenter holds the datacenter response from datacenter-store
@@ -55,16 +53,12 @@ func (d *Datacenter) Validate() error {
 }
 
 // Map : maps a datacenter from a request's body and validates the input
-func (d *Datacenter) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &d)
-	if err != nil {
-		return h.ErrBadReqBody
+func (d *Datacenter) Map(data []byte) error {
+	if err := json.Unmarshal(data, &d); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Couldn't unmarshal given input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
 	return nil
@@ -162,7 +156,7 @@ func (d *Datacenter) Improve() {
 // Group : Gets the related datacenter group if any
 func (d *Datacenter) Group() (group Group) {
 	if err := group.FindByID(d.GroupID); err != nil {
-		log.Println(err)
+		h.L.Error(err.Error())
 	}
 
 	return group

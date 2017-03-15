@@ -7,10 +7,9 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/labstack/echo"
 )
 
 // Usage : Usage-store entity
@@ -33,16 +32,12 @@ func (l *Usage) Validate() error {
 }
 
 // Map : maps a datacenter from a request's body and validates the input
-func (l *Usage) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &l)
-	if err != nil {
-		return h.ErrBadReqBody
+func (l *Usage) Map(data []byte) error {
+	if err := json.Unmarshal(data, &l); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Couldn't unmarshal given input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
 	return nil

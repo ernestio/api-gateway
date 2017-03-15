@@ -5,6 +5,7 @@
 package controllers
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -55,7 +56,11 @@ func CreateUserHandler(c echo.Context) error {
 		return h.ErrUnauthorized
 	}
 
-	if u.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+	if u.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 
@@ -78,7 +83,11 @@ func UpdateUserHandler(c echo.Context) error {
 	var u models.User
 	var existing models.User
 
-	if u.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+	if u.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 

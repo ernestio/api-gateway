@@ -7,11 +7,10 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/labstack/echo"
 )
 
 // Service holds the service response from service-store
@@ -110,21 +109,19 @@ func (s *Service) Validate() error {
 }
 
 // Map : maps a service from a request's body and validates the input
-func (s *Service) Map(c echo.Context) *echo.HTTPError {
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
+func (s *Service) Map(data []byte) error {
+	if err := json.Unmarshal(data, &s); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Error("Couldn't unmarshal given input")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	err = json.Unmarshal(data, &s)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = s.Validate()
-	if err != nil {
-		return h.ErrBadReqBody
+	if err := s.Validate(); err != nil {
+		h.L.WithFields(logrus.Fields{
+			"input": string(data),
+		}).Warning("Input is not valid")
+		return NewError(InvalidInputCode, "Invalid input")
 	}
 
 	return nil

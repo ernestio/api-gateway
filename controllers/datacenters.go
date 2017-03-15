@@ -6,6 +6,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -75,7 +76,12 @@ func CreateDatacenterHandler(c echo.Context) (err error) {
 		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
 	}
 
-	if d.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if d.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 
@@ -108,7 +114,12 @@ func UpdateDatacenterHandler(c echo.Context) (err error) {
 	var existing models.Datacenter
 	var body []byte
 
-	if d.Map(c) != nil {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return h.ErrBadReqBody
+	}
+
+	if d.Map(data) != nil {
 		return h.ErrBadReqBody
 	}
 
