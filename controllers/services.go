@@ -61,9 +61,6 @@ func GetServicesHandler(c echo.Context) (err error) {
 // GetServiceBuildsHandler : gets the list of builds for the specified
 // service
 func GetServiceBuildsHandler(c echo.Context) error {
-	var user models.User
-
-	users := user.FindAllKeyValue()
 	au := AuthenticatedUser(c)
 
 	query := h.GetParamFilter(c)
@@ -74,13 +71,6 @@ func GetServiceBuildsHandler(c echo.Context) error {
 	list, err := getServicesOutput(query)
 	if err != nil {
 		return c.JSONBlob(500, []byte(err.Error()))
-	}
-	for i := range list {
-		for id, name := range users {
-			if id == list[i].UserID {
-				list[i].UserName = name
-			}
-		}
 	}
 
 	return c.JSON(http.StatusOK, list)
@@ -298,6 +288,7 @@ func CreateServiceHandler(c echo.Context) error {
 		Type:         datacenterStruct.Type,
 		GroupID:      au.GroupID,
 		UserID:       currentUser.ID,
+		UserName:     currentUser.Username,
 		DatacenterID: datacenterStruct.ID,
 		Version:      time.Now(),
 		Status:       "in_progress",
