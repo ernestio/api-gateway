@@ -71,3 +71,32 @@ func (l *Logger) Delete() (err error) {
 	}
 	return nil
 }
+
+// LogMessage holds the message payload
+type LogMessage struct {
+	Message   string `json:"message"`
+	Timestamp string `json:"timestamp"`
+	Level     string `json:"level"`
+	User      string `json:"user"`
+}
+
+// add comment
+func Log(m, l, u string) error {
+	msg := LogMessage{
+		Message:   m,
+		Level:     l,
+		Timestamp: "foo",
+		User:      u,
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	err = N.Publish("logger.log", data)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -29,6 +29,8 @@ func GetUsersHandler(c echo.Context) error {
 		users[i].Improve()
 	}
 
+	models.Log("Users listed", "Info", "mnewman")
+
 	return c.JSON(http.StatusOK, users)
 }
 
