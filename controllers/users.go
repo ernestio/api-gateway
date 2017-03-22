@@ -5,6 +5,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
@@ -29,7 +30,15 @@ func GetUsersHandler(c echo.Context) error {
 		users[i].Improve()
 	}
 
-	models.Log("Users listed", "Info", "mnewman")
+	// Log response
+	req := c.Request()
+	b, err := json.Marshal(users)
+	if err != nil {
+		return err
+	}
+	if err := models.Log(req.Method+" "+req.RequestURI, string(b), models.LogInfoLevel, au.Username); err != nil {
+		h.L.Warn(err.Error())
+	}
 
 	return c.JSON(http.StatusOK, users)
 }

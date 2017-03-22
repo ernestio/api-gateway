@@ -12,6 +12,9 @@ import (
 	h "github.com/ernestio/api-gateway/helpers"
 )
 
+const LogInfoLevel = "info"
+const LogDebugLevel = "debug"
+
 // Logger holds the logger response from logger
 type Logger struct {
 	Type        string `json:"type"`
@@ -74,27 +77,27 @@ func (l *Logger) Delete() (err error) {
 
 // LogMessage holds the message payload
 type LogMessage struct {
-	Message   string `json:"message"`
-	Timestamp string `json:"timestamp"`
-	Level     string `json:"level"`
-	User      string `json:"user"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
+	Level   string `json:"level"`
+	User    string `json:"user"`
 }
 
 // add comment
-func Log(m, l, u string) error {
+func Log(s, m, l, u string) error {
 	msg := LogMessage{
-		Message:   m,
-		Level:     l,
-		Timestamp: "foo",
-		User:      u,
+		Subject: s,
+		Message: m,
+		Level:   l,
+		User:    u,
 	}
 
-	data, err := json.Marshal(msg)
+	b, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
-	err = N.Publish("logger.log", data)
+	err = N.Publish("logger.log", b)
 	if err != nil {
 		return err
 	}
