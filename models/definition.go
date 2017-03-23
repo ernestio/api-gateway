@@ -19,7 +19,7 @@ func (d *Definition) MapImport(body []byte) ([]byte, error) {
 
 // MapCreation : calls definition.map.create
 func (d *Definition) MapCreation(body []byte) ([]byte, error) {
-	return d.mapDefinition("definition.map.create", body)
+	return d.mapDefinition("definition.map.creation", body)
 }
 
 // MapDeletion : calls definition.map.deletion
@@ -37,7 +37,7 @@ func (d *Definition) MapDeletion(previous, serviceType string) ([]byte, error) {
 func (d *Definition) mapDefinition(subject string, body []byte) ([]byte, error) {
 	msg, err := N.Request(subject, body, 1*time.Second)
 	if err != nil {
-		h.L.Error(err.Error)
+		h.L.Error(err.Error())
 		return body, errors.New("Provided yaml is not valid")
 	}
 
