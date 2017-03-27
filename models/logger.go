@@ -75,7 +75,7 @@ func (l *Logger) Delete() (err error) {
 	return nil
 }
 
-// LogMessage holds the message payload
+// LogMessage holds a messages payload
 type LogMessage struct {
 	Subject string `json:"subject"`
 	Message string `json:"message"`
@@ -83,7 +83,7 @@ type LogMessage struct {
 	User    string `json:"user"`
 }
 
-// add comment
+// Log sends a message to the logger service via NATS
 func Log(s, m, l, u string) error {
 	msg := LogMessage{
 		Subject: s,
