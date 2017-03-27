@@ -108,7 +108,7 @@ func RenderNetworks(g *graph.Graph) []map[string]string {
 func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 	var sgs []map[string]string
 
-	for _, n := range g.GetComponents().ByType("security_group") {
+	for _, n := range g.GetComponents().ByType("firewall") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["security_group_aws_id"].(string)
@@ -125,7 +125,7 @@ func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 func RenderNats(g *graph.Graph) []map[string]string {
 	var nats []map[string]string
 
-	for _, n := range g.GetComponents().ByType("nat_gateways") {
+	for _, n := range g.GetComponents().ByType("nat_gateway") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["nat_gateway_aws_id"].(string)
