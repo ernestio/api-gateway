@@ -18,6 +18,7 @@ deps:
 	go get golang.org/x/crypto/pbkdf2
 	go get github.com/ernestio/crypto
 	go get github.com/ernestio/crypto/aes
+	go get gopkg.in/r3labs/graph.v2
 
 dev-deps: deps
 	go get github.com/smartystreets/goconvey
