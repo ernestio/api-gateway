@@ -70,7 +70,7 @@ func deleteLoggerHandler(c echo.Context) (err error) {
 	}
 
 	if err := l.Delete(); err != nil {
-		return err
+		return c.JSONBlob(400, []byte(err.Error()))
 	}
 
 	return c.String(http.StatusOK, "")
