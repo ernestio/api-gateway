@@ -7,7 +7,6 @@ package views
 import (
 	"encoding/json"
 
-	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"log"
 
@@ -39,8 +38,6 @@ type ServiceRender struct {
 
 // Render : Map a Service to a ServiceRender
 func (o *ServiceRender) Render(s models.Service) (err error) {
-	var mapping models.ServiceMapping
-
 	o.ID = s.ID
 	o.DatacenterID = s.DatacenterID
 	o.Name = s.Name

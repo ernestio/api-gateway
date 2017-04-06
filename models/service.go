@@ -159,7 +159,7 @@ func (s *Service) Mapping() (*graph.Graph, error) {
 	query := make(map[string]interface{})
 	query["id"] = s.ID
 
-	err := NewBaseModel("service").callStoreBy("get.mapping", query, &m)
+	err := NewBaseModel("service").CallStoreBy("get.mapping", query, &m)
 	if err != nil {
 		return nil, err
 	}
