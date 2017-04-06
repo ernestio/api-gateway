@@ -1,12 +1,23 @@
 machine:
+  pre:
+    - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+    - touch /tmp/ernest.log && chmod 666 /tmp/ernest.log
   services:
     - docker
   environment:
-    ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio
+    NATS_URI:  nats://127.0.0.1:4222
     NATS_URI_TEST:  nats://127.0.0.1:4222
-    ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
+    GOBIN: /home/ubuntu/.go_workspace/bin
+    CURRENT_INSTANCE: http://ernest.local:80/
+    JWT_SECRET: test
+    IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+    ERNEST_LOG_FILE: '/tmp/ernest.log'
+    ERNEST_APPLY_DELAY: 1
     ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio
+    ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
 
+  hosts:
+    ernest.local: 127.0.0.1
 dependencies:
   pre:
     - docker run -d -p 4222:4222 nats
