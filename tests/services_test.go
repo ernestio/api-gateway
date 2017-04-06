@@ -112,7 +112,6 @@ func TestServices(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, "1")
 						So(d.Name, ShouldEqual, "test")
-						So(d.VpcID, ShouldEqual, "22")
 					})
 				})
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
+	graph "gopkg.in/r3labs/graph.v2"
 )
 
 // Service holds the service response from service-store
@@ -28,67 +29,6 @@ type Service struct {
 	Endpoint     string      `json:"endpoint"`
 	Definition   interface{} `json:"definition"`
 	Maped        string      `json:"mapping"`
-}
-
-// ServiceMapping struct representation of a service mapping
-type ServiceMapping struct {
-	LastKnownError string `json:"last_known_error"`
-	Vpcs           struct {
-		Items []struct {
-			VpcID string `json:"vpc_id"`
-		} `json:"items"`
-	} `json:"vpcs"`
-	Networks struct {
-		Items []struct {
-			Name             string `json:"name"`
-			Subnet           string `json:"network_aws_id"`
-			AvailabilityZone string `json:"availability_zone"`
-		} `json:"items"`
-	} `json:"networks"`
-	Instances struct {
-		Items []struct {
-			Name          string `json:"name"`
-			InstanceAWSID string `json:"instance_aws_id"`
-			PublicIP      string `json:"public_ip"`
-			IP            string `json:"ip"`
-		} `json:"items"`
-	} `json:"instances"`
-	Nats struct {
-		Items []struct {
-			Name            string `json:"name"`
-			NatGatewayAWSID string `json:"nat_gateway_aws_id"`
-		} `json:"items"`
-	} `json:"nats"`
-	SecurityGroups struct {
-		Items []struct {
-			Name               string `json:"name"`
-			SecurityGroupAWSID string `json:"security_group_aws_id"`
-		} `json:"items"`
-	} `json:"firewalls"`
-	Elbs struct {
-		Items []struct {
-			Name    string `json:"name"`
-			DNSName string `json:"dns_name"`
-		} `json:"items"`
-	} `json:"elbs"`
-	RDSClusters struct {
-		Items []struct {
-			Name     string `json:"name"`
-			Endpoint string `json:"endpoint"`
-		} `json:"items"`
-	} `json:"rds_clusters"`
-	RDSInstances struct {
-		Items []struct {
-			Name     string `json:"name"`
-			Endpoint string `json:"endpoint"`
-		} `json:"items"`
-	} `json:"rds_instances"`
-	EBSVolumes struct {
-		Items []struct {
-			Name        string `json:"name"`
-			VolumeAWSID string `json:"volume_aws_id"`
-		} `json:"items"`
-	} `json:"ebs_volumes"`
 }
 
 // Validate the service
@@ -213,13 +153,21 @@ func (s *Service) DeleteByName(name string) (err error) {
 }
 
 // Mapping : will get a service mapping
-func (s *Service) Mapping() (m ServiceMapping, err error) {
+func (s *Service) Mapping() (*graph.Graph, error) {
+	var m map[string]interface{}
+
 	query := make(map[string]interface{})
 	query["id"] = s.ID
 
-	err = NewBaseModel("service").CallStoreBy("get.mapping", query, &m)
+	err := NewBaseModel("service").callStoreBy("get.mapping", query, &m)
+	if err != nil {
+		return nil, err
+	}
 
-	return m, err
+	g := graph.New()
+	err = g.Load(m)
+
+	return g, err
 }
 
 // Reset : will reset the service status to errored

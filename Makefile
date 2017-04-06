@@ -19,6 +19,7 @@ deps:
 	go get github.com/ernestio/crypto
 	go get github.com/ernestio/crypto/aes
 	go get github.com/Sirupsen/logrus
+	go get gopkg.in/r3labs/graph.v2
 
 dev-deps: deps
 	go get github.com/smartystreets/goconvey
