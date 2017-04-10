@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
@@ -38,11 +39,33 @@ type User struct {
 // Validate vaildate all of the user's input
 func (u *User) Validate() error {
 	if u.Username == "" {
-		return errors.New("User username is empty")
+		return errors.New("Username cannot be empty")
+	}
+
+	m, err := regexp.MatchString("^[a-zA-Z0-9@._-]*$", u.Username)
+	if err != nil {
+		return err
+	}
+
+	if !m {
+		return errors.New("Username can only contain the following characters: a-z 0-9 @._-")
 	}
 
 	if u.Password == "" {
-		return errors.New("User password is empty")
+		return errors.New("Password cannot be empty")
+	}
+
+	m, err = regexp.MatchString("^[a-zA-Z0-9@._-]*$", u.Password)
+	if err != nil {
+		return err
+	}
+
+	if !m {
+		return errors.New("Password can only contain the following characters: a-z 0-9 @._-")
+	}
+
+	if len(u.Password) < 8 {
+		return errors.New("Minimum password length is 8 characters")
 	}
 
 	return nil
@@ -60,8 +83,8 @@ func (u *User) Map(data []byte) error {
 	if err := u.Validate(); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
-		}).Error("Invalid input")
-		return NewError(InvalidInputCode, "Invalid input")
+		}).Error(err.Error())
+		return NewError(InvalidInputCode, err.Error())
 	}
 
 	return nil

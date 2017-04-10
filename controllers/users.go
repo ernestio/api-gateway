@@ -60,8 +60,9 @@ func CreateUserHandler(c echo.Context) error {
 	if err != nil {
 		return h.ErrBadReqBody
 	}
-	if u.Map(data) != nil {
-		return h.ErrBadReqBody
+
+	if err := u.Map(data); err != nil {
+		return echo.NewHTTPError(400, err.Error())
 	}
 
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
@@ -87,8 +88,9 @@ func UpdateUserHandler(c echo.Context) error {
 	if err != nil {
 		return h.ErrBadReqBody
 	}
-	if u.Map(data) != nil {
-		return h.ErrBadReqBody
+
+	if err := u.Map(data); err != nil {
+		return echo.NewHTTPError(400, err.Error())
 	}
 
 	// Check if authenticated user is admin or updating itself

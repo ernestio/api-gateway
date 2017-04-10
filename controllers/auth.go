@@ -36,6 +36,15 @@ func AuthenticatedUser(c echo.Context) models.User {
 // AuthenticateHandler : manages user authentication
 func AuthenticateHandler(c echo.Context) error {
 	var u models.User
+	var vu models.User
+
+	// validate input
+	vu.Username = c.FormValue("username")
+	vu.Password = c.FormValue("password")
+
+	if err := vu.Validate(); err != nil {
+		return echo.NewHTTPError(400, err.Error())
+	}
 
 	username := c.FormValue("username")
 	password := c.FormValue("password")
