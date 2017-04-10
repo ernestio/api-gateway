@@ -85,6 +85,10 @@ func DeleteLoggerHandler(c echo.Context) (err error) {
 		return h.ErrBadReqBody
 	}
 
+	if l.Type == "basic" {
+		return c.JSONBlob(400, []byte("Basic logger can't be deleted"))
+	}
+
 	if err := l.Delete(); err != nil {
 		return err
 	}
