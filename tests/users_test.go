@@ -143,7 +143,7 @@ func TestUsers(t *testing.T) {
 		getGroupSubscriber()
 		getUserSubscriber(1)
 		Convey("Given no existing users on the store", func() {
-			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test1234"}`)
 
 			Convey("When I create a user by calling /users/ on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
@@ -189,7 +189,7 @@ func TestUsers(t *testing.T) {
 		})
 
 		Convey("Given an existing user on the store", func() {
-			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test"}`)
+			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test1234"}`)
 			Convey("When I create a user by calling /users/ on the api", func() {
 				Convey("And the user already exists", func() {
 					ft := generateTestToken(1, "admin", true)
@@ -294,7 +294,7 @@ func TestUsers(t *testing.T) {
 		})
 
 		Convey("Given no existing users on the store", func() {
-			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test"}`)
+			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test1234"}`)
 
 			Convey("And I update a user by calling /users/ on the api", func() {
 				ft := generateTestToken(1, "admin", true)

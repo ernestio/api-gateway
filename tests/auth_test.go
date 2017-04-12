@@ -33,7 +33,7 @@ func TestAuth(t *testing.T) {
 				e := echo.New()
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
-				req.PostForm = url.Values{"username": {"test2"}, "password": {"test2"}}
+				req.PostForm = url.Values{"username": {"test2"}, "password": {"test1234"}}
 
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
@@ -53,7 +53,7 @@ func TestAuth(t *testing.T) {
 				req := new(http.Request)
 				rec := httptest.NewRecorder()
 
-				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong"}}
+				req.PostForm = url.Values{"username": {"test2"}, "password": {"wrong1234"}}
 				c := e.NewContext(req, echo.NewResponse(rec, e))
 				c.SetPath("/auth/")
 
@@ -63,6 +63,25 @@ func TestAuth(t *testing.T) {
 				Convey("It should not return a jwt token and error", func() {
 					So(err, ShouldNotBeNil)
 					So(strings.Contains(resp, "token"), ShouldBeFalse)
+				})
+			})
+
+			Convey("With a password less than the minimum length", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+
+				req.PostForm = url.Values{"username": {"test2"}, "password": {"test"}}
+				c := e.NewContext(req, echo.NewResponse(rec, e))
+				c.SetPath("/auth/")
+
+				err := controllers.AuthenticateHandler(c)
+				resp := rec.Body.String()
+
+				Convey("It should not return a jwt token and error", func() {
+					So(err, ShouldNotBeNil)
+					So(err.Error(), ShouldContainSubstring, "Minimum password length is 8 characters")
+					So(resp, ShouldNotContainSubstring, "token")
 				})
 			})
 
@@ -109,7 +128,7 @@ func TestAuth(t *testing.T) {
 					err := h(c)
 					So(err, ShouldBeNil)
 					So(rec.Code, ShouldEqual, http.StatusOK)
-					So(strings.Contains(rec.Body.String(), "name"), ShouldBeTrue)
+					So(rec.Body.String(), ShouldContainSubstring, "name")
 				})
 			})
 
