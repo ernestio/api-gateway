@@ -80,7 +80,90 @@ func TestAuth(t *testing.T) {
 
 				Convey("It should not return a jwt token and error", func() {
 					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldContainSubstring, "Minimum password length is 8 characters")
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+					So(err.(*echo.HTTPError).Message, ShouldEqual, "Minimum password length is 8 characters")
+					So(resp, ShouldNotContainSubstring, "token")
+				})
+			})
+
+			Convey("With a username using invalid characters", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+
+				req.PostForm = url.Values{"username": {"test^2"}, "password": {"test1234"}}
+				c := e.NewContext(req, echo.NewResponse(rec, e))
+				c.SetPath("/auth/")
+
+				err := controllers.AuthenticateHandler(c)
+				resp := rec.Body.String()
+
+				Convey("It should not return a jwt token and error", func() {
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+					So(err.(*echo.HTTPError).Message, ShouldEqual, "Username can only contain the following characters: a-z 0-9 @._-")
+					So(resp, ShouldNotContainSubstring, "token")
+				})
+			})
+
+			Convey("With a password using invalid characters", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+
+				req.PostForm = url.Values{"username": {"test2"}, "password": {"test^1234"}}
+				c := e.NewContext(req, echo.NewResponse(rec, e))
+				c.SetPath("/auth/")
+
+				err := controllers.AuthenticateHandler(c)
+				resp := rec.Body.String()
+
+				Convey("It should not return a jwt token and error", func() {
+					So(err, ShouldNotBeNil)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+					So(err.(*echo.HTTPError).Message, ShouldEqual, "Password can only contain the following characters: a-z 0-9 @._-")
+					So(resp, ShouldNotContainSubstring, "token")
+				})
+			})
+
+			Convey("With no username", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+
+				req.PostForm = url.Values{"username": {""}, "password": {"test"}}
+				c := e.NewContext(req, echo.NewResponse(rec, e))
+				c.SetPath("/auth/")
+
+				err := controllers.AuthenticateHandler(c)
+				resp := rec.Body.String()
+
+				Convey("It should not return a jwt token and error", func() {
+					So(err, ShouldNotBeNil)
+					fmt.Printf("err = %+v\n", err)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+					So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
+					So(resp, ShouldNotContainSubstring, "token")
+				})
+			})
+
+			Convey("With no password", func() {
+				e := echo.New()
+				req := new(http.Request)
+				rec := httptest.NewRecorder()
+
+				req.PostForm = url.Values{"username": {"test2"}, "password": {""}}
+				c := e.NewContext(req, echo.NewResponse(rec, e))
+				c.SetPath("/auth/")
+
+				err := controllers.AuthenticateHandler(c)
+				resp := rec.Body.String()
+
+				Convey("It should not return a jwt token and error", func() {
+					So(err, ShouldNotBeNil)
+					fmt.Printf("err = %+v\n", err)
+					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+					So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
 					So(resp, ShouldNotContainSubstring, "token")
 				})
 			})
