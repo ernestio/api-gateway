@@ -21,6 +21,7 @@ func TestServices(t *testing.T) {
 	config.Setup()
 
 	Convey("Scenario: reeting a service", t, func() {
+		findUserSubscriber()
 		foundSubscriber("service.set", `"success"`, 1)
 		foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 
@@ -87,7 +88,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a single service", t, func() {
 		Convey("Given the service do not exist on the store", func() {
-			foundSubscriber("service.find", `[]`, 3)
+			foundSubscriber("service.find", `[]`, 1)
 			Convey("And I call /service/:service on the api", func() {
 				params := make(map[string]string)
 				params["service"] = "1"
@@ -104,9 +105,8 @@ func TestServices(t *testing.T) {
 				params["service"] = "1"
 				resp, err := doRequest("GET", "/services/:service", params, nil, controllers.GetServiceHandler, nil)
 
-				SkipConvey("When I'm authenticated as an admin user", func() {
+				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should get the existing service", func() {
-
 						So(err, ShouldBeNil)
 						err = json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
@@ -137,6 +137,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: getting a service's builds", t, func() {
 		Convey("Given the service exists on the store", func() {
 			Convey("And I call /service/:service/builds/ on the api", func() {
+				findUserSubscriber()
 				foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
 				findServiceSubscriber()
 				var s []views.ServiceRender
@@ -157,6 +158,7 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("When the service group matches the authenticated users group", func() {
+					findUserSubscriber()
 					findServiceSubscriber()
 					ft := generateTestToken(1, "test", false)
 
@@ -302,12 +304,13 @@ func TestServices(t *testing.T) {
 			})
 
 			Convey("And the specified datacenter does not exist", func() {
+				getUserSubscriber(1)
 				foundSubscriber("datacenter.find", "[]", 1)
 				data := []byte(`{"name":"test"}`)
 				headers := map[string]string{}
 				headers["Content-Type"] = "application/json"
 				resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-				SkipConvey("Then I should get a 404 response", func() {
+				Convey("Then I should get a 404 response", func() {
 					So(err, ShouldEqual, nil)
 					So(string(resp), ShouldEqual, `"Specified datacenter does not exist"`)
 				})

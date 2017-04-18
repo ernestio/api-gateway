@@ -21,6 +21,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
+			getGroupSubscriber(2)
 			findDatacenterSubscriber()
 			Convey("When I call /datacenters/", func() {
 				resp, err := doRequest("GET", "/datacenters/", nil, nil, controllers.GetDatacentersHandler, nil)
@@ -44,7 +45,8 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
-			getDatacenterSubscriber(2)
+			getDatacenterSubscriber(3)
+
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				params := make(map[string]string)
 				params["datacenter"] = "1"
@@ -63,7 +65,7 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				SkipConvey("When the datacenter group matches the authenticated users group", func() {
+				Convey("When the datacenter group matches the authenticated users group", func() {
 					ft := generateTestToken(1, "admin", true)
 
 					params := make(map[string]string)
@@ -97,7 +99,9 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {
+			getDatacenterSubscriber(1)
 			createDatacenterSubscriber()
+			getGroupSubscriber(2)
 
 			mockDC := models.Datacenter{
 				GroupID:   1,
@@ -126,7 +130,7 @@ func TestDatacenters(t *testing.T) {
 					})
 				})
 
-				SkipConvey("And the datacenter group matches the authenticated users group", func() {
+				Convey("And the datacenter group matches the authenticated users group", func() {
 					ft := generateTestToken(1, "test", false)
 					resp, err := doRequest("POST", "/datacenters/", params, data, controllers.CreateDatacenterHandler, ft)
 
@@ -148,6 +152,7 @@ func TestDatacenters(t *testing.T) {
 			deleteDatacenterSubscriber()
 			getDatacenterSubscriber(2)
 			findServiceSubscriber()
+			getGroupSubscriber(1)
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				ft := generateTestToken(1, "test", false)

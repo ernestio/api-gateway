@@ -28,6 +28,7 @@ func TestAuth(t *testing.T) {
 
 		Convey("When attempting to login", func() {
 			getUserSubscriber(1)
+			getGroupSubscriber(1)
 
 			Convey("With valid credentials", func() {
 				e := echo.New()
@@ -140,7 +141,6 @@ func TestAuth(t *testing.T) {
 
 				Convey("It should not return a jwt token and error", func() {
 					So(err, ShouldNotBeNil)
-					fmt.Printf("err = %+v\n", err)
 					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 					So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
 					So(resp, ShouldNotContainSubstring, "token")
@@ -161,7 +161,6 @@ func TestAuth(t *testing.T) {
 
 				Convey("It should not return a jwt token and error", func() {
 					So(err, ShouldNotBeNil)
-					fmt.Printf("err = %+v\n", err)
 					So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 					So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
 					So(resp, ShouldNotContainSubstring, "token")

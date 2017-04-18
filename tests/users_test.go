@@ -20,6 +20,7 @@ func TestUsers(t *testing.T) {
 	config.Setup()
 
 	Convey("Scenario: getting a list of users", t, func() {
+		getGroupSubscriber(3)
 		findUserSubscriber()
 		Convey("When calling /users/ on the api", func() {
 			Convey("And I'm authenticated as an admin user", func() {
@@ -140,7 +141,7 @@ func TestUsers(t *testing.T) {
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
-		getGroupSubscriber()
+		getGroupSubscriber(1)
 		getUserSubscriber(1)
 		Convey("Given no existing users on the store", func() {
 			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test1234"}`)

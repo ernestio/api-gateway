@@ -43,7 +43,7 @@ func TestGroups(t *testing.T) {
 
 	Convey("Scenario: getting a single group", t, func() {
 		Convey("Given the group exist on the store", func() {
-			getGroupSubscriber()
+			getGroupSubscriber(1)
 			Convey("And I call /groups/:group on the api", func() {
 				params := make(map[string]string)
 				params["group"] = "1"
@@ -69,7 +69,7 @@ func TestGroups(t *testing.T) {
 	Convey("Scenario: create a group", t, func() {
 		Convey("Given a group exists on the store ", func() {
 			createGroupSubscriber()
-			getGroupSubscriber()
+			getGroupSubscriber(1)
 
 			mockG := models.Group{
 				ID:   1,
@@ -97,7 +97,7 @@ func TestGroups(t *testing.T) {
 	Convey("Scenario: deleting a group", t, func() {
 		Convey("Given a group exists on the store", func() {
 			deleteGroupSubscriber()
-			getGroupSubscriber()
+			getGroupSubscriber(1)
 
 			Convey("When I call DELETE /groups/:group", func() {
 				Convey("And I am logged in as an admin", func() {
