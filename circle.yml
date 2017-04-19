@@ -14,17 +14,19 @@ machine:
     JWT_SECRET: test
     IMPORT_PATH: "github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
     ERNEST_LOG_FILE: '/tmp/ernest.log'
+    ERNEST_APPLY_DELAY: 1
     ROOTPATH: /home/ubuntu/.go_workspace/src/github.com/ernestio/
     ERNEST_CRYPTO_KEY: mMYlPIvI11z20H1BnBmB223355667788
 
   hosts:
     ernest.local: 127.0.0.1
 
+  hosts:
+    ernest.local: 127.0.0.1
 dependencies:
-  override:
+  pre:
     - docker run -d -p 4222:4222 nats
     - make dev-deps
-  pre:
     - mkdir -p $ROOTPATH/
     - rm -rf $ROOTPATH/toolset/ && git clone git@github.com:ernestio/toolset.git $ROOTPATH/toolset/
     - cd $ROOTPATH/toolset/ernestci/ && bundle install
