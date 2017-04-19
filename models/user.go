@@ -38,16 +38,13 @@ type User struct {
 
 // Validate vaildate all of the user's input
 func (u *User) Validate() error {
+	r := regexp.MustCompile("^[a-zA-Z0-9@._-]*$")
+
 	if u.Username == "" {
 		return errors.New("Username cannot be empty")
 	}
 
-	m, err := regexp.MatchString("^[a-zA-Z0-9@._-]*$", u.Username)
-	if err != nil {
-		return err
-	}
-
-	if !m {
+	if !r.MatchString(u.Username) {
 		return errors.New("Username can only contain the following characters: a-z 0-9 @._-")
 	}
 
@@ -55,12 +52,7 @@ func (u *User) Validate() error {
 		return errors.New("Password cannot be empty")
 	}
 
-	m, err = regexp.MatchString("^[a-zA-Z0-9@._-]*$", u.Password)
-	if err != nil {
-		return err
-	}
-
-	if !m {
+	if !r.MatchString(u.Password) {
 		return errors.New("Password can only contain the following characters: a-z 0-9 @._-")
 	}
 
