@@ -305,6 +305,7 @@ func TestServices(t *testing.T) {
 
 			Convey("And the specified datacenter does not exist", func() {
 				getUserSubscriber(1)
+				getGroupSubscriber(1)
 				foundSubscriber("datacenter.find", "[]", 1)
 				data := []byte(`{"name":"test"}`)
 				headers := map[string]string{}
