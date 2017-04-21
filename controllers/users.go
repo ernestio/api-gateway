@@ -53,12 +53,12 @@ func CreateUserHandler(c echo.Context) error {
 	var existing models.User
 
 	if AuthenticatedUser(c).Admin != true {
-		return h.ErrUnauthorized
+		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return h.ErrBadReqBody
+		return echo.NewHTTPError(400, "Bad Request")
 	}
 
 	if err := u.Map(data); err != nil {
@@ -86,7 +86,7 @@ func UpdateUserHandler(c echo.Context) error {
 
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return h.ErrBadReqBody
+		return echo.NewHTTPError(400, "Bad Request")
 	}
 
 	if err := u.Map(data); err != nil {
@@ -96,7 +96,7 @@ func UpdateUserHandler(c echo.Context) error {
 	// Check if authenticated user is admin or updating itself
 	au := AuthenticatedUser(c)
 	if au.Username != u.Username && au.Admin != true {
-		return h.ErrUnauthorized
+		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
 	}
 
 	// Check user exists
@@ -105,17 +105,17 @@ func UpdateUserHandler(c echo.Context) error {
 	}
 
 	if existing.ID == 0 {
-		return h.ErrNotFound
+		return echo.NewHTTPError(404, "Specified user not found")
 	}
 
 	// Check a non-admin user is not trying to change their group
 	if au.Admin != true && u.GroupID != existing.GroupID {
-		return h.ErrUnauthorized
+		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
 	}
 
 	// Check the old password if it is present
 	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		return h.ErrUnauthorized
+		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
 	}
 
 	if err := u.Save(); err != nil {

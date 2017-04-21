@@ -78,5 +78,5 @@ func AuthenticateHandler(c echo.Context) error {
 		})
 	}
 
-	return h.ErrUnauthorized
+	return echo.NewHTTPError(403, "The keypair user / password does not match any user on the database, please try again")
 }
