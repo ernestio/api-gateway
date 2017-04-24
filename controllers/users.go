@@ -65,6 +65,10 @@ func CreateUserHandler(c echo.Context) error {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
+	if len(u.Password) < 8 {
+		return echo.NewHTTPError(400, "Minimum password length is 8 characters")
+	}
+
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
 		return echo.NewHTTPError(409, "Specified user already exists")
 	}
@@ -91,6 +95,10 @@ func UpdateUserHandler(c echo.Context) error {
 
 	if err := u.Map(data); err != nil {
 		return echo.NewHTTPError(400, err.Error())
+	}
+
+	if len(u.Password) < 8 {
+		return echo.NewHTTPError(400, "Minimum password length is 8 characters")
 	}
 
 	// Check if authenticated user is admin or updating itself
