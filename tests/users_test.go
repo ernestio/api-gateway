@@ -176,6 +176,61 @@ func TestUsers(t *testing.T) {
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 						})
 					})
+					Convey("With a password less than the minimum length", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Minimum password length is 8 characters")
+						})
+					})
+					Convey("With a username using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With a password using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With no username", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
+						})
+					})
+					Convey("With no password", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
+						})
+					})
 				})
 				Convey("And I'm authenticated as a non-admin user", func() {
 					ft := generateTestToken(1, "test2", false)
@@ -186,7 +241,6 @@ func TestUsers(t *testing.T) {
 					})
 				})
 			})
-
 		})
 
 		Convey("Given an existing user on the store", func() {
@@ -239,6 +293,61 @@ func TestUsers(t *testing.T) {
 						Convey("It should update the user and return the correct set of data", func() {
 							So(err, ShouldNotBeNil)
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+						})
+					})
+					Convey("With a password less than the minimum length", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Minimum password length is 8 characters")
+						})
+					})
+					Convey("With a username using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With a password using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With no username", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
+						})
+					})
+					Convey("With no password", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
 						})
 					})
 					SkipConvey("With an payload id that does not match the user's id", func() {
