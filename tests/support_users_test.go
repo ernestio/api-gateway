@@ -14,14 +14,14 @@ var (
 			ID:       1,
 			GroupID:  1,
 			Username: "test",
-			Password: "test",
+			Password: "test1234",
 		},
 		models.User{
 			ID:       2,
 			GroupID:  2,
 			Username: "test2",
-			Password: "b3nBt+fHNNSaP2SDeJzNNFfEOiMkqgLh8M7Bajfj2jZZtLp36vAhDMH6i3GXp/EMWTBuBIfQJIA3kgOFqfra0w==",
-			Salt:     "psDFaNEE5D9IqCeRrlOmNsRuCKQplicvvXtFhX5S4oE=",
+			Password: "7bxJZHmyYoEZ9EcjJA85+XXUnZpTcV1Dk4ELpNCfTBeAYougTOcX2+0c/L+jGWuYOLr/UxnmzktpbpQLrBrcaQ==",
+			Salt:     "yk5c0e8MDkehRv6K83x/5zdo4Jrj/EGBzqTimzJStOo=",
 		},
 	}
 )

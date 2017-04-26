@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
@@ -35,16 +36,23 @@ type User struct {
 	Admin       bool   `json:"admin"`
 }
 
-// Validate vaildate all of the user's input
+// Validate validates a user
 func (u *User) Validate() error {
 	if u.Username == "" {
-		return errors.New("User username is empty")
+		return errors.New("Username cannot be empty")
 	}
-
 	if u.Password == "" {
-		return errors.New("User password is empty")
+		return errors.New("Password cannot be empty")
 	}
 
+	r := regexp.MustCompile("^[a-zA-Z0-9@._-]*$")
+
+	if !r.MatchString(u.Username) {
+		return errors.New("Username can only contain the following characters: a-z 0-9 @._-")
+	}
+	if !r.MatchString(u.Password) {
+		return errors.New("Password can only contain the following characters: a-z 0-9 @._-")
+	}
 	return nil
 }
 
@@ -60,10 +68,9 @@ func (u *User) Map(data []byte) error {
 	if err := u.Validate(); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
-		}).Error("Invalid input")
-		return NewError(InvalidInputCode, "Invalid input")
+		}).Error(err.Error())
+		return NewError(InvalidInputCode, err.Error())
 	}
-
 	return nil
 }
 

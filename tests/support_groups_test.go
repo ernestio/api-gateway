@@ -21,7 +21,7 @@ var (
 	}
 )
 
-func getGroupSubscriber() {
+func getGroupSubscriber(max int) {
 	sub, _ := models.N.Subscribe("group.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qg := models.Group{}
@@ -29,7 +29,6 @@ func getGroupSubscriber() {
 				log.Println(err)
 				return
 			}
-
 			for _, group := range mockGroups {
 				if group.ID == qg.ID || group.Name == qg.Name {
 					data, _ := json.Marshal(group)
@@ -44,7 +43,7 @@ func getGroupSubscriber() {
 			log.Println(err)
 		}
 	})
-	if err := sub.AutoUnsubscribe(1); err != nil {
+	if err := sub.AutoUnsubscribe(max); err != nil {
 		log.Println(err)
 	}
 }

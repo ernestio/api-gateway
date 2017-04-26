@@ -20,6 +20,7 @@ func TestUsers(t *testing.T) {
 	config.Setup()
 
 	Convey("Scenario: getting a list of users", t, func() {
+		getGroupSubscriber(3)
 		findUserSubscriber()
 		Convey("When calling /users/ on the api", func() {
 			Convey("And I'm authenticated as an admin user", func() {
@@ -140,10 +141,10 @@ func TestUsers(t *testing.T) {
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
-		getGroupSubscriber()
+		getGroupSubscriber(1)
 		getUserSubscriber(1)
 		Convey("Given no existing users on the store", func() {
-			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test1234"}`)
 
 			Convey("When I create a user by calling /users/ on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
@@ -175,6 +176,61 @@ func TestUsers(t *testing.T) {
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
 						})
 					})
+					Convey("With a password less than the minimum length", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Minimum password length is 8 characters")
+						})
+					})
+					Convey("With a username using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With a password using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With no username", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
+						})
+					})
+					Convey("With no password", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
+						})
+					})
 				})
 				Convey("And I'm authenticated as a non-admin user", func() {
 					ft := generateTestToken(1, "test2", false)
@@ -185,11 +241,10 @@ func TestUsers(t *testing.T) {
 					})
 				})
 			})
-
 		})
 
 		Convey("Given an existing user on the store", func() {
-			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test"}`)
+			existingData := []byte(`{"group_id": 1, "username": "test", "password": "test1234"}`)
 			Convey("When I create a user by calling /users/ on the api", func() {
 				Convey("And the user already exists", func() {
 					ft := generateTestToken(1, "admin", true)
@@ -238,6 +293,61 @@ func TestUsers(t *testing.T) {
 						Convey("It should update the user and return the correct set of data", func() {
 							So(err, ShouldNotBeNil)
 							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+						})
+					})
+					Convey("With a password less than the minimum length", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Minimum password length is 8 characters")
+						})
+					})
+					Convey("With a username using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With a password using invalid characters", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password can only contain the following characters: a-z 0-9 @._-")
+						})
+					})
+					Convey("With no username", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Username cannot be empty")
+						})
+					})
+					Convey("With no password", func() {
+						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
+						ft := generateTestToken(1, "admin", true)
+						_, err := doRequest("POST", "/users/", nil, invalidData, controllers.CreateUserHandler, ft)
+
+						Convey("It should return an error message with a 400 repsonse", func() {
+							So(err, ShouldNotBeNil)
+							So(err.(*echo.HTTPError).Code, ShouldEqual, 400)
+							So(err.(*echo.HTTPError).Message, ShouldEqual, "Password cannot be empty")
 						})
 					})
 					SkipConvey("With an payload id that does not match the user's id", func() {
@@ -294,7 +404,7 @@ func TestUsers(t *testing.T) {
 		})
 
 		Convey("Given no existing users on the store", func() {
-			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test"}`)
+			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test1234"}`)
 
 			Convey("And I update a user by calling /users/ on the api", func() {
 				ft := generateTestToken(1, "admin", true)

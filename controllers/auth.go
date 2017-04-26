@@ -37,6 +37,16 @@ func AuthenticatedUser(c echo.Context) models.User {
 func AuthenticateHandler(c echo.Context) error {
 	var u models.User
 
+	// validate input
+	var vu models.User
+	vu.Username = c.FormValue("username")
+	vu.Password = c.FormValue("password")
+
+	if err := vu.Validate(); err != nil {
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(400, err.Error())
+	}
+
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
@@ -69,5 +79,5 @@ func AuthenticateHandler(c echo.Context) error {
 		})
 	}
 
-	return h.ErrUnauthorized
+	return echo.NewHTTPError(403, "The keypair user / password does not match any user on the database, please try again")
 }
