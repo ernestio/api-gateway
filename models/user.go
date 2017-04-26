@@ -36,7 +36,7 @@ type User struct {
 	Admin       bool   `json:"admin"`
 }
 
-// Validate vaildate all of the user's input
+// Validate validates a user
 func (u *User) Validate() error {
 	if u.Username == "" {
 		return errors.New("Username cannot be empty")

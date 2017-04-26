@@ -5,6 +5,7 @@
 package controllers
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -53,28 +54,37 @@ func CreateUserHandler(c echo.Context) error {
 	var existing models.User
 
 	if AuthenticatedUser(c).Admin != true {
-		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
+		err := errors.New("You're not allowed to perform this action, please contact your admin")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(403, err.Error())
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(400, "Bad Request")
 	}
 
 	if err := u.Map(data); err != nil {
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(400, err.Error())
 	}
 
 	if len(u.Password) < 8 {
-		return echo.NewHTTPError(400, "Minimum password length is 8 characters")
+		err := errors.New("Minimum password length is 8 characters")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(400, err.Error())
 	}
 
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
-		return echo.NewHTTPError(409, "Specified user already exists")
+		err := errors.New("Specified user already exists")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(409, err.Error())
 	}
 
 	if err := u.Save(); err != nil {
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(500, "Error creating user")
 	}
 
 	u.Redact()
@@ -90,44 +100,58 @@ func UpdateUserHandler(c echo.Context) error {
 
 	data, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(400, "Bad Request")
 	}
 
 	if err := u.Map(data); err != nil {
+		h.L.Error(err.Error())
 		return echo.NewHTTPError(400, err.Error())
 	}
 
 	if len(u.Password) < 8 {
-		return echo.NewHTTPError(400, "Minimum password length is 8 characters")
+		err := errors.New("Minimum password length is 8 characters")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(400, err.Error())
 	}
 
 	// Check if authenticated user is admin or updating itself
 	au := AuthenticatedUser(c)
 	if au.Username != u.Username && au.Admin != true {
-		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
+		err := errors.New("You're not allowed to perform this action, please contact your admin")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(403, err.Error())
 	}
 
 	// Check user exists
 	if err := au.FindByID(c.Param("user"), &existing); err != nil {
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(404, "Specified user not found")
 	}
 
 	if existing.ID == 0 {
-		return echo.NewHTTPError(404, "Specified user not found")
+		err := errors.New("Specified user not found")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(404, err.Error())
 	}
 
 	// Check a non-admin user is not trying to change their group
 	if au.Admin != true && u.GroupID != existing.GroupID {
-		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
+		err := errors.New("You're not allowed to perform this action, please contact your admin")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(403, err.Error())
 	}
 
 	// Check the old password if it is present
 	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		return echo.NewHTTPError(403, "You're not allowed to perform this action, please contact your admin")
+		err := errors.New("You're not allowed to perform this action, please contact your admin")
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(403, err.Error())
 	}
 
 	if err := u.Save(); err != nil {
-		return err
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(500, "Error updating user")
 	}
 
 	u.Redact()
