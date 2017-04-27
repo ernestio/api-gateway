@@ -51,7 +51,7 @@ func AuthenticateHandler(c echo.Context) error {
 	password := c.FormValue("password")
 
 	if err := u.FindByUserName(username, &u); err != nil {
-		return h.ErrGatewayTimeout
+		return echo.NewHTTPError(403, "The keypair user / password does not match any user on the database, please try again")
 	}
 
 	if u.ID == 0 {
