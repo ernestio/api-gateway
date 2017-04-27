@@ -86,7 +86,7 @@ func CreateDatacenterHandler(c echo.Context) (err error) {
 
 	err = d.Validate()
 	if err != nil {
-		return h.ErrBadReqBody
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	d.GroupID = au.GroupID
@@ -138,6 +138,11 @@ func UpdateDatacenterHandler(c echo.Context) (err error) {
 	existing.Password = d.Password
 	existing.AccessKeyID = d.AccessKeyID
 	existing.SecretAccessKey = d.SecretAccessKey
+	existing.SubscriptionID = d.SubscriptionID
+	existing.ClientID = d.ClientID
+	existing.ClientSecret = d.ClientSecret
+	existing.TenantID = d.TenantID
+	existing.Environment = d.Environment
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())

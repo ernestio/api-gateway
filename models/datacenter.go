@@ -29,6 +29,11 @@ type Datacenter struct {
 	ExternalNetwork string `json:"external_network"`
 	AccessKeyID     string `json:"aws_access_key_id,omitempty"`
 	SecretAccessKey string `json:"aws_secret_access_key,omitempty"`
+	SubscriptionID  string `json:"azure_subscription_id,omitempty"`
+	ClientID        string `json:"azure_client_id,omitempty"`
+	ClientSecret    string `json:"azure_client_secret,omitempty"`
+	TenantID        string `json:"azure_tenant_id"`
+	Environment     string `json:"azure_environment"`
 }
 
 // Validate the datacenter
@@ -41,7 +46,7 @@ func (d *Datacenter) Validate() error {
 		return errors.New("Datacenter type is empty")
 	}
 
-	if d.Username == "" {
+	if d.Username == "" && d.Type != "azure" && d.Type != "azure-fake" {
 		return errors.New("Datacenter username is empty")
 	}
 
