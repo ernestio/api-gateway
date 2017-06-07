@@ -6,6 +6,7 @@ package views
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/ernestio/api-gateway/models"
 	"log"
@@ -15,25 +16,28 @@ import (
 
 // ServiceRender : Service representation to be rendered on the frontend
 type ServiceRender struct {
-	ID             string              `json:"id"`
-	DatacenterID   int                 `json:"datacenter_id"`
-	Name           string              `json:"name"`
-	Version        string              `json:"version"`
-	Status         string              `json:"status"`
-	UserID         int                 `json:"user_id"`
-	UserName       string              `json:"user_name"`
-	LastKnownError string              `json:"last_known_error"`
-	Options        string              `json:"options"`
-	Definition     string              `json:"definition"`
-	Vpcs           []map[string]string `json:"vpcs"`
-	Networks       []map[string]string `json:"networks"`
-	Instances      []map[string]string `json:"instances"`
-	Nats           []map[string]string `json:"nats"`
-	SecurityGroups []map[string]string `json:"security_groups"`
-	Elbs           []map[string]string `json:"elbs"`
-	RDSClusters    []map[string]string `json:"rds_clusters"`
-	RDSInstances   []map[string]string `json:"rds_instances"`
-	EBSVolumes     []map[string]string `json:"ebs_volumes"`
+	ID              string              `json:"id"`
+	DatacenterID    int                 `json:"datacenter_id"`
+	Name            string              `json:"name"`
+	Version         string              `json:"version"`
+	Status          string              `json:"status"`
+	UserID          int                 `json:"user_id"`
+	UserName        string              `json:"user_name"`
+	LastKnownError  string              `json:"last_known_error"`
+	Options         string              `json:"options"`
+	Definition      string              `json:"definition"`
+	Vpcs            []map[string]string `json:"vpcs"`
+	Networks        []map[string]string `json:"networks"`
+	Instances       []map[string]string `json:"instances"`
+	Nats            []map[string]string `json:"nats"`
+	SecurityGroups  []map[string]string `json:"security_groups"`
+	Elbs            []map[string]string `json:"elbs"`
+	RDSClusters     []map[string]string `json:"rds_clusters"`
+	RDSInstances    []map[string]string `json:"rds_instances"`
+	EBSVolumes      []map[string]string `json:"ebs_volumes"`
+	LoadBalancers   []map[string]string `json:"load_balancers"`
+	SQLDatabases    []map[string]string `json:"sql_databases"`
+	VirtualMachines []map[string]string `json:"virtual_machines"`
 }
 
 // Render : Map a Service to a ServiceRender
@@ -64,6 +68,9 @@ func (o *ServiceRender) Render(s models.Service) (err error) {
 	o.RDSClusters = RenderRDSClusters(g)
 	o.RDSInstances = RenderRDSInstances(g)
 	o.EBSVolumes = RenderEBSVolumes(g)
+	o.LoadBalancers = RenderLoadBalancers(g)
+	o.SQLDatabases = RenderSQLDatabases(g)
+	o.VirtualMachines = RenderVirtualMachines(g)
 
 	return err
 }
@@ -227,6 +234,113 @@ func RenderEBSVolumes(g *graph.Graph) []map[string]string {
 	}
 
 	return rdss
+}
+
+// RenderLoadBalancers : renders load balancers
+func RenderLoadBalancers(g *graph.Graph) []map[string]string {
+	return renderResources(g, "lb", func(gc *graph.GenericComponent) map[string]string {
+		name, _ := (*gc)["name"].(string)
+		id, _ := (*gc)["id"].(string)
+		configs, _ := (*gc)["frontend_ip_configurations"].([]interface{})
+		cfg, _ := configs[0].(map[string]string)
+
+		return map[string]string{
+			"name":      name,
+			"id":        id,
+			"public_ip": cfg["public_ip_address"],
+		}
+	})
+}
+
+// RenderVirtualMachines : renders virtual machines
+func RenderVirtualMachines(g *graph.Graph) []map[string]string {
+	var resources []map[string]string
+	mappedIPs := make(map[string]interface{}, 0)
+	existingIPs := make(map[string]string, 0)
+
+	for _, ip := range g.GetComponents().ByType("public_ip") {
+		gc := ip.(*graph.GenericComponent)
+		id, _ := (*gc)["id"].(string)
+		ipAddress, _ := (*gc)["ip_address"].(string)
+		existingIPs[id] = ipAddress
+	}
+
+	for _, ni := range g.GetComponents().ByType("network_interface") {
+		var public []string
+		var private []string
+
+		gc := ni.(*graph.GenericComponent)
+		name, _ := (*gc)["name"].(string)
+		ips := make(map[string][]string)
+
+		configs, _ := (*gc)["ip_configuration"].([]interface{})
+		for _, cfg := range configs {
+			c, _ := cfg.(map[string]interface{})
+			pubID, _ := c["public_ip_address_id"].(string)
+			pri, _ := c["private_ip_address"].(string)
+			if pub, ok := existingIPs[pubID]; ok {
+				public = append(public, pub)
+			}
+			private = append(private, pri)
+		}
+
+		ips["public"] = public
+		ips["private"] = private
+		mappedIPs[name] = make(map[string][]string, 0)
+		mappedIPs[name] = ips
+	}
+
+	for _, n := range g.GetComponents().ByType("virtual_machine") {
+		gc := n.(*graph.GenericComponent)
+		name, _ := (*gc)["name"].(string)
+		id, _ := (*gc)["id"].(string)
+		networks, _ := (*gc)["network_interfaces"].([]interface{})
+		publicIPs := make([]string, 0)
+		privateIPs := make([]string, 0)
+		for _, ni := range networks {
+			netName := ni.(string)
+			if val, ok := mappedIPs[netName]; ok {
+				ips, _ := val.(map[string][]string)
+				publicIPs = append(publicIPs, ips["public"]...)
+				privateIPs = append(privateIPs, ips["private"]...)
+			}
+		}
+
+		resources = append(resources, map[string]string{
+			"name":       name,
+			"id":         id,
+			"public_ip":  strings.Join(publicIPs, ", "),
+			"private_ip": strings.Join(privateIPs, ", "),
+		})
+	}
+
+	return resources
+}
+
+// RenderSQLDatabases : renders sql databases
+func RenderSQLDatabases(g *graph.Graph) []map[string]string {
+	return renderResources(g, "sql_database", func(gc *graph.GenericComponent) map[string]string {
+		name, _ := (*gc)["name"].(string)
+		server, _ := (*gc)["server_name"].(string)
+		id, _ := (*gc)["id"].(string)
+
+		return map[string]string{
+			"name":        name,
+			"server_name": server,
+			"id":          id,
+		}
+	})
+}
+
+type convert func(*graph.GenericComponent) map[string]string
+
+func renderResources(g *graph.Graph, resourceType string, f convert) (resources []map[string]string) {
+	for _, n := range g.GetComponents().ByType(resourceType) {
+		gc := n.(*graph.GenericComponent)
+		resources = append(resources, f(gc))
+	}
+
+	return
 }
 
 // RenderCollection : Maps a collection of Service on a collection of ServiceRender
