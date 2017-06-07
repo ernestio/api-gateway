@@ -134,13 +134,15 @@ func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 func RenderNats(g *graph.Graph) []map[string]string {
 	var nats []map[string]string
 
-	for _, n := range g.GetComponents().ByType("nat_gateway") {
+	for _, n := range g.GetComponents().ByType("nat") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["nat_gateway_aws_id"].(string)
+		pubIP, _ := (*gc)["nat_gateway_allocation_ip"].(string)
 		nats = append(nats, map[string]string{
 			"name":               name,
 			"nat_gateway_aws_id": id,
+			"public_ip":          pubIP,
 		})
 	}
 
