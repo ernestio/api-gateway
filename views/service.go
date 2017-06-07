@@ -102,7 +102,7 @@ func RenderNetworks(g *graph.Graph) []map[string]string {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["network_aws_id"].(string)
-		az, _ := (*gc)["availablity_zone"].(string)
+		az, _ := (*gc)["availability_zone"].(string)
 		networks = append(networks, map[string]string{
 			"name":              name,
 			"network_aws_id":    id,
