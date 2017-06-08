@@ -342,7 +342,7 @@ func RenderSQLDatabases(g *graph.Graph) []map[string]string {
 
 		return map[string]string{
 			"name":        name,
-			"server_name": server,
+			"server_name": server + ".database.windows.net",
 			"id":          id,
 		}
 	})
