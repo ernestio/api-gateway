@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -352,7 +353,8 @@ func DeleteServiceHandler(c echo.Context) error {
 		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
 	}
 
-	body, err := def.MapDeletion(s.ID, s.Type)
+	dID := strconv.Itoa(s.DatacenterID)
+	body, err := def.MapDeletion(s.ID, s.Type, dID)
 	if err != nil {
 		return c.JSONBlob(500, []byte(`"Couldn't map the service"`))
 	}

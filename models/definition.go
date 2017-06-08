@@ -23,8 +23,8 @@ func (d *Definition) MapCreation(body []byte) ([]byte, error) {
 }
 
 // MapDeletion : calls definition.map.deletion
-func (d *Definition) MapDeletion(previous, serviceType string) ([]byte, error) {
-	query := []byte(`{"previous_id":"` + previous + `","datacenter":{"type":"` + serviceType + `"}}`)
+func (d *Definition) MapDeletion(previous, serviceType, datacenterID string) ([]byte, error) {
+	query := []byte(`{"previous_id":"` + previous + `","datacenter":{"type":"` + serviceType + `","id":` + datacenterID + `}}`)
 	msg, err := N.Request("definition.map.deletion", query, 1*time.Second)
 	if err != nil {
 		h.L.Error(err.Error())
