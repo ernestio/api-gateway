@@ -240,24 +240,29 @@ func RenderEBSVolumes(g *graph.Graph) []map[string]string {
 
 // RenderLoadBalancers : renders load balancers
 func RenderLoadBalancers(g *graph.Graph) []map[string]string {
-	return renderResources(g, "lb", func(gc *graph.GenericComponent) map[string]string {
+	var lbs []map[string]string
+	ips := listIPAddresses(g)
+
+	for _, n := range g.GetComponents().ByType("lb") {
+		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["id"].(string)
 		configs, _ := (*gc)["frontend_ip_configurations"].([]interface{})
-		cfg, _ := configs[0].(map[string]string)
+		cfg, _ := configs[0].(map[string]interface{})
+		ipID, _ := cfg["public_ip_address_id"].(string)
+		ip, _ := ips[ipID]
 
-		return map[string]string{
+		lbs = append(lbs, map[string]string{
 			"name":      name,
 			"id":        id,
-			"public_ip": cfg["public_ip_address"],
-		}
-	})
+			"public_ip": ip,
+		})
+	}
+
+	return lbs
 }
 
-// RenderVirtualMachines : renders virtual machines
-func RenderVirtualMachines(g *graph.Graph) []map[string]string {
-	var resources []map[string]string
-	mappedIPs := make(map[string]interface{}, 0)
+func listIPAddresses(g *graph.Graph) map[string]string {
 	existingIPs := make(map[string]string, 0)
 
 	for _, ip := range g.GetComponents().ByType("public_ip") {
@@ -266,6 +271,15 @@ func RenderVirtualMachines(g *graph.Graph) []map[string]string {
 		ipAddress, _ := (*gc)["ip_address"].(string)
 		existingIPs[id] = ipAddress
 	}
+
+	return existingIPs
+}
+
+// RenderVirtualMachines : renders virtual machines
+func RenderVirtualMachines(g *graph.Graph) []map[string]string {
+	var resources []map[string]string
+	mappedIPs := make(map[string]interface{}, 0)
+	existingIPs := listIPAddresses(g)
 
 	for _, ni := range g.GetComponents().ByType("network_interface") {
 		var public []string
