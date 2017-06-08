@@ -7,6 +7,7 @@ package config
 import (
 	"github.com/ernestio/api-gateway/controllers"
 	h "github.com/ernestio/api-gateway/helpers"
+	m "github.com/ernestio/api-gateway/middleware"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -36,6 +37,7 @@ func setupRoot(e *echo.Echo) {
 func setupAPI(e *echo.Echo) {
 	api := e.Group("/api")
 	api.Use(middleware.JWT([]byte(controllers.Secret)))
+	api.Use(m.Logger)
 
 	ss := api.Group("/session")
 	ss.GET("/", controllers.GetSessionsHandler)

@@ -12,6 +12,9 @@ import (
 	h "github.com/ernestio/api-gateway/helpers"
 )
 
+const LogInfoLevel = "info"
+const LogDebugLevel = "debug"
+
 // Logger holds the logger response from logger
 type Logger struct {
 	Type        string `json:"type"`
@@ -67,6 +70,35 @@ func (l *Logger) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["type"] = l.Type
 	if err := NewBaseModel("logger").Delete(query); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LogMessage holds a messages payload
+type LogMessage struct {
+	Subject string `json:"subject"`
+	Message string `json:"message"`
+	Level   string `json:"level"`
+	User    string `json:"user"`
+}
+
+// Log sends a message to the logger service via NATS
+func Log(s, m, l, u string) error {
+	msg := LogMessage{
+		Subject: s,
+		Message: m,
+		Level:   l,
+		User:    u,
+	}
+
+	b, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	err = N.Publish("logger.log", b)
+	if err != nil {
 		return err
 	}
 	return nil
