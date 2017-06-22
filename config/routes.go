@@ -107,6 +107,14 @@ func setupAPI(e *echo.Echo) {
 	rep := api.Group("/reports")
 	rep.GET("/usage/", controllers.GetUsageReportHandler)
 
+	// Setup notifications
+	not := api.Group("/notifications")
+	not.GET("/", controllers.GetNotificationsHandler)
+	not.POST("/", controllers.CreateNotificationHandler)
+	not.PUT("/:notification", controllers.UpdateNotificationHandler)
+	not.DELETE("/:notification", controllers.DeleteNotificationHandler)
+	not.POST("/:notification/:service", controllers.AddServiceToNotificationHandler)
+	not.DELETE("/:notification/:service", controllers.RmServiceToNotificationHandler)
 }
 
 func start(e *echo.Echo) {
