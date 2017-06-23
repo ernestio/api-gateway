@@ -24,7 +24,7 @@ func GetNotificationsHandler(c echo.Context) (err error) {
 	var body []byte
 	var notification models.Notification
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return c.JSONBlob(403, []byte(err.Error()))
 	}
 
@@ -49,7 +49,7 @@ func CreateNotificationHandler(c echo.Context) (err error) {
 	var l models.Notification
 	var body []byte
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return c.JSONBlob(403, []byte(err.Error()))
 	}
 
@@ -82,7 +82,7 @@ func CreateNotificationHandler(c echo.Context) (err error) {
 func DeleteNotificationHandler(c echo.Context) (err error) {
 	var l models.Notification
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return c.JSONBlob(403, []byte(err.Error()))
 	}
 
@@ -107,8 +107,8 @@ func DeleteNotificationHandler(c echo.Context) (err error) {
 	return c.String(http.StatusOK, "")
 }
 
-// PremiumSupport : Checks if the current api is running with premium support
-func PremiumSupport() error {
+// Licensed : Checks if the current api is running with premium support
+func Licensed() error {
 	if len(os.Getenv("ERNEST_PREMIUM")) == 0 {
 		return errors.New("You're running ernest community edition, please contact R3Labs for premium support")
 	}
@@ -121,7 +121,7 @@ func UpdateNotificationHandler(c echo.Context) (err error) {
 	var existing models.Notification
 	var body []byte
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return c.JSONBlob(403, []byte(err.Error()))
 	}
 
@@ -164,7 +164,7 @@ func AddServiceToNotificationHandler(c echo.Context) (err error) {
 	var existing models.Notification
 	var body []byte
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return err
 	}
 
@@ -211,7 +211,7 @@ func RmServiceToNotificationHandler(c echo.Context) (err error) {
 	var existing models.Notification
 	var body []byte
 
-	if err := PremiumSupport(); err != nil {
+	if err := Licensed(); err != nil {
 		return err
 	}
 
