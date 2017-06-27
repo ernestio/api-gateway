@@ -30,7 +30,7 @@ func GetNotificationsHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
 	if err = notification.FindAll(&notifications); err != nil {
@@ -55,7 +55,7 @@ func CreateNotificationHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)
@@ -80,7 +80,7 @@ func CreateNotificationHandler(c echo.Context) (err error) {
 // DeleteNotificationHandler : responds to DELETE /notifications/:id: by deleting an
 // existing notification
 func DeleteNotificationHandler(c echo.Context) (err error) {
-	var l models.Notification
+	var existing models.Notification
 
 	if err := Licensed(); err != nil {
 		return c.JSONBlob(403, []byte(err.Error()))
@@ -88,19 +88,15 @@ func DeleteNotificationHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
+	id := c.Param("notification")
+	if err = existing.FindByID(id, &existing); err != nil {
+		return err
 	}
 
-	if l.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err := l.Delete(); err != nil {
+	if err := existing.Delete(); err != nil {
 		return err
 	}
 
@@ -127,7 +123,7 @@ func UpdateNotificationHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
 	data, err := ioutil.ReadAll(c.Request().Body)
@@ -170,7 +166,7 @@ func AddServiceToNotificationHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
 	id := c.Param("notification")
@@ -217,7 +213,7 @@ func RmServiceToNotificationHandler(c echo.Context) (err error) {
 
 	au := AuthenticatedUser(c)
 	if au.Admin == false {
-		return h.ErrUnauthorized
+		return c.JSONBlob(403, []byte("You should provide admin credentials to perform this action"))
 	}
 
 	id := c.Param("notification")

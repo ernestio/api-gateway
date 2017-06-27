@@ -86,7 +86,7 @@ func (l *Notification) Save() (err error) {
 // Delete : will delete a notification by its type
 func (l *Notification) Delete() (err error) {
 	query := make(map[string]interface{})
-	query["type"] = l.Type
+	query["id"] = l.ID
 	if err := NewBaseModel("notification").Delete(query); err != nil {
 		return err
 	}
