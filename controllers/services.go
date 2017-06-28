@@ -284,6 +284,15 @@ func CreateServiceHandler(c echo.Context) error {
 		return echo.NewHTTPError(400, err.Error())
 	}
 
+	if c.QueryParam("dry") == "true" {
+		res, err := views.RenderDefinition(service)
+		if err != nil {
+			h.L.Error(err.Error())
+			return echo.NewHTTPError(400, "Internal error")
+		}
+		return c.JSONBlob(http.StatusOK, res)
+	}
+
 	var datacenterStruct struct {
 		ID   int    `json:"id"`
 		Type string `json:"type"`
