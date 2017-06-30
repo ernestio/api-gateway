@@ -118,26 +118,6 @@ func GetServiceHandler(c echo.Context) (err error) {
 	return c.JSON(http.StatusNotFound, nil)
 }
 
-// GetServiceBuildHandler : gets the details of a specific service build
-func GetServiceBuildHandler(c echo.Context) (err error) {
-	var list []views.ServiceRender
-
-	au := AuthenticatedUser(c)
-	query := h.GetParamFilter(c)
-	if au.Admin != true {
-		query["group_id"] = au.GroupID
-	}
-
-	if list, err = getServicesOutput(query); err != nil {
-		return c.JSONBlob(500, []byte(err.Error()))
-	}
-
-	if len(list) > 0 {
-		return c.JSON(http.StatusOK, list[0])
-	}
-	return c.JSON(http.StatusNotFound, nil)
-}
-
 // SearchServicesHandler : Finds all services
 func SearchServicesHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
@@ -153,6 +133,42 @@ func SearchServicesHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, list)
+}
+
+// SyncServiceHandler : Respons to POST /services/:service/sync/ and synchronizes a service with
+// its provider representation
+func SyncServiceHandler(c echo.Context) error {
+	var raw []byte
+	var err error
+
+	if err := Licensed(); err != nil {
+		return err
+	}
+
+	au := AuthenticatedUser(c)
+
+	// Get existing service
+	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
+		return echo.NewHTTPError(404, err.Error())
+	}
+
+	s := models.Service{}
+	if err := json.Unmarshal(raw, &s); err != nil {
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if s.Status == "in_progress" {
+		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
+	}
+
+	if err = s.RequestSync(); err != nil {
+		return c.JSONBlob(500, []byte("An error ocurred while ernest was trying to sync your service"))
+	}
+
+	// TODO : This probably needs to use the monit tool instead of this.
+
+	return c.JSON(http.StatusOK, "....")
 }
 
 // ResetServiceHandler : Respons to POST /services/:service/reset/ and updates the
@@ -336,8 +352,60 @@ func CreateServiceHandler(c echo.Context) error {
 
 // UpdateServiceHandler : Not implemented
 func UpdateServiceHandler(c echo.Context) error {
-	h.L.Warning("UpdateServiceHandler not implemented")
-	return echo.NewHTTPError(405, "Not implemented")
+	var raw []byte
+	var err error
+	var input models.Service
+
+	if err := Licensed(); err != nil {
+		return err
+	}
+
+	au := AuthenticatedUser(c)
+
+	// Get input service options
+	req := c.Request()
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return c.JSONBlob(500, []byte("Invalid input"))
+	}
+
+	if err := json.Unmarshal(body, &input); err != nil {
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	// Get existing service
+	if raw, err = getServiceRaw(c.Param("name"), au.GroupID); err != nil {
+		return echo.NewHTTPError(404, err.Error())
+	}
+
+	s := models.Service{}
+	if err := json.Unmarshal(raw, &s); err != nil {
+		h.L.Error(err.Error())
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if s.Status == "in_progress" {
+		return c.JSONBlob(400, []byte(`"Service is already applying some changes, please wait until they are done"`))
+	}
+
+	s.Sync = input.Sync
+	s.SyncType = input.SyncType
+	s.SyncInterval = input.SyncInterval
+	if s.Sync == true {
+		if s.SyncType != "hard" {
+			s.SyncType = "soft"
+		}
+		if s.SyncInterval == 0 {
+			s.SyncInterval = 5
+		}
+	}
+
+	if err := s.Save(); err != nil {
+		return echo.NewHTTPError(500, err.Error())
+	}
+
+	return c.JSONBlob(http.StatusOK, []byte(`{"id":"`+s.ID+`"}`))
 }
 
 // DeleteServiceHandler : Deletes a service by name

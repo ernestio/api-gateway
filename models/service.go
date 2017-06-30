@@ -29,6 +29,9 @@ type Service struct {
 	Endpoint     string      `json:"endpoint"`
 	Definition   interface{} `json:"definition"`
 	Maped        string      `json:"mapping"`
+	Sync         bool        `json:"sync"`
+	SyncType     string      `json:"sync_type"`
+	SyncInterval int         `json:"sync_interval"`
 }
 
 // Validate the service
@@ -213,6 +216,15 @@ func (s *Service) RequestImport(raw []byte) error {
 // RequestDeletion : calls service.delete with the given raw message
 func (s *Service) RequestDeletion(raw []byte) error {
 	if err := N.Publish("service.delete", raw); err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+// RequestSync : calls service.sync with the given raw message
+func (s *Service) RequestSync() error {
+	if err := N.Publish("service.sync", []byte(`{"id":"`+s.ID+`"}`)); err != nil {
 		h.L.Error(err.Error())
 		return err
 	}
