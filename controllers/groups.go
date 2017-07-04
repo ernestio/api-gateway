@@ -5,309 +5,115 @@
 package controllers
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
+	"github.com/ernestio/api-gateway/controllers/groups"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
 // GetGroupsHandler : responds to GET /groups/ with a list of all
 // groups
 func GetGroupsHandler(c echo.Context) (err error) {
-	var groups []models.Group
-	var body []byte
-	var group models.Group
-
 	au := AuthenticatedUser(c)
-	if au.Admin == true {
-		if err := group.FindAll(au, &groups); err != nil {
-			h.L.Warning(err.Error())
-		}
-	} else {
-		if err := group.FindByID(au.GroupID); err != nil {
-			h.L.Warning(err.Error())
-		}
-		groups = append(groups, group)
-	}
+	st, b := groups.List(au)
 
-	if body, err = json.Marshal(groups); err != nil {
-		return h.ErrBadReqBody
-	}
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(st, b)
 }
 
 // GetGroupHandler : responds to GET /groups/:id:/ with the specified
 // group details
 func GetGroupHandler(c echo.Context) (err error) {
-	var g models.Group
-	var body []byte
+	g := c.Param("group")
+	st, b := groups.Get(g)
 
-	id, _ := strconv.Atoi(c.Param("group"))
-	if err := g.FindByID(id); err != nil {
-		return err
-	}
-
-	if body, err = json.Marshal(g); err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(st, b)
 }
 
 // CreateGroupHandler : responds to POST /groups/ by creating a group
 // on the data store
 func CreateGroupHandler(c echo.Context) (err error) {
-	var g models.Group
-	var existing models.Group
-	var body []byte
+	s := 500
+	b := []byte("Invalid input")
+	au := AuthenticatedUser(c)
 
-	if AuthenticatedUser(c).Admin != true {
-		return h.ErrUnauthorized
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = groups.Create(au, body)
 	}
 
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if g.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err := existing.FindByName(g.Name, &existing); err == nil {
-		return echo.NewHTTPError(409, "Specified group already exists")
-	}
-
-	if err = g.Save(); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	if body, err = json.Marshal(g); err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(s, b)
 }
 
 // UpdateGroupHandler : responds to PUT /groups/:id: by updating an existing
 // group
 func UpdateGroupHandler(c echo.Context) (err error) {
-	var g models.Group
-	var existing models.Group
-	var body []byte
-
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if g.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
-	if au.Admin != true {
-		return h.ErrUnauthorized
+
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = groups.Update(au, body)
 	}
 
-	if err := existing.FindByName(g.Name, &existing); err != nil {
-		return echo.NewHTTPError(404, "Specified group does not exists")
-	}
-
-	if err = g.Save(); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	if body, err = json.Marshal(g); err != nil {
-		return h.ErrInternal
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(s, b)
 }
 
 // DeleteGroupHandler : responds to DELETE /groups/:id: by deleting an
 // existing group
 func DeleteGroupHandler(c echo.Context) (err error) {
-	var g models.Group
-	var users []models.User
-	var datacenters []models.Datacenter
-
 	au := AuthenticatedUser(c)
+	g := c.Param("group")
+	s, b := groups.Delete(au, g)
 
-	if au.Admin != true {
-		return h.ErrUnauthorized
-	}
-
-	id, err := strconv.Atoi(c.Param("group"))
-	if err = g.FindByID(id); err != nil {
-		return err
-	}
-
-	// Check if there are any users on the group
-	if users, err = g.Users(); err != nil {
-		return err
-	}
-
-	if len(users) > 0 {
-		return echo.NewHTTPError(400, "This group has users assigned to it, please remove the users before performing this action")
-	}
-
-	// Check if there are any datacenters on the group
-	if datacenters, err = g.Datacenters(); err != nil {
-		return err
-	}
-
-	if len(datacenters) > 0 {
-		return echo.NewHTTPError(400, "This group has datacenters assigned to it, please remove the datacenters before performing this action")
-	}
-
-	if err := g.Delete(); err != nil {
-		return err
-	}
-
-	return c.String(http.StatusOK, "")
+	return c.JSONBlob(s, b)
 }
 
 // DeleteUserFromGroupHandler : Deletes an user from a group
 func DeleteUserFromGroupHandler(c echo.Context) error {
-	var user models.User
 	au := AuthenticatedUser(c)
+	u := c.Param("user")
+	s, b := groups.RmUser(au, u)
 
-	if au.Admin == false {
-		return h.ErrUnauthorized
-	}
-
-	if err := user.FindByID(c.Param("user"), &user); err != nil {
-		h.L.Error(err.Error())
-	}
-	user.GroupID = 0
-	user.Password = ""
-	user.Salt = ""
-	if err := user.Save(); err != nil {
-		return h.ErrGatewayTimeout
-	}
-
-	return c.JSONBlob(http.StatusOK, []byte("User "+user.Username+" successfully removed from group"))
+	return c.JSONBlob(s, b)
 }
 
 // AddUserToGroupHandler : Adds an user to a group
 func AddUserToGroupHandler(c echo.Context) error {
-	var group models.Group
-	var user models.User
-	var payload map[string]string
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
+	g := c.Param("group")
 
-	if au.Admin != true {
-		return h.ErrUnauthorized
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = groups.AddUser(au, g, body)
 	}
 
-	if err := group.FindByName(c.Param("group"), &group); err != nil {
-		return h.ErrBadReqBody
-	}
-
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &payload)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err := user.FindByUserName(payload["username"], &user); err != nil {
-		return err
-	}
-
-	user.GroupID = group.ID
-	user.Password = ""
-	user.Salt = ""
-	if err := user.Save(); err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, []byte("User "+user.Username+" successfully added to group "+group.Name))
+	return c.JSONBlob(s, b)
 }
 
 // AddDatacenterToGroupHandler : Adds a datacenter to a group
 func AddDatacenterToGroupHandler(c echo.Context) error {
-	var group models.Group
-	var datacenter models.Datacenter
-	var payload map[string]string
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
-	if au.Admin != true {
-		return h.ErrUnauthorized
+	g := c.Param("group")
+	d := c.Param("datacenterid")
+
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = groups.AddDatacenter(au, g, d, body)
 	}
 
-	groupID, err := strconv.Atoi(c.Param("group"))
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	body := c.Request().Body
-	data, err := ioutil.ReadAll(body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = json.Unmarshal(data, &payload)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	datacenterID, err := strconv.Atoi(payload["datacenterid"])
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err := group.FindByID(groupID); err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err := datacenter.FindByID(datacenterID); err != nil {
-		return h.ErrBadReqBody
-	}
-
-	datacenter.GroupID = groupID
-	if err = datacenter.Save(); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully added to group "+group.Name))
+	return c.JSONBlob(s, b)
 }
 
 // DeleteDatacenterFromGroupHandler : Deletes a datacenter from a group
 func DeleteDatacenterFromGroupHandler(c echo.Context) error {
-	var group models.Group
-	var datacenter models.Datacenter
-
 	au := AuthenticatedUser(c)
+	g := c.Param("group")
+	d := c.Param("datacenter")
+	s, b := groups.RmDatacenter(au, g, d)
 
-	if au.Admin != true {
-		return h.ErrUnauthorized
-	}
-
-	groupid, err := strconv.Atoi(c.Param("group"))
-	if err = group.FindByID(groupid); err != nil {
-		return err
-	}
-
-	datacenterid, err := strconv.Atoi(c.Param("datacenter"))
-	if err = datacenter.FindByID(datacenterid); err != nil {
-		return err
-	}
-
-	datacenter.GroupID = 0
-	if err = datacenter.Save(); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	return c.JSONBlob(http.StatusOK, []byte("Datacenter successfully removed from group "+group.Name))
+	return c.JSONBlob(s, b)
 }

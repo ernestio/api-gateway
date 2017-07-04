@@ -5,6 +5,7 @@
 package helpers
 
 import (
+	"io/ioutil"
 	"strconv"
 
 	"github.com/labstack/echo"
@@ -62,4 +63,10 @@ func GetSearchFilter(c echo.Context) map[string]interface{} {
 	}
 
 	return query
+}
+
+// GetRequestBody : Get the request body
+func GetRequestBody(c echo.Context) ([]byte, error) {
+	data, err := ioutil.ReadAll(c.Request().Body)
+	return data, err
 }

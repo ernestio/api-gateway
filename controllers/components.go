@@ -5,44 +5,20 @@
 package controllers
 
 import (
-	"encoding/json"
-	"net/http"
 	"strings"
 
-	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/api-gateway/controllers/components"
 	"github.com/labstack/echo"
 )
 
 // GetAllComponentsHandler : ...
 func GetAllComponentsHandler(c echo.Context) (err error) {
-	var body []byte
-	var d models.Datacenter
-
 	parts := strings.Split(c.Path(), "/")
 	component := parts[len(parts)-2] + "s"
+	d := c.QueryParam("datacenter")
+	s := c.QueryParam("service")
 
-	if err := d.FindByName(c.QueryParam("datacenter"), &d); err != nil {
-		return err
-	}
+	st, b := components.List(d, s, component)
 
-	tags := make(map[string]string)
-	service := c.QueryParam("service")
-	if service != "" {
-		tags["ernest.service"] = c.QueryParam("service")
-	}
-	aws := models.AWSComponent{
-		Datacenter: &d,
-		Name:       component,
-		Tags:       tags,
-	}
-	list, err := aws.FindBy()
-	if err != nil {
-		return c.JSONBlob(500, []byte("An internal error occured"))
-	}
-
-	if body, err = json.Marshal(list); err != nil {
-		return c.JSONBlob(500, []byte("Oops, somethign went wrong"))
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(st, b)
 }

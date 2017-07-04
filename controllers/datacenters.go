@@ -5,185 +5,67 @@
 package controllers
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
+	"github.com/ernestio/api-gateway/controllers/datacenters"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
 // GetDatacentersHandler : responds to GET /datacenters/ with a list of all
 // datacenters
 func GetDatacentersHandler(c echo.Context) (err error) {
-	var datacenters []models.Datacenter
-	var body []byte
-	var datacenter models.Datacenter
-
 	au := AuthenticatedUser(c)
-	if au.Admin == true {
-		err = datacenter.FindAll(au, &datacenters)
-	} else {
-		datacenters, err = au.Datacenters()
-	}
+	st, b := datacenters.List(au)
 
-	if err != nil {
-		return err
-	}
-
-	for i := 0; i < len(datacenters); i++ {
-		datacenters[i].Redact()
-		datacenters[i].Improve()
-	}
-
-	if body, err = json.Marshal(datacenters); err != nil {
-		return err
-	}
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(st, b)
 }
 
 // GetDatacenterHandler : responds to GET /datacenter/:id:/ with the specified
 // datacenter details
 func GetDatacenterHandler(c echo.Context) (err error) {
-	var d models.Datacenter
-	var body []byte
+	d := c.Param("datacenter")
+	st, b := datacenters.Get(d)
 
-	id, _ := strconv.Atoi(c.Param("datacenter"))
-	if err := d.FindByID(id); err != nil {
-		return err
-	}
-
-	if body, err = json.Marshal(d); err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(st, b)
 }
 
 // CreateDatacenterHandler : responds to POST /datacenters/ by creating a
 // datacenter on the data store
 func CreateDatacenterHandler(c echo.Context) (err error) {
-	var d models.Datacenter
-	var existing models.Datacenter
-	var body []byte
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
 
-	if au.GroupID == 0 {
-		return c.JSONBlob(401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action"))
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = datacenters.Create(au, body)
 	}
 
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if d.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
-	err = d.Validate()
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	d.GroupID = au.GroupID
-
-	if err := existing.FindByName(d.Name, &existing); err == nil {
-		return echo.NewHTTPError(409, "Specified datacenter already exists")
-	}
-
-	if err = d.Save(); err != nil {
-		h.L.Error(err.Error())
-		return h.ErrInternal
-	}
-
-	if body, err = json.Marshal(d); err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(s, b)
 }
 
 // UpdateDatacenterHandler : responds to PUT /datacenters/:id: by updating
 // an existing datacenter
 func UpdateDatacenterHandler(c echo.Context) (err error) {
-	var d models.Datacenter
-	var existing models.Datacenter
-	var body []byte
-
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if d.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
+	d := c.Param("datacenter")
 
-	id, err := strconv.Atoi(c.Param("datacenter"))
-	if err = existing.FindByID(id); err != nil {
-		return err
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = datacenters.Update(au, d, body)
 	}
 
-	if au.GroupID != au.GroupID {
-		return h.ErrUnauthorized
-	}
-
-	existing.Username = d.Username
-	existing.Password = d.Password
-	existing.AccessKeyID = d.AccessKeyID
-	existing.SecretAccessKey = d.SecretAccessKey
-	existing.SubscriptionID = d.SubscriptionID
-	existing.ClientID = d.ClientID
-	existing.ClientSecret = d.ClientSecret
-	existing.TenantID = d.TenantID
-	existing.Environment = d.Environment
-
-	if err = existing.Save(); err != nil {
-		h.L.Error(err.Error())
-		return h.ErrInternal
-	}
-
-	if body, err = json.Marshal(d); err != nil {
-		return h.ErrInternal
-	}
-
-	return c.JSONBlob(http.StatusOK, body)
+	return c.JSONBlob(s, b)
 }
 
 // DeleteDatacenterHandler : responds to DELETE /datacenters/:id: by deleting an
 // existing datacenter
 func DeleteDatacenterHandler(c echo.Context) error {
-	var d models.Datacenter
-
 	au := AuthenticatedUser(c)
+	d := c.Param("datacenter")
 
-	id, err := strconv.Atoi(c.Param("datacenter"))
-	if err = d.FindByID(id); err != nil {
-		return err
-	}
+	s, b := datacenters.Delete(au, d)
 
-	if au.GroupID != d.GroupID {
-		return h.ErrUnauthorized
-	}
-
-	ss, err := d.Services()
-	if err != nil {
-		return echo.NewHTTPError(500, err.Error())
-	}
-
-	if len(ss) > 0 {
-		return echo.NewHTTPError(400, "Existing services are referring to this datacenter.")
-	}
-
-	if err := d.Delete(); err != nil {
-		return err
-	}
-
-	return c.String(http.StatusOK, "")
+	return c.JSONBlob(s, b)
 }

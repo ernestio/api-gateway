@@ -5,12 +5,8 @@
 package controllers
 
 import (
-	"errors"
-	"io/ioutil"
-	"net/http"
-
+	"github.com/ernestio/api-gateway/controllers/users"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
@@ -18,159 +14,59 @@ import (
 // users for admin, and all users in your group for other
 // users
 func GetUsersHandler(c echo.Context) error {
-	var users []models.User
-
 	au := AuthenticatedUser(c)
-	if err := au.FindAll(&users); err != nil {
-		return err
-	}
+	st, b := users.List(au)
 
-	for i := 0; i < len(users); i++ {
-		users[i].Redact()
-		users[i].Improve()
-	}
-
-	return c.JSON(http.StatusOK, users)
+	return c.JSONBlob(st, b)
 }
 
 // GetUserHandler : responds to GET /users/:id:/ with the specified
 // user details
 func GetUserHandler(c echo.Context) error {
-	var user models.User
-
 	au := AuthenticatedUser(c)
-	if err := au.FindByID(c.Param("user"), &user); err != nil {
-		return err
-	}
-	user.Redact()
+	u := c.Param("user")
+	st, b := users.Get(au, u)
 
-	return c.JSON(http.StatusOK, user)
+	return c.JSONBlob(st, b)
 }
 
 // CreateUserHandler : responds to POST /users/ by creating a user
 // on the data store
 func CreateUserHandler(c echo.Context) error {
-	var u models.User
-	var existing models.User
+	s := 500
+	b := []byte("Invalid input")
+	au := AuthenticatedUser(c)
 
-	if AuthenticatedUser(c).Admin != true {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(403, err.Error())
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = users.Create(au, body)
 	}
 
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, "Bad Request")
-	}
-
-	if err := u.Map(data); err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, err.Error())
-	}
-
-	if len(u.Password) < 8 {
-		err := errors.New("Minimum password length is 8 characters")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, err.Error())
-	}
-
-	if err := existing.FindByUserName(u.Username, &existing); err == nil {
-		err := errors.New("Specified user already exists")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(409, err.Error())
-	}
-
-	if err := u.Save(); err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(500, "Error creating user")
-	}
-
-	u.Redact()
-
-	return c.JSON(http.StatusOK, u)
+	return c.JSONBlob(s, b)
 }
 
 // UpdateUserHandler : responds to PUT /users/:id: by updating an existing
 // user
 func UpdateUserHandler(c echo.Context) error {
-	var u models.User
-	var existing models.User
-
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, "Bad Request")
-	}
-
-	if err := u.Map(data); err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, err.Error())
-	}
-
-	if len(u.Password) < 8 {
-		err := errors.New("Minimum password length is 8 characters")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(400, err.Error())
-	}
-
-	// Check if authenticated user is admin or updating itself
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
-	if au.Username != u.Username && au.Admin != true {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(403, err.Error())
+	d := c.Param("user")
+
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = users.Update(au, d, body)
 	}
 
-	// Check user exists
-	if err := au.FindByID(c.Param("user"), &existing); err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(404, "Specified user not found")
-	}
-
-	if existing.ID == 0 {
-		err := errors.New("Specified user not found")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(404, err.Error())
-	}
-
-	// Check a non-admin user is not trying to change their group
-	if au.Admin != true && u.GroupID != existing.GroupID {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(403, err.Error())
-	}
-
-	// Check the old password if it is present
-	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(403, err.Error())
-	}
-
-	if err := u.Save(); err != nil {
-		h.L.Error(err.Error())
-		return echo.NewHTTPError(500, "Error updating user")
-	}
-
-	u.Redact()
-
-	return c.JSON(http.StatusOK, u)
+	return c.JSONBlob(s, b)
 }
 
 // DeleteUserHandler : responds to DELETE /users/:id: by deleting an
 // existing user
 func DeleteUserHandler(c echo.Context) error {
-	var au models.User
+	au := AuthenticatedUser(c)
+	u := c.Param("user")
+	st, b := users.Delete(au, u)
 
-	if au = AuthenticatedUser(c); au.Admin != true {
-		return h.ErrUnauthorized
-	}
-
-	if err := au.Delete(c.Param("user")); err != nil {
-		return err
-	}
-
-	return c.String(http.StatusOK, "User successfully deleted")
+	return c.JSONBlob(st, b)
 }
