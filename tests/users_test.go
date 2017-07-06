@@ -139,7 +139,7 @@ func TestUsers(t *testing.T) {
 
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldEqual, `{"code":400, "message":"Minimum password length is 8 characters"}`)
+							So(string(resp), ShouldEqual, `Minimum password length is 8 characters`)
 						})
 					})
 					Convey("With a username using invalid characters", func() {
@@ -230,7 +230,7 @@ func TestUsers(t *testing.T) {
 						st, resp := users.Create(admin, invalidData)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldEqual, `{"code":400, "message":"Minimum password length is 8 characters"}`)
+							So(string(resp), ShouldEqual, `Minimum password length is 8 characters`)
 						})
 					})
 					Convey("With a username using invalid characters", func() {

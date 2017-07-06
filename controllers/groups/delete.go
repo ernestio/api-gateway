@@ -14,10 +14,6 @@ func Delete(au models.User, group string) (int, []byte) {
 	var users []models.User
 	var datacenters []models.Datacenter
 
-	if au.Admin != true {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	id, err := strconv.Atoi(group)
 	if err = g.FindByID(id); err != nil {
 		return 404, []byte("Specified group does not exists")

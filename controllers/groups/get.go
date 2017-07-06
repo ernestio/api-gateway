@@ -10,7 +10,7 @@ import (
 
 // Get : responds to GET /groups/:id:/ with the specified
 // group details
-func Get(group string) (int, []byte) {
+func Get(au models.User, group string) (int, []byte) {
 	var err error
 	var g models.Group
 	var body []byte

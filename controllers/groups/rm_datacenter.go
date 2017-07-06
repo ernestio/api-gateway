@@ -13,10 +13,6 @@ func RmDatacenter(au models.User, g, d string) (int, []byte) {
 	var group models.Group
 	var datacenter models.Datacenter
 
-	if au.Admin != true {
-		return http.StatusForbidden, []byte("You don't have permissions to perform this action, please login with an admin account")
-	}
-
 	groupid, err := strconv.Atoi(g)
 	if err != nil {
 		return http.StatusBadRequest, []byte("Invalid input")

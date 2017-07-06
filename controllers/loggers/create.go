@@ -17,16 +17,12 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var l models.Logger
 	var err error
 
-	if au.Admin == false {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	if l.Map(body) != nil {
 		return 400, []byte("Invalid input")
 	}
 
 	if err = l.Save(); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, []byte(err.Error())
 	}
 
 	if body, err = json.Marshal(l); err != nil {

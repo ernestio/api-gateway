@@ -20,10 +20,6 @@ func List(au models.User) (int, []byte) {
 	var body []byte
 	var notification models.Notification
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	if err = notification.FindAll(&notifications); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal serveier error")

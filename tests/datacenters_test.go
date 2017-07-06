@@ -46,7 +46,7 @@ func TestDatacenters(t *testing.T) {
 			getDatacenterSubscriber(3)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
-				st, resp := datacenters.Get("1")
+				st, resp := datacenters.Get(au, "1")
 
 				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should get the existing datacenter", func() {
@@ -72,7 +72,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				SkipConvey("When the datacenter group does not match the authenticated users group", func() {
-					st, _ := datacenters.Get("2")
+					st, _ := datacenters.Get(au, "2")
 					Convey("Then I should get a 404 error as it doesn't exist", func() {
 						So(st, ShouldEqual, 404)
 					})

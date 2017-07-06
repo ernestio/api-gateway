@@ -87,8 +87,8 @@ func setupAPI(e *echo.Echo) {
 	s.POST("/:service/reset/", controllers.ResetServiceHandler)
 	s.POST("/:service/sync/", controllers.SyncServiceHandler)
 	s.PUT("/:name/", controllers.UpdateServiceHandler)
-	s.DELETE("/:name/", controllers.DeleteServiceHandler)
-	s.DELETE("/:name/force/", controllers.ForceServiceDeletionHandler)
+	s.DELETE("/:service", controllers.DeleteServiceHandler)
+	s.DELETE("/:service/force/", controllers.ForceServiceDeletionHandler)
 	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
 
 	// Setup components

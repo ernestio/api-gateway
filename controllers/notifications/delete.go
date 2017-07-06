@@ -16,10 +16,6 @@ func Delete(au models.User, id string) (int, []byte) {
 	var err error
 	var existing models.Notification
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	if err = existing.FindByID(id, &existing); err != nil {
 		return 500, []byte("Internal server error")
 	}

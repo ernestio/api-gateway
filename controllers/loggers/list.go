@@ -19,10 +19,6 @@ func List(au models.User) (int, []byte) {
 	var body []byte
 	var logger models.Logger
 
-	if au.Admin == false {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	if err = logger.FindAll(&loggers); err != nil {
 		return 500, []byte("Internal server error")
 	}

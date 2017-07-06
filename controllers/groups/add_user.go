@@ -15,10 +15,6 @@ func AddUser(au models.User, g string, body []byte) (int, []byte) {
 	var user models.User
 	var payload map[string]string
 
-	if au.Admin != true {
-		return http.StatusForbidden, []byte("You don't have permissions to perform this action, please login with an admin account")
-	}
-
 	if err := group.FindByName(g, &group); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal server error")

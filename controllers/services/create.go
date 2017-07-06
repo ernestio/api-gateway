@@ -38,12 +38,14 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 
 	// Get datacenter
 	if datacenter, err = getDatacenter(s.Datacenter, au.GroupID); err != nil {
+		h.L.Error(err.Error())
 		return 404, []byte(err.Error())
 	}
 	payload.Datacenter = (*json.RawMessage)(&datacenter)
 
 	// Get group
 	if group, err = getGroup(au.GroupID); err != nil {
+		h.L.Error(err.Error())
 		return http.StatusNotFound, []byte(err.Error())
 	}
 	payload.Group = (*json.RawMessage)(&group)
@@ -58,12 +60,14 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 
 	// Get previous service if exists
 	if previous, err = getService(s.Name, au.GroupID); err != nil {
+		h.L.Error("Previous service not found")
 		return http.StatusNotFound, []byte(err.Error())
 	}
 
 	if previous != nil {
 		payload.PrevID = previous.ID
 		if previous.Status == "in_progress" {
+			h.L.Error("Service is still in progress")
 			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
 	}
@@ -81,6 +85,7 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	}
 
 	if err != nil {
+		h.L.Error(err.Error())
 		return 400, []byte(err.Error())
 	}
 

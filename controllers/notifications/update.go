@@ -18,10 +18,6 @@ func Update(au models.User, id string, body []byte) (int, []byte) {
 	var d models.Notification
 	var existing models.Notification
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	if d.Map(body) != nil {
 		return http.StatusBadRequest, []byte("Invalid input")
 	}

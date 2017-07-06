@@ -6,7 +6,6 @@ package controllers
 
 import (
 	"github.com/ernestio/api-gateway/controllers/users"
-	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -14,59 +13,29 @@ import (
 // users for admin, and all users in your group for other
 // users
 func GetUsersHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	st, b := users.List(au)
-
-	return c.JSONBlob(st, b)
+	return genericList(c, "user", users.List)
 }
 
 // GetUserHandler : responds to GET /users/:id:/ with the specified
 // user details
 func GetUserHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	u := c.Param("user")
-	st, b := users.Get(au, u)
-
-	return c.JSONBlob(st, b)
+	return genericGet(c, "user", users.Get)
 }
 
 // CreateUserHandler : responds to POST /users/ by creating a user
 // on the data store
 func CreateUserHandler(c echo.Context) error {
-	s := 500
-	b := []byte("Invalid input")
-	au := AuthenticatedUser(c)
-
-	body, err := h.GetRequestBody(c)
-	if err == nil {
-		s, b = users.Create(au, body)
-	}
-
-	return c.JSONBlob(s, b)
+	return genericCreate(c, "user", users.Create)
 }
 
 // UpdateUserHandler : responds to PUT /users/:id: by updating an existing
 // user
 func UpdateUserHandler(c echo.Context) error {
-	s := 500
-	b := []byte("Invalid input")
-	au := AuthenticatedUser(c)
-	d := c.Param("user")
-
-	body, err := h.GetRequestBody(c)
-	if err == nil {
-		s, b = users.Update(au, d, body)
-	}
-
-	return c.JSONBlob(s, b)
+	return genericUpdate(c, "user", users.Update)
 }
 
 // DeleteUserHandler : responds to DELETE /users/:id: by deleting an
 // existing user
 func DeleteUserHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	u := c.Param("user")
-	st, b := users.Delete(au, u)
-
-	return c.JSONBlob(st, b)
+	return genericDelete(c, "user", users.Delete)
 }

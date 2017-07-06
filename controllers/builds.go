@@ -24,9 +24,5 @@ func GetServiceBuildHandler(c echo.Context) (err error) {
 
 // DelServiceBuildHandler : will delete the specified build from a service
 func DelServiceBuildHandler(c echo.Context) (err error) {
-	au := AuthenticatedUser(c)
-	id := c.Param("id")
-	s, b := services.DelBuild(au, id)
-
-	return c.JSONBlob(s, b)
+	return genericDelete(c, "build", services.DelBuild)
 }

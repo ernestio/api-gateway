@@ -15,10 +15,6 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var existing models.Group
 	var err error
 
-	if au.Admin != true {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	if g.Map(body) != nil {
 		return 400, []byte("Input is not valid")
 	}

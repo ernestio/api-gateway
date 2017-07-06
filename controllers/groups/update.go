@@ -10,17 +10,13 @@ import (
 
 // Update : responds to PUT /groups/:id: by updating an existing
 // group
-func Update(au models.User, body []byte) (int, []byte) {
+func Update(au models.User, name string, body []byte) (int, []byte) {
 	var g models.Group
 	var existing models.Group
 	var err error
 
 	if g.Map(body) != nil {
 		return 400, []byte("Invalid input")
-	}
-
-	if au.Admin != true {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
 	}
 
 	if err := existing.FindByName(g.Name, &existing); err != nil {

@@ -20,10 +20,6 @@ func RmService(au models.User, id, service string) (int, []byte) {
 	var existing models.Notification
 	var body []byte
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	if err = existing.FindByID(id, &existing); err != nil {
 		return 500, []byte("Internal server error")
 	}

@@ -10,7 +10,7 @@ import (
 
 // Get : responds to GET /datacenter/:id:/ with the specified
 // datacenter details
-func Get(datacenter string) (int, []byte) {
+func Get(au models.User, datacenter string) (int, []byte) {
 	var d models.Datacenter
 	var body []byte
 	var err error

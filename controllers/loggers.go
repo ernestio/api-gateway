@@ -13,25 +13,13 @@ import (
 // GetLoggersHandler : responds to GET /loggers/ with a list of all
 // loggers
 func GetLoggersHandler(c echo.Context) (err error) {
-	au := AuthenticatedUser(c)
-	st, b := loggers.List(au)
-
-	return c.JSONBlob(st, b)
+	return genericList(c, "logger", loggers.List)
 }
 
 // CreateLoggerHandler : responds to POST /loggers/ by creating a logger
 // on the data store
 func CreateLoggerHandler(c echo.Context) (err error) {
-	s := 500
-	b := []byte("Invalid input")
-	au := AuthenticatedUser(c)
-
-	body, err := h.GetRequestBody(c)
-	if err == nil {
-		s, b = loggers.Create(au, body)
-	}
-
-	return c.JSONBlob(s, b)
+	return genericCreate(c, "logger", loggers.Create)
 }
 
 // DeleteLoggerHandler : responds to DELETE /loggers/:id: by deleting an

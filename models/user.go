@@ -203,3 +203,8 @@ func (u *User) FindAllKeyValue() (list map[int]string) {
 	}
 	return list
 }
+
+// GetAdmin : admin getter
+func (u *User) GetAdmin() bool {
+	return u.Admin
+}

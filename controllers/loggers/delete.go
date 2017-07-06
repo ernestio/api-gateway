@@ -15,10 +15,6 @@ import (
 func Delete(au models.User, body []byte) (int, []byte) {
 	var l models.Logger
 
-	if au.Admin == false {
-		return 403, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	if l.Map(body) != nil {
 		return 400, []byte("Invalid input")
 	}

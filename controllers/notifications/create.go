@@ -17,10 +17,6 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var l models.Notification
 	var err error
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	if l.Map(body) != nil {
 		return http.StatusBadRequest, []byte("Invalid input")
 	}

@@ -23,7 +23,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	if len(u.Password) < 8 {
 		err := errors.New("Minimum password length is 8 characters")
 		h.L.Error(err.Error())
-		return 400, []byte(`{"code":400, "message":"` + err.Error() + `"}`)
+		return 400, []byte(err.Error())
 	}
 
 	// Check if authenticated user is admin or updating itself
