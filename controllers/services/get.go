@@ -11,17 +11,11 @@ import (
 // Get : responds to GET /services/:service with the
 // details of an existing service
 func Get(au models.User, query map[string]interface{}) (int, []byte) {
-	var err error
-	var s models.Service
-	var services []models.Service
 	var o views.ServiceRender
 	var body []byte
 
-	if au.Admin != true {
-		query["group_id"] = au.GroupID
-	}
-
-	if err = s.Find(query, &services); err != nil {
+	services, err := au.ServicesBy(query)
+	if err != nil {
 		return 500, []byte(err.Error())
 	}
 

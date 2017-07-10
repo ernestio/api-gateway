@@ -175,12 +175,6 @@ func TestUsers(t *testing.T) {
 						})
 					})
 				})
-				Convey("And I'm authenticated as a non-admin user", func() {
-					st, _ := users.Create(au, data)
-					Convey("It should return with 403 unauthorized", func() {
-						So(st, ShouldEqual, 403)
-					})
-				})
 			})
 		})
 
@@ -286,13 +280,6 @@ func TestUsers(t *testing.T) {
 							So(u.Salt, ShouldEqual, "")
 						})
 					})
-					Convey("With a group id that does not match the exisiting users id", func() {
-						invalidData := []byte(`{"id": 1, "group_id": 2, "username": "test", "password": "new-password"}`)
-						st, _ := users.Update(au, "1", invalidData)
-						Convey("It should update the user and return the correct set of data", func() {
-							So(st, ShouldEqual, 403)
-						})
-					})
 				})
 
 				Convey("And I'm not authenticated as the user being updated", func() {
@@ -328,13 +315,6 @@ func TestUsers(t *testing.T) {
 
 					Convey("It should delete the user and return a 200 ok", func() {
 						So(st, ShouldEqual, 200)
-					})
-				})
-				Convey("And I am logged in as a non-admin", func() {
-					st, _ := users.Delete(au, "1")
-
-					Convey("It should return a 403 not authorized", func() {
-						So(st, ShouldEqual, 403)
 					})
 				})
 			})

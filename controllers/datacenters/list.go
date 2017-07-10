@@ -13,13 +13,8 @@ func List(au models.User) (int, []byte) {
 	var err error
 	var datacenters []models.Datacenter
 	var body []byte
-	var datacenter models.Datacenter
 
-	if au.Admin == true {
-		err = datacenter.FindAll(au, &datacenters)
-	} else {
-		datacenters, err = au.Datacenters()
-	}
+	datacenters, err = au.Datacenters()
 
 	if err != nil {
 		return 404, []byte(err.Error())

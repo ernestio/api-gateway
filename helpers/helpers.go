@@ -42,6 +42,15 @@ func GetParamFilter(c echo.Context) map[string]interface{} {
 	return query
 }
 
+// GetAuthorizedParamFilter : Get filters based on the params defined on the url + the group id if non admin
+func GetAuthorizedParamFilter(c echo.Context, au User) map[string]interface{} {
+	query := GetParamFilter(c)
+	if au.GetAdmin() != true {
+		query["group_id"] = au.GetGroupID()
+	}
+	return query
+}
+
 // GetSearchFilter : Returns a filter based on url query values from the request
 func GetSearchFilter(c echo.Context) map[string]interface{} {
 	query := make(map[string]interface{})

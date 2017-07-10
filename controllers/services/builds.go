@@ -4,23 +4,26 @@ import (
 	"encoding/json"
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/api-gateway/views"
 )
 
 // Builds : gets the list of builds for the specified service
 func Builds(au models.User, query map[string]interface{}) (int, []byte) {
-	var user models.User
+	var o views.ServiceRender
 
-	users := user.FindAllKeyValue()
-
-	if au.Admin != true {
-		query["group_id"] = au.GroupID
-	}
-
-	list, err := getServicesOutput(query)
+	builds, err := au.ServicesBy(query)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
+
+	list, err := o.RenderCollection(builds)
+	if err != nil {
+		return 500, []byte(err.Error())
+	}
+
+	users := au.FindAllKeyValue()
 	for i := range list {
 		for id, name := range users {
 			if id == list[i].UserID {
@@ -31,6 +34,7 @@ func Builds(au models.User, query map[string]interface{}) (int, []byte) {
 
 	body, err := json.Marshal(list)
 	if err != nil {
+		h.L.Warning(err.Error())
 		return 500, []byte("Internal error")
 	}
 

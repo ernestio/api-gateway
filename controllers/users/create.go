@@ -14,10 +14,6 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var u models.User
 	var existing models.User
 
-	if au.Admin != true {
-		return 403, []byte("You're not allowed to perform this action, please contact your admin")
-	}
-
 	if err := u.Map(body); err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(`{"code":400, "message":"` + err.Error() + `"}`)

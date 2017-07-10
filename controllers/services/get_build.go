@@ -10,14 +10,15 @@ import (
 
 // GetBuild : gets the details of a specific service build
 func GetBuild(au models.User, query map[string]interface{}) (int, []byte) {
-	var err error
-	var list []views.ServiceRender
+	var o views.ServiceRender
 
-	if au.Admin != true {
-		query["group_id"] = au.GroupID
+	builds, err := au.ServicesBy(query)
+	if err != nil {
+		return 500, []byte(err.Error())
 	}
 
-	if list, err = getServicesOutput(query); err != nil {
+	list, err := o.RenderCollection(builds)
+	if err != nil {
 		return 500, []byte(err.Error())
 	}
 

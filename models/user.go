@@ -182,11 +182,30 @@ func (u *User) Group() (group Group) {
 	return group
 }
 
+// Groups : Gets the groups the user has access to
+func (u *User) Groups() (gs []Group, err error) {
+	var g Group
+
+	if u.Admin == true {
+		err = g.FindAll(&gs)
+	} else {
+		if err = g.FindByID(u.GroupID); err != nil {
+			h.L.Warning(err.Error())
+		}
+		gs = append(gs, g)
+	}
+	return
+}
+
 // Datacenters : Gets the related user datacenters if any
 func (u *User) Datacenters() (ds []Datacenter, err error) {
 	var d Datacenter
 
-	err = d.FindByGroupID(u.GroupID, &ds)
+	if u.Admin == true {
+		err = d.FindAll(*u, &ds)
+	} else {
+		err = d.FindByGroupID(u.GroupID, &ds)
+	}
 
 	return ds, err
 }
@@ -204,7 +223,60 @@ func (u *User) FindAllKeyValue() (list map[int]string) {
 	return list
 }
 
+// GetBuild : Gets a specific build if authorized
+func (u *User) GetBuild(id string) (build Service, err error) {
+	var services []Service
+	var s Service
+
+	query := make(map[string]interface{})
+	if !u.Admin {
+		query["group_id"] = u.GroupID
+	}
+	query["id"] = id
+	err = s.Find(query, &services)
+
+	if len(services) == 0 {
+		h.L.Debug("Build " + id + " not found")
+		return build, errors.New("Not found")
+	}
+
+	return
+}
+
+// ServicesBy : Get authorized services by any filter
+func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err error) {
+	var s Service
+
+	if u.Admin != true {
+		filters["group_id"] = u.GetGroupID()
+	}
+	err = s.Find(filters, &ss)
+
+	return ss, err
+}
+
+// CanBeChangedBy : Checks if an user has write permissions on another user
+func (u *User) CanBeChangedBy(user User) bool {
+	if u.Username != user.Username && user.Admin != true {
+		return false
+	}
+	return true
+}
+
+// CanChangeGroupResource : Checks if it can change a group's resource
+func (u *User) CanChangeGroupResource(groupID int) bool {
+	if u.Admin != true && u.GroupID != groupID {
+		return false
+	}
+	return true
+}
+
 // GetAdmin : admin getter
 func (u *User) GetAdmin() bool {
 	return u.Admin
+}
+
+// GetGroupID : admin getter
+func (u *User) GetGroupID() int {
+	return u.GroupID
 }

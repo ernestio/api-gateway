@@ -17,10 +17,6 @@ func Report(au models.User, fromStr, toStr string) (int, []byte) {
 	var body []byte
 	var from, to int64
 
-	if au.Admin == false {
-		return 403, []byte("You should provide admin credentials to perform this action")
-	}
-
 	layout := "2006-01-02"
 
 	if fromStr != "" {

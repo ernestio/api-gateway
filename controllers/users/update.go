@@ -27,7 +27,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	// Check if authenticated user is admin or updating itself
-	if au.Username != u.Username && au.Admin != true {
+	if !u.CanBeChangedBy(au) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())
@@ -45,8 +45,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 404, []byte(err.Error())
 	}
 
-	// Check a non-admin user is not trying to change their group
-	if au.Admin != true && u.GroupID != existing.GroupID {
+	if !au.CanChangeGroupResource(existing.GroupID) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())

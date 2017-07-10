@@ -13,18 +13,11 @@ import (
 func List(au models.User) (int, []byte) {
 	var groups []models.Group
 	var body []byte
-	var group models.Group
 	var err error
 
-	if au.Admin == true {
-		if err := group.FindAll(au, &groups); err != nil {
-			h.L.Warning(err.Error())
-		}
-	} else {
-		if err := group.FindByID(au.GroupID); err != nil {
-			h.L.Warning(err.Error())
-		}
-		groups = append(groups, group)
+	if groups, err = au.Groups(); err != nil {
+		h.L.Warning(err.Error())
+		return 400, []byte(err.Error())
 	}
 
 	if body, err = json.Marshal(groups); err != nil {

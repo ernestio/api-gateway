@@ -13,10 +13,7 @@ import (
 // GetServiceBuildHandler : gets the details of a specific service build
 func GetServiceBuildHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
-	query := h.GetParamFilter(c)
-	if au.Admin != true {
-		query["group_id"] = au.GroupID
-	}
+	query := h.GetAuthorizedParamFilter(c, &au)
 	s, b := services.GetBuild(au, query)
 
 	return c.JSONBlob(s, b)
