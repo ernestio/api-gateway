@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -21,58 +22,63 @@ type ServicePayload struct {
 
 // CreateServiceHandler : Will receive a service application
 func CreateServiceHandler(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
-	var datacenter []byte
 	var err error
 	var group []byte
 	var previous *models.Service
+	var service []byte
+	var prevID string
+	var dt models.Datacenter
 
-	payload := ServicePayload{}
-
-	if au.GroupID == 0 {
-		body := "Current user does not belong to any group."
-		body += "\nPlease assign the user to a group before performing this action"
-		return 401, []byte(body)
-	}
-
-	payload.Service = (*json.RawMessage)(&body)
+	// *********** VALIDATIONS *********** //
 
 	// Get datacenter
-	if datacenter, err = getDatacenter(s.Datacenter, au.GroupID); err != nil {
+	dt, err = dt.GetByNameAndGroupID(s.Datacenter, au.GroupID)
+	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte(err.Error())
+		return 400, []byte(err.Error())
 	}
-	payload.Datacenter = (*json.RawMessage)(&datacenter)
+
+	rawDatacenter, err := json.Marshal(dt)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, []byte("Internal error trying to get the datacenter")
+	}
 
 	// Get group
-	if group, err = getGroup(au.GroupID); err != nil {
+	if group, err = getRawGroup(au.GroupID); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusNotFound, []byte(err.Error())
 	}
-	payload.Group = (*json.RawMessage)(&group)
+
 	var currentUser models.User
 	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	// Generate service ID
-	payload.ID = generateServiceID(s.Name + "-" + s.Datacenter)
-
 	// Get previous service if exists
-	if previous, err = getService(s.Name, au.GroupID); err != nil {
+	if previous, err = previous.GetByNameAndGroupID(s.Name, au.GroupID); err != nil {
 		h.L.Error("Previous service not found")
 		return http.StatusNotFound, []byte(err.Error())
 	}
 
 	if previous != nil {
-		payload.PrevID = previous.ID
+		prevID = previous.ID
 		if previous.Status == "in_progress" {
 			h.L.Error("Service is still in progress")
 			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
 	}
 
-	var service []byte
+	// *********** REQUESTING DEFINITION ************ //
+
+	payload := ServicePayload{
+		ID:         generateServiceID(s.Name + "-" + s.Datacenter),
+		PrevID:     prevID,
+		Service:    (*json.RawMessage)(&body),
+		Datacenter: (*json.RawMessage)(&rawDatacenter),
+		Group:      (*json.RawMessage)(&group),
+	}
 
 	if body, err = json.Marshal(payload); err != nil {
 		return 500, []byte("Internal server error")
@@ -89,6 +95,8 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 		return 400, []byte(err.Error())
 	}
 
+	// *********** BUILD REQUEST IF IS DRY *********** //
+
 	if dry == "true" {
 		res, err := views.RenderDefinition(service)
 		if err != nil {
@@ -98,22 +106,15 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 		return http.StatusOK, res
 	}
 
-	var datacenterStruct struct {
-		ID   int    `json:"id"`
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(datacenter, &datacenterStruct); err != nil {
-		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
-	}
+	// *********** SAVE NEW SERVICE AND PROCESS CREATION / IMPORT *********** //
 
 	ss := models.Service{
 		ID:           payload.ID,
 		Name:         s.Name,
-		Type:         datacenterStruct.Type,
+		Type:         dt.Type,
 		GroupID:      au.GroupID,
 		UserID:       currentUser.ID,
-		DatacenterID: datacenterStruct.ID,
+		DatacenterID: dt.ID,
 		Version:      time.Now(),
 		Status:       "in_progress",
 		Definition:   string(definition),
@@ -137,4 +138,19 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + payload.ID + `"}`)
+}
+
+func getRawGroup(id int) (group []byte, err error) {
+	var g models.Group
+
+	if err = g.FindByID(id); err != nil {
+		return group, errors.New(`"Specified group does not exist"`)
+	}
+
+	if group, err = json.Marshal(g); err != nil {
+		return group, errors.New(`"Internal error"`)
+	}
+	h.L.Info(group)
+
+	return group, nil
 }

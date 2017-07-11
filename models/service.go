@@ -106,6 +106,21 @@ func (s *Service) FindByNameAndGroupID(name string, id int, service *[]Service) 
 	return NewBaseModel("service").FindBy(query, service)
 }
 
+// GetByNameAndGroupID : Searches for all services with a name equal to the specified
+func (s *Service) GetByNameAndGroupID(name string, group int) (service *Service, err error) {
+	var services []Service
+
+	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
+		return service, h.ErrGatewayTimeout
+	}
+
+	if len(services) == 0 {
+		return nil, nil
+	}
+
+	return &services[0], nil
+}
+
 // FindByID : Gets a model by its id
 func (s *Service) FindByID(id int) (err error) {
 	query := make(map[string]interface{})

@@ -101,6 +101,21 @@ func (d *Datacenter) FindByNameAndGroupID(name string, id int, datacenters *[]Da
 	return nil
 }
 
+// GetByNameAndGroupID : ...
+func (d *Datacenter) GetByNameAndGroupID(name string, group int) (datacenter Datacenter, err error) {
+	var datacenters []Datacenter
+
+	if err = d.FindByNameAndGroupID(name, group, &datacenters); err != nil {
+		return
+	}
+
+	if len(datacenters) == 0 {
+		return datacenter, errors.New(`"Specified datacenter does not exist"`)
+	}
+
+	return datacenters[0], nil
+}
+
 // FindByID : Gets a model by its id
 func (d *Datacenter) FindByID(id int) (err error) {
 	query := make(map[string]interface{})

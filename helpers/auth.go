@@ -13,6 +13,8 @@ var (
 	AuthNonOwner = []byte("You don't have permissions to perform this action, please login as a resource owner")
 	// AuthNonReadable : Response body for non authorized requests on admin resources
 	AuthNonReadable = []byte("You don't have permissions to perform this action, please contact the resource owner")
+	// AuthNonGroup : Response body for non autherized requests due to a non group users
+	AuthNonGroup = []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
 )
 
 // IsAuthorized : Validates if the given user has access to the given resource
@@ -62,6 +64,15 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 	}
 	if st, ok := adminResources[resource]; ok {
 		return st, AuthNonAdmin
+	}
+
+	groupResources := map[string]int{
+		"services/create": 401,
+	}
+	if st, ok := groupResources[resource]; ok {
+		if au.GetGroupID() == 0 {
+			return st, AuthNonGroup
+		}
 	}
 
 	if resourceID != "" {
