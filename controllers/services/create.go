@@ -137,7 +137,7 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 		return 500, []byte(err.Error())
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + payload.ID + `"}`)
+	return http.StatusOK, []byte(`{"id":"` + payload.ID + `", "name":"` + s.Name + `"}`)
 }
 
 func getRawGroup(id int) (group []byte, err error) {

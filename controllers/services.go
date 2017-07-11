@@ -82,24 +82,6 @@ func ResetServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// CreateUUIDHandler : Creates an unique id
-func CreateUUIDHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "services/uuid")
-	if st != 200 {
-		return h.Respond(c, st, b)
-	}
-
-	st = 500
-	b = []byte("Invalid input")
-	body, err := h.GetRequestBody(c)
-	if err == nil {
-		st, b = services.UUID(au, body)
-	}
-
-	return h.Respond(c, st, b)
-}
-
 // CreateServiceHandler : Will receive a service application
 func CreateServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
