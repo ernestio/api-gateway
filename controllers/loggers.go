@@ -5,93 +5,34 @@
 package controllers
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-
+	"github.com/ernestio/api-gateway/controllers/loggers"
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
 // GetLoggersHandler : responds to GET /loggers/ with a list of all
 // loggers
 func GetLoggersHandler(c echo.Context) (err error) {
-	var loggers []models.Logger
-	var body []byte
-	var logger models.Logger
-
-	au := AuthenticatedUser(c)
-	if au.Admin == false {
-		return h.ErrUnauthorized
-	}
-
-	if err = logger.FindAll(&loggers); err != nil {
-		return err
-	}
-
-	if body, err = json.Marshal(loggers); err != nil {
-		return err
-	}
-	return c.JSONBlob(http.StatusOK, body)
+	return genericList(c, "logger", loggers.List)
 }
 
 // CreateLoggerHandler : responds to POST /loggers/ by creating a logger
 // on the data store
 func CreateLoggerHandler(c echo.Context) (err error) {
-	var l models.Logger
-	var body []byte
-
-	au := AuthenticatedUser(c)
-	if au.Admin == false {
-		return h.ErrUnauthorized
-	}
-
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if l.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
-	if err = l.Save(); err != nil {
-		return c.JSONBlob(400, []byte(err.Error()))
-	}
-
-	if body, err = json.Marshal(l); err != nil {
-		return err
-	}
-	return c.JSONBlob(http.StatusOK, body)
+	return genericCreate(c, "logger", loggers.Create)
 }
 
 // DeleteLoggerHandler : responds to DELETE /loggers/:id: by deleting an
 // existing logger
 func DeleteLoggerHandler(c echo.Context) (err error) {
-	var l models.Logger
-
+	s := 500
+	b := []byte("Invalid input")
 	au := AuthenticatedUser(c)
-	if au.Admin == false {
-		return h.ErrUnauthorized
+
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		s, b = loggers.Delete(au, body)
 	}
 
-	data, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return h.ErrBadReqBody
-	}
-
-	if l.Map(data) != nil {
-		return h.ErrBadReqBody
-	}
-
-	if l.Type == "basic" {
-		return c.JSONBlob(400, []byte("Basic logger can't be deleted"))
-	}
-
-	if err := l.Delete(); err != nil {
-		return err
-	}
-
-	return c.String(http.StatusOK, "")
+	return c.JSONBlob(s, b)
 }

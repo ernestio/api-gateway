@@ -85,9 +85,11 @@ func setupAPI(e *echo.Echo) {
 	s.POST("/import/", controllers.CreateServiceHandler)
 	s.POST("/uuid/", controllers.CreateUUIDHandler)
 	s.POST("/:service/reset/", controllers.ResetServiceHandler)
-	s.PUT("/:service", controllers.UpdateServiceHandler)
-	s.DELETE("/:name", controllers.DeleteServiceHandler)
-	s.DELETE("/:name/force/", controllers.ForceServiceDeletionHandler)
+	s.POST("/:service/sync/", controllers.SyncServiceHandler)
+	s.PUT("/:name/", controllers.UpdateServiceHandler)
+	s.DELETE("/:service", controllers.DeleteServiceHandler)
+	s.DELETE("/:service/force/", controllers.ForceServiceDeletionHandler)
+	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
 
 	// Setup components
 	comp := api.Group("/components")

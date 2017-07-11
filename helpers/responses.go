@@ -22,3 +22,12 @@ var (
 	// ErrExists : HTTP Error
 	ErrExists = echo.NewHTTPError(http.StatusSeeOther, "")
 )
+
+// Respond : manage responses
+func Respond(c echo.Context, st int, b []byte) error {
+	if st == 200 {
+		return c.JSONBlob(st, b)
+	}
+
+	return echo.NewHTTPError(st, string(b))
+}

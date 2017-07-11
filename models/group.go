@@ -59,11 +59,8 @@ func (g *Group) FindByName(name string, group *Group) (err error) {
 
 // FindAll : Searches for all groups on the store current user
 // has access to
-func (g *Group) FindAll(au User, groups *[]Group) (err error) {
+func (g *Group) FindAll(groups *[]Group) (err error) {
 	query := make(map[string]interface{})
-	if !au.Admin {
-		query["group_id"] = au.GroupID
-	}
 	if err := NewBaseModel("group").FindBy(query, groups); err != nil {
 		return err
 	}

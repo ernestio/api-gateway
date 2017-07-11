@@ -29,6 +29,9 @@ type Service struct {
 	Endpoint     string      `json:"endpoint"`
 	Definition   interface{} `json:"definition"`
 	Maped        string      `json:"mapping"`
+	Sync         bool        `json:"sync"`
+	SyncType     string      `json:"sync_type"`
+	SyncInterval int         `json:"sync_interval"`
 }
 
 // Validate the service
@@ -101,6 +104,21 @@ func (s *Service) FindByNameAndGroupID(name string, id int, service *[]Service) 
 	query["group_id"] = id
 
 	return NewBaseModel("service").FindBy(query, service)
+}
+
+// GetByNameAndGroupID : Searches for all services with a name equal to the specified
+func (s *Service) GetByNameAndGroupID(name string, group int) (service *Service, err error) {
+	var services []Service
+
+	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
+		return service, h.ErrGatewayTimeout
+	}
+
+	if len(services) == 0 {
+		return nil, nil
+	}
+
+	return &services[0], nil
 }
 
 // FindByID : Gets a model by its id
@@ -213,6 +231,15 @@ func (s *Service) RequestImport(raw []byte) error {
 // RequestDeletion : calls service.delete with the given raw message
 func (s *Service) RequestDeletion(raw []byte) error {
 	if err := N.Publish("service.delete", raw); err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+// RequestSync : calls service.sync with the given raw message
+func (s *Service) RequestSync() error {
+	if err := N.Publish("service.sync", []byte(`{"id":"`+s.ID+`"}`)); err != nil {
 		h.L.Error(err.Error())
 		return err
 	}
