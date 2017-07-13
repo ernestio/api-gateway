@@ -50,16 +50,6 @@ func TestServices(t *testing.T) {
 		})
 	})
 
-	Convey("Scenario: generating a uuid", t, func() {
-		Convey("Given I do a call to /services/uuid", func() {
-			s, b := services.UUID(au, []byte(`{"id":"foo"}`))
-			Convey("It should return the correct encoded uuid", func() {
-				So(s, ShouldEqual, 200)
-				So(string(b), ShouldEqual, `{"uuid":"acbd18db4cc2f85cedef654fccc4a4d8"}`)
-			})
-		})
-	})
-
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
@@ -341,7 +331,7 @@ func TestServices(t *testing.T) {
 
 				Convey("Then I should get a response with id and stream id", func() {
 					So(st, ShouldEqual, 200)
-					So(string(resp), ShouldEqual, `{"id":"foo-bar","stream_id":"bar"}`)
+					So(string(resp), ShouldEqual, `{"id":"foo-bar"}`)
 				})
 			})
 
