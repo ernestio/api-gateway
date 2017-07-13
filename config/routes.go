@@ -83,7 +83,6 @@ func setupAPI(e *echo.Echo) {
 	s.GET("/:service/builds/:build", controllers.GetServiceBuildHandler)
 	s.POST("/", controllers.CreateServiceHandler)
 	s.POST("/import/", controllers.CreateServiceHandler)
-	s.POST("/uuid/", controllers.CreateUUIDHandler)
 	s.POST("/:service/reset/", controllers.ResetServiceHandler)
 	s.POST("/:service/sync/", controllers.SyncServiceHandler)
 	s.PUT("/:name/", controllers.UpdateServiceHandler)

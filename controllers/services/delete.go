@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -39,8 +38,5 @@ func Delete(au models.User, name string) (int, []byte) {
 		return 500, []byte(`"Couldn't call service.delete"`)
 	}
 
-	parts := strings.Split(s.ID, "-")
-	stream := parts[len(parts)-1]
-
-	return http.StatusOK, []byte(`{"id":"` + s.ID + `","stream_id":"` + stream + `"}`)
+	return http.StatusOK, []byte(`{"id":"` + s.ID + `"}`)
 }
