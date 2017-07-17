@@ -5,19 +5,14 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/blang/semver"
 	"github.com/dgrijalva/jwt-go"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
-
-const RequiredCliVersion string = "2.2.0"
 
 // Secret : TODO
 var Secret string
@@ -64,28 +59,9 @@ func AuthenticateHandler(c echo.Context) error {
 	}
 
 	if u.Username == username && u.ValidPassword(password) {
-		// Check CLI version requirement
-		req := c.Request()
-		uagent := req.Header["User-Agent"]
-
-		for _, v := range uagent {
-			if strings.Contains(v, "Ernest/") {
-				parts := strings.Split(v, "/")
-				agentVersion := parts[1]
-
-				rv, err := semver.Make(RequiredCliVersion)
-				if err != nil {
-					return err
-				}
-				ev, err := semver.Make(agentVersion)
-				if err != nil {
-					return err
-				}
-				if ev.LT(rv) {
-					err := fmt.Sprintf("Ernest CLI %s is not supported by this server.\nPlease upgrade http://docs.ernest.io/downloads/", agentVersion)
-					return echo.NewHTTPError(403, err)
-				}
-			}
+		err := h.ValidCliVersion(c.Request())
+		if err != nil {
+			return echo.NewHTTPError(403, err.Error())
 		}
 
 		claims := make(jwt.MapClaims)
