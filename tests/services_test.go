@@ -86,7 +86,7 @@ func TestServices(t *testing.T) {
 			Convey("And I call /service/:service on the api", func() {
 				var d views.ServiceRender
 				params := make(map[string]interface{})
-				params["service"] = "1"
+				params["id"] = "1"
 
 				Convey("When I'm authenticated as an admin user", func() {
 
@@ -145,15 +145,16 @@ func TestServices(t *testing.T) {
 		})
 	*/
 	Convey("Scenario: searching for services", t, func() {
+		findServiceSubscriber()
+		foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 		Convey("Given the service exists on the store", func() {
-			findServiceSubscriber()
-			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 1)
 			Convey("And I call /service/search/ on the api", func() {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
-				params["service"] = "1"
-				st, resp := services.Search(au, params)
+				params["name"] = "test"
+
 				Convey("When I'm authenticated as an admin user", func() {
+					st, resp := services.Search(au, params)
 					Convey("Then I should get the matching service", func() {
 						err := json.Unmarshal(resp, &s)
 						So(err, ShouldBeNil)
