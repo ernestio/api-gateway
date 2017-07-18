@@ -20,10 +20,9 @@ func TestServices(t *testing.T) {
 	config.Setup()
 	au := mockUsers[0]
 
-	Convey("Scenario: reeting a service", t, func() {
+	Convey("Scenario: reseting a service", t, func() {
 		findUserSubscriber()
 		foundSubscriber("service.set", `"success"`, 1)
-		foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 
 		Convey("Given my existing service is in progress", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","status":"in_progress"},{"id":"2","name":"test","status":"done"}]`, 1)
@@ -52,8 +51,7 @@ func TestServices(t *testing.T) {
 
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
-			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 2)
-			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
+			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 1)
 			Convey("When I call GET /services/", func() {
 				s, b := services.List(au)
 				Convey("It should return the correct set of data", func() {
@@ -83,16 +81,19 @@ func TestServices(t *testing.T) {
 			})
 		*/
 		Convey("Given the service exists on the store", func() {
-			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 3)
-			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 5)
+			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 1)
+			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 1)
 			Convey("And I call /service/:service on the api", func() {
 				var d views.ServiceRender
 				params := make(map[string]interface{})
 				params["service"] = "1"
-				s, resp := services.Get(au, params)
 
 				Convey("When I'm authenticated as an admin user", func() {
+
+					s, resp := services.Get(au, params)
+
 					Convey("Then I should get the existing service", func() {
+
 						So(s, ShouldEqual, 200)
 						err := json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
@@ -102,8 +103,6 @@ func TestServices(t *testing.T) {
 				})
 
 				Convey("When the service group matches the authenticated users group", func() {
-					params := make(map[string]interface{})
-					params["service"] = "1"
 					s, resp := services.Get(au, params)
 
 					Convey("Then I should get the existing service", func() {
@@ -148,7 +147,7 @@ func TestServices(t *testing.T) {
 	Convey("Scenario: searching for services", t, func() {
 		Convey("Given the service exists on the store", func() {
 			findServiceSubscriber()
-			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
+			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 1)
 			Convey("And I call /service/search/ on the api", func() {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
