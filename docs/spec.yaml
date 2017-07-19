@@ -1,5 +1,3 @@
-# this is an example of the Uber API
-# as a demonstration of an API spec in YAML
 swagger: '2.0'
 info:
   title: Ernest API
@@ -40,6 +38,246 @@ paths:
         403:
           description: You're not authorized to proceed with the login
 
+  /api/services/:
+    get:
+      summary:  List all services
+      description: |
+        returns all services viewable by a logged in user
+      produces:
+        - "application/json"
+      tags:
+        - Services
+      responses:
+        200:
+          description: A json array containing all available services
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Service'
+
+        403:
+          description: You're not authorized to view this resource
+
+    post:
+      summary:  Create a service
+      description: |
+        accepts a valid service model
+        return a service model populated with an ID
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - name: body
+        in: body
+        description: The service to be created
+        schema:
+          $ref: '#/definitions/Service'
+      tags:
+        - Services
+      responses:
+        201:
+          description: Returns the created service
+          schema:
+            $ref: '#/definitions/Service'
+        403:
+          description: You're not authorized to view this resource
+
+  /api/services/{service}:
+    get:
+      summary: Get a service
+      description: |
+        Returns a service by name
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service to return
+        required: true
+        type: string
+        format: string
+      tags:
+        - Services
+      responses:
+        200:
+          description: A json array containing all available services
+          schema:
+            $ref: '#/definitions/Service'
+        404:
+          description: Resource does not exist
+        403:
+          description: You're not authorized to view this resource
+    put:
+      summary:  Update a service
+      description: |
+        accepts a valid service model
+        return a service model populated with an ID
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service to return
+        required: true
+        type: string
+        format: string
+      - name: body
+        in: body
+        description: The service to be created
+        schema:
+          $ref: '#/definitions/Service'
+      tags:
+        - Services
+      responses:
+        201:
+          description: Returns the created service
+          schema:
+            $ref: '#/definitions/Service'
+        403:
+          description: You're not authorized to view this resource
+
+  /api/services/{service}/builds/:
+    get:
+      summary:  List all builds
+      description: |
+        returns all builds associated with a service
+      produces:
+        - "application/json"
+      tags:
+        - Builds
+      responses:
+        200:
+          description: A json array containing all available services
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Build'
+
+        403:
+          description: You're not authorized to view this resource
+
+    post:
+      summary:  Create a build
+      description: |
+        accepts a service's yaml
+        return a build model populated with an ID and status
+      consumes:
+        - "application/yaml"
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service to return
+        required: true
+        type: string
+        format: string
+      tags:
+        - Builds
+      responses:
+        201:
+          description: Returns the created build
+          schema:
+            $ref: '#/definitions/Build'
+        403:
+          description: You're not authorized to view this resource
+  /api/services/{service}/builds/{build}:
+    get:
+      summary: Get a build
+      description: |
+        Returns a build by id
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service associated with the build
+        required: true
+        type: string
+        format: string
+      - name: build
+        in: path
+        description: id of build to return
+        required: true
+        type: string
+        format: string
+      tags:
+        - Builds
+      responses:
+        200:
+          description: A json array containing all available services
+          schema:
+            $ref: '#/definitions/Service'
+        404:
+          description: Resource does not exist
+        403:
+          description: You're not authorized to view this resource
+  /api/services/{service}/import/:
+    post:
+      summary:  Import a service
+      description: |
+        accepts a service's yaml
+        return a service model populated with an ID
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service to return
+        required: true
+        type: string
+        format: string
+      - name: body
+        in: body
+        description: The service to be created
+        schema:
+          $ref: '#/definitions/Import'
+      tags:
+        - Services
+      responses:
+        201:
+          description: Returns the created build
+          schema:
+            $ref: '#/definitions/Build'
+        403:
+          description: You're not authorized to view this resource
+  /api/services/{service}/reapply/:
+    post:
+      summary:  Reapply a previous service build
+      description: |
+        accepts a reapply model
+        return a service model populated with an ID
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+      - name: service
+        in: path
+        description: name of service to return
+        required: true
+        type: string
+        format: string
+      - name: body
+        in: body
+        description: The service to be created
+        schema:
+          $ref: '#/definitions/Reapply'
+      tags:
+        - Services
+      responses:
+        201:
+          description: Returns the created build
+          schema:
+            $ref: '#/definitions/Build'
+        403:
+          description: You're not authorized to view this resource
+
 definitions:
   Error:
     type: object
@@ -47,4 +285,95 @@ definitions:
       token:
         type: string
         description: JWT Token to be used in future connections
-
+  Service:
+    type: object
+    required:
+      - datacenter_id
+      - name
+      - type
+    properties:
+      id:
+        type: integer
+        description: service id
+        readOnly: true
+      group_id:
+        type: integer
+        description: the group id scope of the service
+        readOnly: true
+      datacenter_id:
+        type: integer
+        description: the id of the datacenter that will be used by the service
+      name:
+        type: string
+        description: the name of the service
+      type:
+        type: string
+        description: the type of service
+      status:
+        type: string
+        description: the status of the service
+        readOnly: true
+      sync:
+        type: boolean
+        description: sync enablement of the service
+        default: false
+      sync_type:
+        type: string
+        enum:
+          - hard
+          - soft
+        description: the sync configuration of the service
+        default: soft
+      sync_interval:
+        type: integer
+        description: the sync configuration of the service
+        default: hard
+  Build:
+    type: object
+    properties:
+      id:
+        type: string
+        description: the unique id of the build
+      service_id:
+        type: integer
+        description: the service id associated with the build
+      user_id:
+        type: integer
+        description: the user id of the user who created the build
+      type:
+        type: string
+        description: the type of build
+        enum:
+          - apply
+          - import
+          - sync
+      status:
+        type: string
+        description: the status of the build
+        enum:
+          - running
+          - errored
+          - waiting
+          - completed
+      started:
+        type: string
+        format: date-time
+        description: the start time of the build
+      finished:
+        type: string
+        format: date-time
+        description: the finish time of the build
+  Import:
+    type: object
+    properties:
+      filters:
+        type: array
+        description: values that limit the scope of the
+  Reapply:
+    type: object
+    required:
+      - build_id
+    properties:
+      build_id:
+        type: string
+        description: the build id of the state you wish to return a service to
