@@ -15,6 +15,7 @@ deps:
 	go get github.com/nu7hatch/gouuid
 	go get github.com/ghodss/yaml
 	go get github.com/ernestio/ernest-config-client
+	go get github.com/blang/semver
 	go get golang.org/x/crypto/pbkdf2
 	go get github.com/ernestio/crypto
 	go get github.com/ernestio/crypto/aes
