@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/scrypt"
 )
 
