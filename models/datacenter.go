@@ -9,9 +9,9 @@ import (
 	"errors"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
+	"github.com/sirupsen/logrus"
 )
 
 // Datacenter holds the datacenter response from datacenter-store

@@ -9,8 +9,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/sirupsen/logrus"
 	graph "gopkg.in/r3labs/graph.v2"
 )
 

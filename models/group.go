@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/sirupsen/logrus"
 )
 
 // Group holds the group response from group-store

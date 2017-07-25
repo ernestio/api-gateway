@@ -9,8 +9,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/sirupsen/logrus"
 )
 
 // Notification holds the notification response from notification

@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/nats-io/nats"
+	"github.com/sirupsen/logrus"
 )
 
 // TODO : This should probably be implementing an internal interface
