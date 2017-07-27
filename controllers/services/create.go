@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
@@ -32,8 +31,7 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	// *********** VALIDATIONS *********** //
 
 	// Get datacenter
-	dt, err = dt.GetByNameAndGroupID(s.Datacenter, au.GroupID)
-	if err != nil {
+	if err = dt.FindByName(s.Datacenter, &dt); err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(err.Error())
 	}
@@ -44,12 +42,6 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 		return 500, []byte("Internal error trying to get the datacenter")
 	}
 
-	// Get group
-	if group, err = getRawGroup(au.GroupID); err != nil {
-		h.L.Error(err.Error())
-		return http.StatusNotFound, []byte(err.Error())
-	}
-
 	var currentUser models.User
 	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
 		h.L.Error(err.Error())
@@ -57,7 +49,7 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	}
 
 	// Get previous service if exists
-	if previous, err = previous.GetByNameAndGroupID(s.Name, au.GroupID); err != nil {
+	if err = previous.FindByName(s.Name, previous); err != nil {
 		h.L.Error("Previous service not found")
 		return http.StatusNotFound, []byte(err.Error())
 	}
@@ -112,7 +104,6 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 		ID:           payload.ID,
 		Name:         s.Name,
 		Type:         dt.Type,
-		GroupID:      au.GroupID,
 		UserID:       currentUser.ID,
 		DatacenterID: dt.ID,
 		Version:      time.Now(),
@@ -138,19 +129,4 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + payload.ID + `", "name":"` + s.Name + `"}`)
-}
-
-func getRawGroup(id int) (group []byte, err error) {
-	var g models.Group
-
-	if err = g.FindByID(id); err != nil {
-		return group, errors.New(`"Specified group does not exist"`)
-	}
-
-	if group, err = json.Marshal(g); err != nil {
-		return group, errors.New(`"Internal error"`)
-	}
-	h.L.Info(group)
-
-	return group, nil
 }

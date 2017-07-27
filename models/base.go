@@ -15,12 +15,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// TODO : This should probably be implementing an internal interface
-
 // N : Nats connection
 var N *nats.Conn
 
-// BaseModel : Group holds the group response from group-store
+// BaseModel : Abstraction layer to interact with data stores
 type BaseModel struct {
 	Type string
 }

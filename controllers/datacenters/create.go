@@ -15,10 +15,6 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var d models.Datacenter
 	var existing models.Datacenter
 
-	if au.GroupID == 0 {
-		return 401, []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
-	}
-
 	if d.Map(body) != nil {
 		return 400, []byte("Input is not valid")
 	}
@@ -28,8 +24,6 @@ func Create(au models.User, body []byte) (int, []byte) {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
-
-	d.GroupID = au.GroupID
 
 	if err := existing.FindByName(d.Name, &existing); err == nil {
 		return 409, []byte("Specified datacenter already exists")

@@ -48,18 +48,6 @@ func setupAPI(e *echo.Echo) {
 	u.PUT("/:user", controllers.UpdateUserHandler)
 	u.DELETE("/:user", controllers.DeleteUserHandler)
 
-	// Setup group routes
-	g := api.Group("/groups")
-	g.GET("/", controllers.GetGroupsHandler)
-	g.GET("/:group", controllers.GetGroupHandler)
-	g.POST("/", controllers.CreateGroupHandler)
-	g.PUT("/:group", controllers.UpdateGroupHandler)
-	g.DELETE("/:group", controllers.DeleteGroupHandler)
-	g.POST("/:group/users/", controllers.AddUserToGroupHandler)
-	g.DELETE("/:group/users/:user", controllers.DeleteUserFromGroupHandler)
-	g.POST("/:group/datacenters/", controllers.AddDatacenterToGroupHandler)
-	g.DELETE("/:group/datacenters/:datacenter", controllers.DeleteDatacenterFromGroupHandler)
-
 	// Setup datacenter routes
 	d := api.Group("/datacenters")
 	d.GET("/", controllers.GetDatacentersHandler)

@@ -26,7 +26,6 @@ func AuthenticatedUser(c echo.Context) models.User {
 	claims, ok := user.Claims.(jwt.MapClaims)
 	if ok {
 		u.Username = claims["username"].(string)
-		u.GroupID = int(claims["group_id"].(float64))
 		u.Admin = claims["admin"].(bool)
 	}
 
@@ -68,7 +67,6 @@ func AuthenticateHandler(c echo.Context) error {
 
 	claims := make(jwt.MapClaims)
 
-	claims["group_id"] = u.GroupID
 	claims["username"] = u.Username
 	claims["admin"] = u.Admin
 	claims["exp"] = time.Now().Add(time.Hour * 48).Unix()

@@ -27,8 +27,6 @@ const (
 // User holds the user response from user-store
 type User struct {
 	ID          int    `json:"id"`
-	GroupID     int    `json:"group_id"`
-	GroupName   string `json:"group_name"`
 	Username    string `json:"username"`
 	Password    string `json:"password,omitempty"`
 	OldPassword string `json:"oldpassword,omitempty"`
@@ -90,7 +88,7 @@ func (u *User) FindByUserName(name string, user *User) (err error) {
 func (u *User) FindAll(users *[]User) (err error) {
 	query := make(map[string]interface{})
 	if !u.Admin {
-		query["group_id"] = u.GroupID
+		// TODO add auth
 	}
 	if err := NewBaseModel("user").FindBy(query, users); err != nil {
 		return err
@@ -106,7 +104,7 @@ func (u *User) FindByID(id string, user *User) (err error) {
 		return err
 	}
 	if !u.Admin {
-		query["group_id"] = u.GroupID
+		// TODO add auth
 	}
 	if err := NewBaseModel("user").GetBy(query, user); err != nil {
 		return err
@@ -141,10 +139,8 @@ func (u *User) Redact() {
 	u.Salt = ""
 }
 
-// Improve : adds extra data as group name
+// Improve : adds extra data
 func (u *User) Improve() {
-	g := u.Group()
-	u.GroupName = g.Name
 }
 
 // ValidPassword : checks if a submitted password matches
@@ -173,38 +169,12 @@ func (u *User) ValidPassword(pw string) bool {
 	return false
 }
 
-// Group : Gets the related user group if any
-func (u *User) Group() (group Group) {
-	if err := group.FindByID(u.GroupID); err != nil {
-		h.L.Warning(err.Error())
-	}
-
-	return group
-}
-
-// Groups : Gets the groups the user has access to
-func (u *User) Groups() (gs []Group, err error) {
-	var g Group
-
-	if u.Admin == true {
-		err = g.FindAll(&gs)
-	} else {
-		if err = g.FindByID(u.GroupID); err != nil {
-			h.L.Warning(err.Error())
-		}
-		gs = append(gs, g)
-	}
-	return
-}
-
 // Datacenters : Gets the related user datacenters if any
 func (u *User) Datacenters() (ds []Datacenter, err error) {
 	var d Datacenter
 
 	if u.Admin == true {
 		err = d.FindAll(*u, &ds)
-	} else {
-		err = d.FindByGroupID(u.GroupID, &ds)
 	}
 
 	return ds, err
@@ -229,9 +199,6 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 	var s Service
 
 	query := make(map[string]interface{})
-	if !u.Admin {
-		query["group_id"] = u.GroupID
-	}
 	query["id"] = id
 	err = s.Find(query, &services)
 
@@ -247,9 +214,6 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err error) {
 	var s Service
 
-	if u.Admin != true {
-		filters["group_id"] = u.GetGroupID()
-	}
 	err = s.Find(filters, &ss)
 
 	return ss, err
@@ -263,27 +227,25 @@ func (u *User) CanBeChangedBy(user User) bool {
 	return true
 }
 
-// CanChangeGroupResource : Checks if it can change a group's resource
-func (u *User) CanChangeGroupResource(groupID int) bool {
-	if u.Admin != true && u.GroupID != groupID {
-		return false
-	}
-	return true
-}
-
 // GetAdmin : admin getter
 func (u *User) GetAdmin() bool {
 	return u.Admin
 }
 
-// GetGroupID : admin getter
-func (u *User) GetGroupID() int {
-	return u.GroupID
-}
-
 // GetID : ID getter
 func (u *User) GetID() string {
 	return strconv.Itoa(u.ID)
+}
+
+type resource interface {
+	GetID() string
+	GetType() string
+}
+
+// Owns : Checks if the user owns a specific resource
+func (u *User) Owns(o resource) bool {
+	return u.IsOwner(o.GetType(), o.GetID())
+
 }
 
 // IsOwner : check if is the owner of a specific resource

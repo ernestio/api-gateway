@@ -25,7 +25,7 @@ func Update(au models.User, datacenter string, body []byte) (int, []byte) {
 		return 404, []byte("Datacenter not found")
 	}
 
-	if au.GroupID != au.GroupID {
+	if ok := au.Owns(&d); !ok {
 		return http.StatusForbidden, []byte("You don't have permissions to acccess this resource")
 	}
 

@@ -15,7 +15,7 @@ func Sync(au models.User, name string) (int, []byte) {
 	var err error
 
 	// Get existing service
-	if raw, err = getServiceRaw(name, au.GroupID); err != nil {
+	if raw, err = getServiceRaw(name); err != nil {
 		return 404, []byte(err.Error())
 	}
 

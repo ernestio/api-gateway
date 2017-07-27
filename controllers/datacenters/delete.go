@@ -17,7 +17,7 @@ func Delete(au models.User, datacenter string) (int, []byte) {
 		return 404, []byte("Datacenter not found")
 	}
 
-	if au.GroupID != d.GroupID {
+	if ok := au.Owns(&d); !ok {
 		return http.StatusForbidden, []byte("You don't have permissions to acccess this resource")
 	}
 

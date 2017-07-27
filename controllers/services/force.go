@@ -14,7 +14,7 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 	var err error
 	var service models.Service
 
-	if raw, err = getServiceRaw(name, au.GroupID); err != nil {
+	if raw, err = getServiceRaw(name); err != nil {
 		return 404, []byte(err.Error())
 	}
 

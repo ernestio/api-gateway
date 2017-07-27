@@ -45,7 +45,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 404, []byte(err.Error())
 	}
 
-	if !au.CanChangeGroupResource(existing.GroupID) {
+	if au.Admin == false || existing.ID != au.ID {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())

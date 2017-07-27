@@ -12,8 +12,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-// GetServicesHandler : responds to GET /services/ with a list of all
-// services for current user group
+// GetServicesHandler : responds to GET /services/ with a list ahorized services
 func GetServicesHandler(c echo.Context) (err error) {
 	return genericList(c, "service", services.List)
 }

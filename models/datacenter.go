@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
@@ -17,8 +18,6 @@ import (
 // Datacenter holds the datacenter response from datacenter-store
 type Datacenter struct {
 	ID              int    `json:"id"`
-	GroupID         int    `json:"group_id"`
-	GroupName       string `json:"group_name"`
 	Name            string `json:"name"`
 	Type            string `json:"type"`
 	Region          string `json:"region"`
@@ -79,43 +78,6 @@ func (d *Datacenter) FindByName(name string, datacenter *Datacenter) (err error)
 	return nil
 }
 
-// FindByGroupID : Searches for all datacenters on the store current user
-// has access to with the specified group id
-func (d *Datacenter) FindByGroupID(id int, datacenters *[]Datacenter) (err error) {
-	query := make(map[string]interface{})
-	query["group_id"] = id
-	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
-		return err
-	}
-	return nil
-}
-
-// FindByNameAndGroupID : Searches for all datacenters with a name equal to the specified
-func (d *Datacenter) FindByNameAndGroupID(name string, id int, datacenters *[]Datacenter) (err error) {
-	query := make(map[string]interface{})
-	query["name"] = name
-	query["group_id"] = id
-	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetByNameAndGroupID : ...
-func (d *Datacenter) GetByNameAndGroupID(name string, group int) (datacenter Datacenter, err error) {
-	var datacenters []Datacenter
-
-	if err = d.FindByNameAndGroupID(name, group, &datacenters); err != nil {
-		return
-	}
-
-	if len(datacenters) == 0 {
-		return datacenter, errors.New(`"Specified datacenter does not exist"`)
-	}
-
-	return datacenters[0], nil
-}
-
 // FindByID : Gets a model by its id
 func (d *Datacenter) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
@@ -126,7 +88,7 @@ func (d *Datacenter) FindByID(id int) (err error) {
 	return nil
 }
 
-// FindAll : Searches for all groups on the store current user
+// FindAll : Searches for all entities on the store current user
 // has access to
 func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
 	query := make(map[string]interface{})
@@ -136,7 +98,7 @@ func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
 	return nil
 }
 
-// Save : calls datacenter.set with the marshalled current group
+// Save : calls datacenter.set with the marshalled current entity
 func (d *Datacenter) Save() (err error) {
 	if err := NewBaseModel("datacenter").Save(d); err != nil {
 		return err
@@ -167,19 +129,8 @@ func (d *Datacenter) Redact() {
 	d.Password = ""
 }
 
-// Improve : adds extra data as group name
+// Improve : adds extra data to this entity
 func (d *Datacenter) Improve() {
-	g := d.Group()
-	d.GroupName = g.Name
-}
-
-// Group : Gets the related datacenter group if any
-func (d *Datacenter) Group() (group Group) {
-	if err := group.FindByID(d.GroupID); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	return group
 }
 
 // Services : Get the services related with current datacenter
@@ -188,4 +139,14 @@ func (d *Datacenter) Services() (services []Service, err error) {
 	err = s.FindByDatacenterID(d.ID, &services)
 
 	return services, err
+}
+
+// GetID : ID getter
+func (d *Datacenter) GetID() string {
+	return strconv.Itoa(d.ID)
+}
+
+// GetType : Gets the resource type
+func (d *Datacenter) GetType() string {
+	return "datacenter"
 }

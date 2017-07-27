@@ -11,9 +11,7 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// List : responds to GET /users/ with a list of all
-// users for admin, and all users in your group for other
-// users
+// List : responds to GET /users/ with a list of authorized users
 func List(au models.User) (int, []byte) {
 	var users []models.User
 

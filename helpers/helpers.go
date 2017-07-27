@@ -15,7 +15,7 @@ import (
 func GetParamFilter(c echo.Context) map[string]interface{} {
 	query := make(map[string]interface{})
 
-	fields := []string{"group", "user", "datacenter"}
+	fields := []string{"user", "datacenter"}
 
 	// Process ID's as int's
 	for _, field := range fields {
@@ -42,12 +42,10 @@ func GetParamFilter(c echo.Context) map[string]interface{} {
 	return query
 }
 
-// GetAuthorizedParamFilter : Get filters based on the params defined on the url + the group id if non admin
+// GetAuthorizedParamFilter : Get filters based on the params defined on the url
 func GetAuthorizedParamFilter(c echo.Context, au User) map[string]interface{} {
 	query := GetParamFilter(c)
-	if au.GetAdmin() != true {
-		query["group_id"] = au.GetGroupID()
-	}
+
 	return query
 }
 
@@ -55,7 +53,7 @@ func GetAuthorizedParamFilter(c echo.Context, au User) map[string]interface{} {
 func GetSearchFilter(c echo.Context) map[string]interface{} {
 	query := make(map[string]interface{})
 
-	fields := []string{"id", "user_id", "group_id", "datacenter_id", "service_id"}
+	fields := []string{"id", "user_id", "datacenter_id", "service_id"}
 
 	// Process ID's as int's
 	for _, field := range fields {

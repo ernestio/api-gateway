@@ -8,11 +8,11 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-func getServiceRaw(name string, group int) ([]byte, error) {
+func getServiceRaw(name string) ([]byte, error) {
 	var ss models.Service
+	var s models.Service
 
-	s, err := ss.GetByNameAndGroupID(name, group)
-	if err != nil {
+	if err := ss.FindByName(name, &s); err != nil {
 		return nil, err
 	}
 
