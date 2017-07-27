@@ -68,6 +68,11 @@ func setupAPI(e *echo.Echo) {
 	d.PUT("/:datacenter", controllers.UpdateDatacenterHandler)
 	d.DELETE("/:datacenter", controllers.DeleteDatacenterHandler)
 
+	// Setup roles routes
+	r := api.Group("/roles")
+	r.POST("/", controllers.CreateRoleHandler)
+	r.DELETE("/", controllers.DeleteRoleHandler)
+
 	// Setup logger routes
 	l := api.Group("/loggers")
 	l.GET("/", controllers.GetLoggersHandler)

@@ -280,3 +280,41 @@ func (u *User) GetAdmin() bool {
 func (u *User) GetGroupID() int {
 	return u.GroupID
 }
+
+// GetID : ID getter
+func (u *User) GetID() string {
+	return strconv.Itoa(u.ID)
+}
+
+// IsOwner : check if is the owner of a specific resource
+func (u *User) IsOwner(resourceType, resourceID string) bool {
+	if role, err := u.getRole(resourceType, resourceID); err != nil {
+		if role == "owner" {
+			return true
+		}
+	}
+
+	return true
+}
+
+// IsReader : check if has reader permissions on a specific resource
+func (u *User) IsReader(resourceType, resourceID string) bool {
+	if role, err := u.getRole(resourceType, resourceID); err != nil {
+		if role == "reader" {
+			return true
+		}
+	}
+
+	return true
+}
+
+func (u *User) getRole(resourceType, resourceID string) (string, error) {
+	var role Role
+
+	existing, err := role.Get(u.GetID(), resourceID, resourceType)
+	if err == nil || existing == nil {
+		return "", errors.New("Not found")
+	}
+
+	return existing.Role, nil
+}
