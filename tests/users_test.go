@@ -18,12 +18,11 @@ func TestUsers(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, GroupID: 1, Username: "test", Password: "test1234"}
-	other := models.User{ID: 3, GroupID: 2, Username: "other", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	other := models.User{ID: 3, Username: "other", Password: "test1234"}
 	admin := models.User{ID: 2, Username: "admin", Admin: true}
 
 	Convey("Scenario: getting a list of users", t, func() {
-		getGroupSubscriber(3)
 		findUserSubscriber()
 		Convey("When calling /users/ on the api", func() {
 			Convey("And I'm authenticated as an admin user", func() {
@@ -107,7 +106,6 @@ func TestUsers(t *testing.T) {
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
-		getGroupSubscriber(1)
 		getUserSubscriber(1)
 		Convey("Given no existing users on the store", func() {
 			data := []byte(`{"group_id": 1, "username": "new-test", "password": "test1234"}`)
@@ -206,7 +204,6 @@ func TestUsers(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
-							So(u.GroupID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
 							So(u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
@@ -274,7 +271,6 @@ func TestUsers(t *testing.T) {
 							So(err, ShouldBeNil)
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
-							So(u.GroupID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
 							So(u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")

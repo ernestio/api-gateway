@@ -18,21 +18,18 @@ var (
 		models.Service{
 			ID:           "1",
 			Name:         "test",
-			GroupID:      1,
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "3",
 			Name:         "test",
-			GroupID:      1,
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "2",
 			Name:         "test2",
-			GroupID:      2,
 			DatacenterID: 3,
 			Version:      time.Now(),
 		},
@@ -48,19 +45,18 @@ func getServiceSubscriber() {
 			}
 
 			for _, service := range mockServices {
-				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.ID == qs.ID {
-					data, _ := json.Marshal(service)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
-				} else if qs.GroupID == 0 && service.ID == qs.ID {
+				if service.ID == qs.ID {
 					data, _ := json.Marshal(service)
 					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
+				data, _ := json.Marshal(service)
+				if err := models.N.Publish(msg.Reply, data); err != nil {
+					log.Println(err)
+				}
+				return
 			}
 		}
 		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
@@ -87,8 +83,7 @@ func findServiceSubscriber() {
 
 		for _, service := range mockServices {
 			if service.Name == qs.Name ||
-				service.Name == qs.Name && service.Version == qs.Version && qs.GroupID == 0 ||
-				service.Name == qs.Name && service.GroupID == qs.GroupID {
+				service.Name == qs.Name && service.Version == qs.Version {
 				s = append(s, service)
 			}
 		}

@@ -15,14 +15,12 @@ import (
 var (
 	mockDatacenters = []models.Datacenter{
 		models.Datacenter{
-			ID:      1,
-			Name:    "test",
-			GroupID: 1,
+			ID:   1,
+			Name: "test",
 		},
 		models.Datacenter{
-			ID:      2,
-			Name:    "test2",
-			GroupID: 2,
+			ID:   2,
+			Name: "test2",
 		},
 	}
 )
@@ -37,19 +35,18 @@ func getDatacenterSubscriber(max int) {
 			}
 
 			for _, datacenter := range mockDatacenters {
-				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.ID == qd.ID {
-					data, _ := json.Marshal(datacenter)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
-				} else if qd.GroupID == 0 && datacenter.ID == qd.ID {
+				if datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
 					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
+				data, _ := json.Marshal(datacenter)
+				if err := models.N.Publish(msg.Reply, data); err != nil {
+					log.Println(err)
+				}
+				return
 			}
 		}
 		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
