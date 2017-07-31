@@ -88,6 +88,16 @@ func (d *Datacenter) FindByID(id int) (err error) {
 	return nil
 }
 
+// FindByIDs : Gets a model by its id
+func (d *Datacenter) FindByIDs(ids []string, ds *[]Datacenter) (err error) {
+	query := make(map[string]interface{})
+	query["ids"] = ids
+	if err := NewBaseModel("datacenter").FindBy(query, ds); err != nil {
+		return err
+	}
+	return nil
+}
+
 // FindAll : Searches for all entities on the store current user
 // has access to
 func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
@@ -103,6 +113,7 @@ func (d *Datacenter) Save() (err error) {
 	if err := NewBaseModel("datacenter").Save(d); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -148,5 +159,5 @@ func (d *Datacenter) GetID() string {
 
 // GetType : Gets the resource type
 func (d *Datacenter) GetType() string {
-	return "datacenter"
+	return "project"
 }

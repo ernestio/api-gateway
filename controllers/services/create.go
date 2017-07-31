@@ -19,8 +19,8 @@ type ServicePayload struct {
 	Service    *json.RawMessage `json:"service"`
 }
 
-// CreateServiceHandler : Will receive a service application
-func CreateServiceHandler(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
+// Create : Will receive a service application
+func Create(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
 	var err error
 	var group []byte
 	var previous *models.Service
@@ -49,12 +49,8 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 	}
 
 	// Get previous service if exists
-	if err = previous.FindByName(s.Name, previous); err != nil {
-		h.L.Error("Previous service not found")
-		return http.StatusNotFound, []byte(err.Error())
-	}
-
-	if previous != nil {
+	_ = previous.FindByName(s.Name, previous)
+	if &previous == nil {
 		prevID = previous.ID
 		if previous.Status == "in_progress" {
 			h.L.Error("Service is still in progress")
@@ -114,6 +110,10 @@ func CreateServiceHandler(au models.User, s models.ServiceInput, definition, bod
 
 	if err := ss.Save(); err != nil {
 		return 500, []byte(err.Error())
+	}
+
+	if err := au.SetOwner(&ss); err != nil {
+		return 500, []byte("Internal server error")
 	}
 
 	// Apply changes

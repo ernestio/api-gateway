@@ -96,6 +96,16 @@ func findServiceSubscriber() {
 	if err := sub.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
+
+	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
+		res := `[{"resource_id":"` + mockServices[0].Name + `"},{"resource_id":"` + mockServices[1].Name + `"}]`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func createServiceSubscriber() {
@@ -112,6 +122,16 @@ func createServiceSubscriber() {
 			log.Println(err)
 		}
 	})
+
+	sub2, _ := models.N.Subscribe("authorization.set", func(msg *nats.Msg) {
+		res := `{}`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func deleteServiceSubscriber() {

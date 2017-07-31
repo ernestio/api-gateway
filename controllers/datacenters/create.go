@@ -33,6 +33,9 @@ func Create(au models.User, body []byte) (int, []byte) {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal server error")
 	}
+	if err := au.SetOwner(&d); err != nil {
+		return 500, []byte("Internal server error")
+	}
 
 	if body, err = json.Marshal(d); err != nil {
 		h.L.Error(err.Error())

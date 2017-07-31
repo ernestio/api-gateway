@@ -71,7 +71,7 @@ func TestUsers(t *testing.T) {
 						So(u.Salt, ShouldEqual, "")
 					})
 				})
-				Convey("And the user is in the same group as a normal user", func() {
+				Convey("And the user is the same as registered  user", func() {
 					st, resp := users.Get(au, "1")
 					Convey("It should return the correct set of data", func() {
 						var u models.User
@@ -84,7 +84,7 @@ func TestUsers(t *testing.T) {
 						So(u.Salt, ShouldEqual, "")
 					})
 				})
-				Convey("And the user is not in the same group as a normal user", func() {
+				Convey("And the user is not the same as a registered user", func() {
 					st, _ := users.Get(other, "1")
 					Convey("It should return a 404", func() {
 						So(st, ShouldEqual, 404)
@@ -197,7 +197,7 @@ func TestUsers(t *testing.T) {
 			Convey("When I update a user by calling /users/ on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
 					Convey("With a valid payload", func() {
-						st, resp := users.Update(au, "1", data)
+						st, resp := users.Update(admin, "1", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
 							err = json.Unmarshal(resp, &u)

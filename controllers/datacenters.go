@@ -12,29 +12,29 @@ import (
 // GetDatacentersHandler : responds to GET /datacenters/ with a list of all
 // datacenters
 func GetDatacentersHandler(c echo.Context) (err error) {
-	return genericList(c, "datacenter", datacenters.List)
+	return genericList(c, "project", datacenters.List)
 }
 
 // GetDatacenterHandler : responds to GET /datacenter/:id:/ with the specified
 // datacenter details
 func GetDatacenterHandler(c echo.Context) (err error) {
-	return genericGet(c, "datacenter", datacenters.Get)
+	return genericGet(c, "project", datacenters.Get)
 }
 
 // CreateDatacenterHandler : responds to POST /datacenters/ by creating a
 // datacenter on the data store
 func CreateDatacenterHandler(c echo.Context) (err error) {
-	return genericCreate(c, "datacenter", datacenters.Create)
+	return genericCreate(c, "project", datacenters.Create)
 }
 
 // UpdateDatacenterHandler : responds to PUT /datacenters/:id: by updating
 // an existing datacenter
 func UpdateDatacenterHandler(c echo.Context) (err error) {
-	return genericUpdate(c, "datacenter", datacenters.Update)
+	return genericUpdate(c, "project", datacenters.Update)
 }
 
 // DeleteDatacenterHandler : responds to DELETE /datacenters/:id: by deleting an
 // existing datacenter
 func DeleteDatacenterHandler(c echo.Context) error {
-	return genericDelete(c, "datacenter", datacenters.Delete)
+	return genericDelete(c, "project", datacenters.Delete)
 }

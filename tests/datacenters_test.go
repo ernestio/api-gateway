@@ -18,7 +18,6 @@ func TestDatacenters(t *testing.T) {
 	testsSetup()
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
 			findDatacenterSubscriber()
@@ -42,7 +41,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
-			getDatacenterSubscriber(3)
+			getDatacenterSubscriber(1)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				st, resp := datacenters.Get(au, "1")
@@ -82,7 +81,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {
-			getDatacenterSubscriber(1)
+			getNotFoundDatacenterSubscriber(1)
 			createDatacenterSubscriber()
 
 			mockDC := models.Datacenter{

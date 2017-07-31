@@ -15,8 +15,12 @@ import (
 func List(au models.User) (int, []byte) {
 	var users []models.User
 
-	if err := au.FindAll(&users); err != nil {
-		return 500, []byte("Internal server error")
+	if au.Admin {
+		if err := au.FindAll(&users); err != nil {
+			return 500, []byte("Internal server error")
+		}
+	} else {
+		users = append(users, au)
 	}
 
 	for i := 0; i < len(users); i++ {

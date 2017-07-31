@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/ernestio/api-gateway/models"
 )
@@ -11,6 +12,10 @@ import (
 // user details
 func Get(au models.User, u string) (int, []byte) {
 	var user models.User
+
+	if !au.Admin && strconv.Itoa(au.ID) != u {
+		return 404, []byte("User not found")
+	}
 
 	if err := au.FindByID(u, &user); err != nil {
 		return 404, []byte("User not found")

@@ -95,7 +95,7 @@ func CreateServiceHandler(c echo.Context) error {
 	}
 	isAnImport := strings.Contains(c.Path(), "/import/")
 	dry := c.QueryParam("dry")
-	st, b = services.CreateServiceHandler(au, input, definition, jsonbody, isAnImport, dry)
+	st, b = services.Create(au, input, definition, jsonbody, isAnImport, dry)
 
 	return h.Respond(c, st, b)
 }

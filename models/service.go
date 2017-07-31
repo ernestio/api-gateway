@@ -210,3 +210,13 @@ func (s *Service) RequestSync() error {
 	}
 	return nil
 }
+
+// GetID : ID getter
+func (s *Service) GetID() string {
+	return s.Name
+}
+
+// GetType : Gets the resource type
+func (s *Service) GetType() string {
+	return "environment"
+}

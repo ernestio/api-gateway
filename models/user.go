@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"regexp"
 	"strconv"
 
@@ -175,6 +176,16 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 
 	if u.Admin == true {
 		err = d.FindAll(*u, &ds)
+	} else {
+		var r Role
+		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), d.GetType()); err == nil {
+			err = d.FindByIDs(ids, &ds)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		} else {
+			log.Println(err.Error())
+		}
 	}
 
 	return ds, err
@@ -214,17 +225,31 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err error) {
 	var s Service
 
-	err = s.Find(filters, &ss)
+	if u.Admin == false {
+		var r Role
+		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
+			filters["ids"] = ids
+		}
+	}
+
+	if err = s.Find(filters, &ss); err != nil {
+		log.Println(err.Error())
+	}
 
 	return ss, err
 }
 
 // CanBeChangedBy : Checks if an user has write permissions on another user
 func (u *User) CanBeChangedBy(user User) bool {
-	if u.Username != user.Username && user.Admin != true {
-		return false
+	if user.Admin {
+		return true
 	}
-	return true
+
+	if u.Username == user.Username {
+		return true
+	}
+
+	return false
 }
 
 // GetAdmin : admin getter
@@ -234,12 +259,34 @@ func (u *User) GetAdmin() bool {
 
 // GetID : ID getter
 func (u *User) GetID() string {
-	return strconv.Itoa(u.ID)
+	return u.Username
 }
 
 type resource interface {
 	GetID() string
 	GetType() string
+}
+
+// SetOwner : ...
+func (u *User) SetOwner(o resource) error {
+	return u.setRole(o, "owner")
+}
+
+// SetReader : ...
+func (u *User) SetReader(o resource) error {
+	return u.setRole(o, "reader")
+}
+
+// setRole : ...
+func (u *User) setRole(o resource, r string) error {
+	role := Role{
+		UserID:       u.GetID(),
+		ResourceID:   o.GetID(),
+		ResourceType: o.GetType(),
+		Role:         r,
+	}
+
+	return role.Save()
 }
 
 // Owns : Checks if the user owns a specific resource

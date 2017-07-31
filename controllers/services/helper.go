@@ -8,15 +8,20 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-func getServiceRaw(name string) ([]byte, error) {
-	var ss models.Service
-	var s models.Service
+func getServiceRaw(au models.User, name string) ([]byte, error) {
+	filters := make(map[string]interface{}, 0)
+	filters["name"] = name
 
-	if err := ss.FindByName(name, &s); err != nil {
+	ss, err := au.ServicesBy(filters)
+	if err != nil {
 		return nil, err
 	}
 
-	body, err := json.Marshal(s)
+	if len(ss) == 0 {
+		return nil, errors.New("Not found")
+	}
+
+	body, err := json.Marshal(ss[0])
 	if err != nil {
 		return nil, errors.New("Internal error")
 	}

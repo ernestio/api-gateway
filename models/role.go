@@ -62,6 +62,34 @@ func (l *Role) FindAll(roles *[]Role) (err error) {
 	return nil
 }
 
+// FindAllByUserAndResource : Searches for all roles on the system by user and resource type
+func (l *Role) FindAllByUserAndResource(u, r string, roles *[]Role) (err error) {
+	query := make(map[string]interface{})
+	query["user_id"] = u
+	query["resource_type"] = r
+
+	if err := NewBaseModel("authorization").FindBy(query, roles); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// FindAllIDsByUserAndType : Searches for all resource_ids by user and resource type
+func (l *Role) FindAllIDsByUserAndType(u, r string) (ids []string, err error) {
+	var rs []Role
+
+	if err = l.FindAllByUserAndResource(u, r, &rs); err != nil {
+		return
+	}
+
+	for _, r := range rs {
+		ids = append(ids, r.ResourceID)
+	}
+
+	return
+}
+
 // Save : calls role.set with the marshalled current role
 func (l *Role) Save() (err error) {
 	if err := NewBaseModel("authorization").Save(l); err != nil {

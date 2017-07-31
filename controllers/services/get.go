@@ -29,5 +29,6 @@ func Get(au models.User, query map[string]interface{}) (int, []byte) {
 		}
 		return http.StatusOK, body
 	}
+
 	return http.StatusNotFound, []byte("")
 }

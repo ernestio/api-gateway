@@ -69,17 +69,16 @@ func TestServices(t *testing.T) {
 	})
 
 	Convey("Scenario: getting a single service", t, func() {
-		/*
-			Convey("Given the service do not exist on the store", func() {
-				foundSubscriber("service.find", `[]`, 1)
-				Convey("And I call /service/:service on the api", func() {
-					params := make(map[string]interface{})
-					params["service"] = "1"
-					s, _ := services.Get(au, params)
-					So(s, ShouldEqual, 200)
-				})
+		Convey("Given the service do not exist on the store", func() {
+			foundSubscriber("service.find", `[]`, 1)
+			Convey("And I call /service/:service on the api", func() {
+				params := make(map[string]interface{})
+				params["service"] = "1"
+				s, _ := services.Get(au, params)
+				So(s, ShouldEqual, 404)
 			})
-		*/
+		})
+
 		Convey("Given the service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 1)
 			foundSubscriber("service.get.mapping", `{"name":"test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 1)
@@ -116,38 +115,37 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
-	/*
-		Convey("Scenario: getting a service's builds", t, func() {
-			Convey("Given the service exists on the store", func() {
-				Convey("And I call /service/:service/builds/ on the api", func() {
-					findUserSubscriber()
-					foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
-					findServiceSubscriber()
-					var s []views.ServiceRender
-					params := make(map[string]interface{})
-					params["service"] = "test"
-					st, b := services.Builds(au, params)
+	Convey("Scenario: getting a service's builds", t, func() {
+		Convey("Given the service exists on the store", func() {
+			Convey("And I call /service/:service/builds/ on the api", func() {
+				findUserSubscriber()
+				foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 4)
+				findServiceSubscriber()
+				var s []views.ServiceRender
+				params := make(map[string]interface{})
+				params["service"] = "test"
+				st, b := services.Builds(au, params)
 
-					Convey("When I'm authenticated as an admin user", func() {
-						Convey("Then I should get the service's builds", func() {
-							So(st, ShouldEqual, 200)
-							err := json.Unmarshal(b, &s)
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should get the service's builds", func() {
+						So(st, ShouldEqual, 200)
+						err := json.Unmarshal(b, &s)
 
-							So(err, ShouldBeNil)
-							So(len(s), ShouldEqual, 2)
-							So(s[0].ID, ShouldEqual, "1")
-							So(s[0].Name, ShouldEqual, "test")
-						})
+						So(err, ShouldBeNil)
+						So(len(s), ShouldEqual, 3)
+						So(s[0].ID, ShouldEqual, "1")
+						So(s[0].Name, ShouldEqual, "test")
 					})
-
 				})
+
 			})
 		})
-	*/
+	})
+
 	Convey("Scenario: searching for services", t, func() {
-		findServiceSubscriber()
-		foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 		Convey("Given the service exists on the store", func() {
+			findServiceSubscriber()
+			foundSubscriber("service.get.mapping", `{"name":"test", "networks":{"items":[{"name":"a"}]}}`, 2)
 			Convey("And I call /service/search/ on the api", func() {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
@@ -164,155 +162,125 @@ func TestServices(t *testing.T) {
 				})
 			})
 		})
-		/*
-			Convey("Given the service doesn't exist on the store", func() {
-				findServiceSubscriber()
-				Convey("And I call /service/search/ on the api", func() {
-					var s []views.ServiceRender
-					params := make(map[string]interface{})
-					params["service"] = "1"
-					st, resp := services.Search(au, params)
+		Convey("Given the service doesn't exist on the store", func() {
+			foundSubscriber("service.find", `[]`, 1)
+			Convey("And I call /service/search/ on the api", func() {
+				var s []views.ServiceRender
+				params := make(map[string]interface{})
+				params["service"] = "1"
+				st, resp := services.Search(au, params)
 
-					Convey("When I'm authenticated as an admin user", func() {
-						Convey("Then I should return an empty array", func() {
-							err := json.Unmarshal(resp, &s)
-							So(err, ShouldBeNil)
-							So(st, ShouldEqual, 200)
-							So(len(s), ShouldEqual, 0)
-						})
-					})
-				})
-			})
-		*/
-	})
-	/*
-		Convey("Scenario: creating a service", t, func() {
-			params := make(map[string]string)
-			Convey("Given I do a post call to /services ", func() {
-				createServiceSubscriber()
-
-				Convey("And the content type is non json and non yaml", func() {
-					data := []byte("bla")
-					resp, err := doRequest("POST", "/services/", params, data, controllers.CreateServiceHandler, nil)
-						st, resp := services.Create(au, params)
-					Convey("Then I should get a 400 response", func() {
-						So(err, ShouldEqual, nil)
-						So(string(resp), ShouldEqual, `"Invalid input format"`)
-					})
-				})
-
-				Convey("And the content type is a non valid yaml", func() {
-					data := []byte("asd")
-					headers := map[string]string{}
-					headers["Content-Type"] = "application/yaml"
-					resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-					Convey("Then I should get a 400 response", func() {
-						So(err, ShouldEqual, nil)
-						So(string(resp), ShouldEqual, `"Invalid input"`)
-					})
-				})
-
-				Convey("And the content type is a non valid json", func() {
-					data := []byte(`{"name"}`)
-					headers := map[string]string{}
-					headers["Content-Type"] = "application/json"
-					resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-					Convey("Then I should get a 400 response", func() {
-						So(err, ShouldEqual, nil)
-						So(string(resp), ShouldEqual, `"Invalid input"`)
-					})
-				})
-
-				Convey("And the specified datacenter does not exist", func() {
-					getUserSubscriber(1)
-					getGroupSubscriber(1)
-					foundSubscriber("datacenter.find", "[]", 1)
-					data := []byte(`{"name":"test"}`)
-					headers := map[string]string{}
-					headers["Content-Type"] = "application/json"
-					resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-					Convey("Then I should get a 404 response", func() {
-						So(err, ShouldEqual, nil)
-						So(string(resp), ShouldEqual, `"Specified datacenter does not exist"`)
-					})
-				})
-
-				Convey("And the specified group does not exist", func() {
-					notFoundSubscriber("group.get", 1)
-					foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
-					data := []byte(`{"name":"test"}`)
-					headers := map[string]string{}
-					headers["Content-Type"] = "application/json"
-					resp, _ := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-					Convey("Then I should get a 404 response", func() {
-						// So(err.Error(), ShouldEqual, `code=404, message=`)
-						// So(err, ShouldEqual, nil)
-						So(string(resp), ShouldEqual, `"Specified group does not exist"`)
-					})
-				})
-
-				Convey("And I provide a valid input", func() {
-					foundSubscriber("group.get", `{"id":1}`, 1)
-					foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
-					data := []byte(`{"name":"test"}`)
-					headers := map[string]string{}
-					headers["Content-Type"] = "application/json"
-
-					SkipConvey("And the service does not exist", func() {
-						foundSubscriber("service.find", "[]", 1)
-						foundSubscriber("service.create", `{"id":"1"}`, 1)
-						foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-						resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-						Convey("Then I should get a response with a valid id", func() {
-							So(err, ShouldBeNil)
-							So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-							So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-						})
-					})
-
-					SkipConvey("And the service already exists", func() {
-						foundSubscriber("service.create", `{"id":"1"}`, 1)
-						Convey("And the existing service is done", func() {
-							foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-							foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
-							resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-							Convey("Then I should get a response with the existing id", func() {
-								So(err, ShouldBeNil)
-								So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-								So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-							})
-						})
-
-						Convey("And the existing service is in progress", func() {
-							foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
-							resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-							Convey("Then I should get an error as an in_progress service can't be modified", func() {
-								So(err, ShouldEqual, nil)
-								So(string(resp), ShouldEqual, `"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
-							})
-						})
-
-						Convey("And the existing service is errored", func() {
-							foundSubscriber("service.find", `[{"id":"foo-bar","status":"errored"}]`, 1)
-							foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-							foundSubscriber("service.patch", `{"id":"1"}`, 1)
-							foundSubscriber("service.get.mapping", `{"id":"1"}`, 1)
-							resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-							Convey("Then I should get a response with the existing id", func() {
-								So(err, ShouldEqual, nil)
-								So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-								So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-							})
-						})
+				Convey("When I'm authenticated as an admin user", func() {
+					Convey("Then I should return an empty array", func() {
+						err := json.Unmarshal(resp, &s)
+						So(err, ShouldBeNil)
+						So(st, ShouldEqual, 200)
+						So(len(s), ShouldEqual, 0)
 					})
 				})
 			})
 		})
-	*/
-	Convey("Scenario: deleting a service", t, func() {
+	})
 
+	/*
+		Convey("Scenario: creating a service", t, func() {
+			params := make(map[string]string)
+			Convey("Given I do a post call to /services ", func() {
+					createServiceSubscriber()
+
+					Convey("And the specified datacenter does not exist", func() {
+						getUserSubscriber(1)
+						foundSubscriber("datacenter.find", "[]", 1)
+						data := []byte(`{"name":"test"}`)
+						headers := map[string]string{}
+						headers["Content-Type"] = "application/json"
+						resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+						st, resp := services.Create(au, params)
+
+						Convey("Then I should get a 404 response", func() {
+							So(err, ShouldEqual, nil)
+							So(string(resp), ShouldEqual, `"Specified datacenter does not exist"`)
+						})
+					})
+
+						Convey("And the specified group does not exist", func() {
+							notFoundSubscriber("group.get", 1)
+							foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
+							data := []byte(`{"name":"test"}`)
+							headers := map[string]string{}
+							headers["Content-Type"] = "application/json"
+							resp, _ := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+							Convey("Then I should get a 404 response", func() {
+								// So(err.Error(), ShouldEqual, `code=404, message=`)
+								// So(err, ShouldEqual, nil)
+								So(string(resp), ShouldEqual, `"Specified group does not exist"`)
+							})
+						})
+
+						Convey("And I provide a valid input", func() {
+							foundSubscriber("group.get", `{"id":1}`, 1)
+							foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
+							data := []byte(`{"name":"test"}`)
+							headers := map[string]string{}
+							headers["Content-Type"] = "application/json"
+
+							SkipConvey("And the service does not exist", func() {
+								foundSubscriber("service.find", "[]", 1)
+								foundSubscriber("service.create", `{"id":"1"}`, 1)
+								foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
+								resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+								Convey("Then I should get a response with a valid id", func() {
+									So(err, ShouldBeNil)
+									So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
+									So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
+								})
+							})
+
+							SkipConvey("And the service already exists", func() {
+								foundSubscriber("service.create", `{"id":"1"}`, 1)
+								Convey("And the existing service is done", func() {
+									foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
+									foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
+									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+									Convey("Then I should get a response with the existing id", func() {
+										So(err, ShouldBeNil)
+										So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
+										So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
+									})
+								})
+
+								Convey("And the existing service is in progress", func() {
+									foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
+									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+									Convey("Then I should get an error as an in_progress service can't be modified", func() {
+										So(err, ShouldEqual, nil)
+										So(string(resp), ShouldEqual, `"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
+									})
+								})
+
+								Convey("And the existing service is errored", func() {
+									foundSubscriber("service.find", `[{"id":"foo-bar","status":"errored"}]`, 1)
+									foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
+									foundSubscriber("service.patch", `{"id":"1"}`, 1)
+									foundSubscriber("service.get.mapping", `{"id":"1"}`, 1)
+									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
+									Convey("Then I should get a response with the existing id", func() {
+										So(err, ShouldEqual, nil)
+										So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
+										So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
+									})
+								})
+							})
+						})
+			})
+		})
+	*/
+
+	Convey("Scenario: deleting a service", t, func() {
 		Convey("Given a service exists with in progress status", func() {
 			foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
+			res := `[{"resource_id":"1","role":"owner"}]`
+			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := services.Delete(au, "foo-bar")
 				Convey("Then I should get a 400 response", func() {
@@ -326,6 +294,8 @@ func TestServices(t *testing.T) {
 			foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
 			foundSubscriber("definition.map.deletion", `""`, 1)
 			foundSubscriber("service.delete", `""`, 1)
+			res := `[{"resource_id":"1","role":"owner"}]`
+			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := services.Delete(au, "foo-bar")
 

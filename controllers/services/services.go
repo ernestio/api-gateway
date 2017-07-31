@@ -11,16 +11,15 @@ import (
 // List : responds to GET /services/ with a list of all
 // services for current user group
 func List(au models.User) (int, []byte) {
-	var services []models.Service
 	var list []models.Service
 	var body []byte
-	var service models.Service
 	var user models.User
 
 	users := user.FindAllKeyValue()
 
-	// au := AuthenticatedUser(c)
-	if err := service.FindAll(au, &services); err != nil {
+	query := make(map[string]interface{}, 0)
+	services, err := au.ServicesBy(query)
+	if err != nil {
 		h.L.Warning(err.Error())
 	}
 	for _, s := range services {
@@ -43,7 +42,7 @@ func List(au models.User) (int, []byte) {
 		}
 	}
 
-	body, err := json.Marshal(list)
+	body, err = json.Marshal(list)
 	if err != nil {
 		return 500, []byte("Internal error")
 	}
