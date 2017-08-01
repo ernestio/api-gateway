@@ -228,7 +228,7 @@ func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err err
 	if u.Admin == false {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
-			filters["ids"] = ids
+			filters["names"] = ids
 		}
 	}
 
