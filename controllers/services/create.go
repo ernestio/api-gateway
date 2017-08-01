@@ -23,7 +23,7 @@ type ServicePayload struct {
 func Create(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
 	var err error
 	var group []byte
-	var previous *models.Service
+	var previous models.Service
 	var service []byte
 	var prevID string
 	var dt models.Datacenter
@@ -33,7 +33,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	// Get datacenter
 	if err = dt.FindByName(s.Datacenter, &dt); err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte(err.Error())
+		return 400, []byte("Specified datacenter does not exist")
 	}
 
 	rawDatacenter, err := json.Marshal(dt)
@@ -49,8 +49,8 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// Get previous service if exists
-	_ = previous.FindByName(s.Name, previous)
-	if &previous == nil {
+	previous, _ = previous.FindLastByName(s.Name)
+	if &previous != nil {
 		prevID = previous.ID
 		if previous.Status == "in_progress" {
 			h.L.Error("Service is still in progress")

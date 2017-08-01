@@ -51,10 +51,10 @@ func setupAPI(e *echo.Echo) {
 	// Setup project routes
 	d := api.Group("/projects")
 	d.GET("/", controllers.GetDatacentersHandler)
-	d.GET("/:datacenter", controllers.GetDatacenterHandler)
+	d.GET("/:project", controllers.GetDatacenterHandler)
 	d.POST("/", controllers.CreateDatacenterHandler)
-	d.PUT("/:datacenter", controllers.UpdateDatacenterHandler)
-	d.DELETE("/:datacenter", controllers.DeleteDatacenterHandler)
+	d.PUT("/:project", controllers.UpdateDatacenterHandler)
+	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
 
 	// Setup roles routes
 	r := api.Group("/roles")
@@ -79,8 +79,8 @@ func setupAPI(e *echo.Echo) {
 	s.POST("/:service/reset/", controllers.ResetServiceHandler)
 	s.POST("/:service/sync/", controllers.SyncServiceHandler)
 	s.PUT("/:name/", controllers.UpdateServiceHandler)
-	s.DELETE("/:service", controllers.DeleteServiceHandler)
-	s.DELETE("/:service/force/", controllers.ForceServiceDeletionHandler)
+	s.DELETE("/:environment", controllers.DeleteServiceHandler)
+	s.DELETE("/:environment/force/", controllers.ForceServiceDeletionHandler)
 	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
 
 	// Setup components

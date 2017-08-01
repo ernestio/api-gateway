@@ -14,13 +14,17 @@ import (
 // List : responds to GET /users/ with a list of authorized users
 func List(au models.User) (int, []byte) {
 	var users []models.User
+	var user models.User
 
 	if au.Admin {
 		if err := au.FindAll(&users); err != nil {
 			return 500, []byte("Internal server error")
 		}
 	} else {
-		users = append(users, au)
+		if err := au.FindByUserName(au.Username, &user); err != nil {
+			return 500, []byte("Internal server error")
+		}
+		users = append(users, user)
 	}
 
 	for i := 0; i < len(users); i++ {

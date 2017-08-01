@@ -308,8 +308,12 @@ func (u *User) IsOwner(resourceType, resourceID string) bool {
 
 // IsReader : check if has reader permissions on a specific resource
 func (u *User) IsReader(resourceType, resourceID string) bool {
+	if u.Admin {
+		return true
+	}
+
 	if role, err := u.getRole(resourceType, resourceID); err != nil {
-		if role == "reader" {
+		if role == "reader" || role == "owner" {
 			return true
 		}
 	}

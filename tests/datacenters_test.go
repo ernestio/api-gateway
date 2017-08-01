@@ -134,7 +134,7 @@ func TestDatacenters(t *testing.T) {
 				st, resp := datacenters.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
 					So(st, ShouldEqual, 400)
-					So(string(resp), ShouldEqual, "Existing services are referring to this datacenter.")
+					So(string(resp), ShouldEqual, "Existing environments are referring to this project.")
 				})
 			})
 		})

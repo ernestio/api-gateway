@@ -27,7 +27,7 @@ func Delete(au models.User, datacenter string) (int, []byte) {
 	}
 
 	if len(ss) > 0 {
-		return 400, []byte("Existing services are referring to this datacenter.")
+		return 400, []byte("Existing environments are referring to this project.")
 	}
 
 	if err := d.Delete(); err != nil {

@@ -57,7 +57,6 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 	if st, ok := adminResources[resource]; ok {
 		return st, AuthNonAdmin
 	}
-
 	if resourceID != "" {
 		ownedResources := map[string]int{}
 		if st, ok := ownedResources[resource]; ok {

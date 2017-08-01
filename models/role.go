@@ -105,7 +105,7 @@ func (l *Role) Get(userID, resourceID, resourceType string) (role *Role, err err
 	query["resource_id"] = resourceID
 	query["resource_type"] = resourceType
 	query["user_id"] = userID
-	if err = NewBaseModel("role").FindBy(query, roles); err != nil {
+	if err = NewBaseModel("authorization").FindBy(query, roles); err != nil {
 		return nil, err
 	}
 	if len(roles) == 0 {

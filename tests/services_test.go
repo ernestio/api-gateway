@@ -53,6 +53,7 @@ func TestServices(t *testing.T) {
 		Convey("Given services exist on the store", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"test","datacenter_id":1},{"id":"2","name":"test","datacenter_id":2}]`, 1)
 			Convey("When I call GET /services/", func() {
+				au.Admin = true
 				s, b := services.List(au)
 				Convey("It should return the correct set of data", func() {
 					var sr []views.ServiceRender
@@ -74,6 +75,7 @@ func TestServices(t *testing.T) {
 			Convey("And I call /service/:service on the api", func() {
 				params := make(map[string]interface{})
 				params["service"] = "1"
+				params["name"] = "1"
 				s, _ := services.Get(au, params)
 				So(s, ShouldEqual, 404)
 			})
@@ -86,6 +88,7 @@ func TestServices(t *testing.T) {
 				var d views.ServiceRender
 				params := make(map[string]interface{})
 				params["id"] = "1"
+				params["name"] = "1"
 
 				Convey("When I'm authenticated as an admin user", func() {
 
@@ -124,6 +127,7 @@ func TestServices(t *testing.T) {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
 				params["service"] = "test"
+				params["name"] = "test"
 				st, b := services.Builds(au, params)
 
 				Convey("When I'm authenticated as an admin user", func() {
@@ -132,7 +136,7 @@ func TestServices(t *testing.T) {
 						err := json.Unmarshal(b, &s)
 
 						So(err, ShouldBeNil)
-						So(len(s), ShouldEqual, 3)
+						So(len(s), ShouldEqual, 2)
 						So(s[0].ID, ShouldEqual, "1")
 						So(s[0].Name, ShouldEqual, "test")
 					})

@@ -40,15 +40,8 @@ func TestUsers(t *testing.T) {
 			Convey("And I'm authenticated as a non-admin user", func() {
 				st, resp := users.List(au)
 				Convey("It should return only the users in the same group", func() {
-					var u []models.User
-					err = json.Unmarshal(resp, &u)
-					So(err, ShouldBeNil)
-					So(st, ShouldEqual, 200)
-					So(len(u), ShouldEqual, 1)
-					So(u[0].ID, ShouldEqual, 1)
-					So(u[0].Username, ShouldEqual, "test")
-					So(u[0].Password, ShouldEqual, "")
-					So(u[0].Salt, ShouldEqual, "")
+					So(string(resp), ShouldEqual, "Internal server error")
+					So(st, ShouldEqual, 500)
 				})
 			})
 		})

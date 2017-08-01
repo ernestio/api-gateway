@@ -77,6 +77,19 @@ func (s *Service) Find(query map[string]interface{}, services *[]Service) (err e
 	return nil
 }
 
+// FindLastByName : Searches for all services with a name equal to the specified
+func (s *Service) FindLastByName(name string) (service Service, err error) {
+	var ss []Service
+	query := make(map[string]interface{})
+	query["name"] = name
+	err = s.Find(query, &ss)
+	if len(ss) > 0 {
+		service = ss[0]
+	}
+
+	return
+}
+
 // FindByName : Searches for all services with a name equal to the specified
 func (s *Service) FindByName(name string, service *Service) (err error) {
 	query := make(map[string]interface{})
