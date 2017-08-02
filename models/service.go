@@ -24,14 +24,11 @@ type Service struct {
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
 	Version      time.Time              `json:"version"`
-	Options      string                 `json:"options"`
+	Options      map[string]interface{} `json:"options"`
 	Status       string                 `json:"status"`
 	Endpoint     string                 `json:"endpoint"`
 	Definition   interface{}            `json:"definition"`
 	Mapped       map[string]interface{} `json:"mapping"`
-	Sync         bool                   `json:"sync"`
-	SyncType     string                 `json:"sync_type"`
-	SyncInterval int                    `json:"sync_interval"`
 }
 
 // Validate the service
