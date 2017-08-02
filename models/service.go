@@ -16,22 +16,22 @@ import (
 
 // Service holds the service response from service-store
 type Service struct {
-	ID           string      `json:"id"`
-	GroupID      int         `json:"group_id"`
-	UserID       int         `json:"user_id"`
-	UserName     string      `json:"user_name,omitempty"`
-	DatacenterID int         `json:"datacenter_id"`
-	Name         string      `json:"name"`
-	Type         string      `json:"type"`
-	Version      time.Time   `json:"version"`
-	Options      string      `json:"options"`
-	Status       string      `json:"status"`
-	Endpoint     string      `json:"endpoint"`
-	Definition   interface{} `json:"definition"`
-	Maped        string      `json:"mapping"`
-	Sync         bool        `json:"sync"`
-	SyncType     string      `json:"sync_type"`
-	SyncInterval int         `json:"sync_interval"`
+	ID           string                 `json:"id"`
+	GroupID      int                    `json:"group_id"`
+	UserID       int                    `json:"user_id"`
+	UserName     string                 `json:"user_name,omitempty"`
+	DatacenterID int                    `json:"datacenter_id"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"`
+	Version      time.Time              `json:"version"`
+	Options      string                 `json:"options"`
+	Status       string                 `json:"status"`
+	Endpoint     string                 `json:"endpoint"`
+	Definition   interface{}            `json:"definition"`
+	Mapped       map[string]interface{} `json:"mapping"`
+	Sync         bool                   `json:"sync"`
+	SyncType     string                 `json:"sync_type"`
+	SyncInterval int                    `json:"sync_interval"`
 }
 
 // Validate the service
@@ -211,8 +211,13 @@ func (s *Service) FindByDatacenterID(id int, services *[]Service) (err error) {
 }
 
 // RequestCreation : calls service.create with the given raw message
-func (s *Service) RequestCreation(raw []byte) error {
-	if err := N.Publish("service.create", raw); err != nil {
+func (s *Service) RequestCreation(mapping map[string]interface{}) error {
+	data, err := json.Marshal(mapping)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	if err := N.Publish("service.create", data); err != nil {
 		h.L.Error(err.Error())
 		return err
 	}
@@ -220,8 +225,13 @@ func (s *Service) RequestCreation(raw []byte) error {
 }
 
 // RequestImport : calls service.import with the given raw message
-func (s *Service) RequestImport(raw []byte) error {
-	if err := N.Publish("service.import", raw); err != nil {
+func (s *Service) RequestImport(mapping map[string]interface{}) error {
+	data, err := json.Marshal(mapping)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	if err := N.Publish("service.import", data); err != nil {
 		h.L.Error(err.Error())
 		return err
 	}
@@ -229,8 +239,13 @@ func (s *Service) RequestImport(raw []byte) error {
 }
 
 // RequestDeletion : calls service.delete with the given raw message
-func (s *Service) RequestDeletion(raw []byte) error {
-	if err := N.Publish("service.delete", raw); err != nil {
+func (s *Service) RequestDeletion(mapping map[string]interface{}) error {
+	data, err := json.Marshal(mapping)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+	if err := N.Publish("service.delete", data); err != nil {
 		h.L.Error(err.Error())
 		return err
 	}
