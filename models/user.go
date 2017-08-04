@@ -191,6 +191,15 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 	return ds, err
 }
 
+// DatacenterByName : Gets the related user datacenters if any
+func (u *User) DatacenterByName(name string) (d Datacenter, err error) {
+	if err = d.FindByName(name, &d); err != nil {
+		err = errors.New("Project not found")
+	}
+
+	return
+}
+
 // FindAllKeyValue : Finds all users on a id:name hash
 func (u *User) FindAllKeyValue() (list map[int]string) {
 	var users []User

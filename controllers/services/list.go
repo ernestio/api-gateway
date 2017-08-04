@@ -15,13 +15,13 @@ func List(au models.User) (int, []byte) {
 	var body []byte
 	var user models.User
 
-	users := user.FindAllKeyValue()
-
 	query := make(map[string]interface{}, 0)
 	services, err := au.ServicesBy(query)
 	if err != nil {
 		h.L.Warning(err.Error())
+		return 404, []byte("Environment not found")
 	}
+
 	for _, s := range services {
 		exists := false
 		for i, e := range list {
@@ -33,9 +33,16 @@ func List(au models.User) (int, []byte) {
 			}
 		}
 		if exists == false {
-			for id, name := range users {
+			for id, name := range user.FindAllKeyValue() {
 				if id == s.UserID {
 					s.UserName = name
+				}
+			}
+			var d models.Datacenter
+			var ds []models.Datacenter
+			if err := d.FindAll(au, &ds); err == nil {
+				for _, d = range ds {
+					s.Project = d.Name
 				}
 			}
 			list = append(list, s)
