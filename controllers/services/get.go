@@ -10,16 +10,11 @@ import (
 
 // Get : responds to GET /services/:service with the
 // details of an existing service
-func Get(au models.User, query map[string]interface{}) (int, []byte) {
+func Get(au models.User, name string) (int, []byte) {
 	var o views.ServiceRender
 	var body []byte
 	var s models.Service
 	var err error
-
-	if _, ok := query["name"]; !ok {
-		return 500, []byte("Internal error")
-	}
-	name := query["name"].(string)
 
 	if !au.IsReader(s.GetType(), name) {
 		return 403, []byte("You're not allowed to access this resource")

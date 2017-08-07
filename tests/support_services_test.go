@@ -17,19 +17,19 @@ var (
 	mockServices = []models.Service{
 		models.Service{
 			ID:           "1",
-			Name:         "test",
+			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "3",
-			Name:         "test",
+			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "2",
-			Name:         "test2",
+			Name:         "fake-test2",
 			DatacenterID: 3,
 			Version:      time.Now(),
 		},

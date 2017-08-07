@@ -95,7 +95,6 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// *********** SAVE NEW SERVICE AND PROCESS CREATION / IMPORT *********** //
-
 	ss := models.Service{
 		ID:           payload.ID,
 		Name:         s.Name,

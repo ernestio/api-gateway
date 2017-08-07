@@ -10,21 +10,18 @@ import (
 )
 
 // Builds : gets the list of builds for the specified service
-func Builds(au models.User, query map[string]interface{}) (int, []byte) {
+func Builds(au models.User, name string) (int, []byte) {
 	var o views.ServiceRender
 	var s models.Service
 	var builds []models.Service
 	var err error
 
-	if _, ok := query["name"]; !ok {
-		return 500, []byte("Internal error")
-	}
-	name := query["name"].(string)
-
 	if !au.IsReader(s.GetType(), name) {
 		return 403, []byte("You're not allowed to access this resource")
 	}
 
+	query := make(map[string]interface{}, 0)
+	query["name"] = name
 	if err = s.Find(query, &builds); err != nil {
 		h.L.Warning(err.Error())
 	}

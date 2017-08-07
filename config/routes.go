@@ -48,14 +48,6 @@ func setupAPI(e *echo.Echo) {
 	u.PUT("/:user", controllers.UpdateUserHandler)
 	u.DELETE("/:user", controllers.DeleteUserHandler)
 
-	// Setup project routes
-	d := api.Group("/projects")
-	d.GET("/", controllers.GetDatacentersHandler)
-	d.GET("/:project", controllers.GetDatacenterHandler)
-	d.POST("/", controllers.CreateDatacenterHandler)
-	d.PUT("/:project", controllers.UpdateDatacenterHandler)
-	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
-
 	// Setup roles routes
 	r := api.Group("/roles")
 	r.POST("/", controllers.CreateRoleHandler)
@@ -67,20 +59,28 @@ func setupAPI(e *echo.Echo) {
 	l.POST("/", controllers.CreateLoggerHandler)
 	l.DELETE("/:logger", controllers.DeleteLoggerHandler)
 
+	// Setup project routes
+	d := api.Group("/projects")
+	d.GET("/", controllers.GetDatacentersHandler)
+	d.GET("/:project", controllers.GetDatacenterHandler)
+	d.POST("/", controllers.CreateDatacenterHandler)
+	d.PUT("/:project", controllers.UpdateDatacenterHandler)
+	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
+	d.DELETE("/:project/envs/:env", controllers.DeleteServiceHandler)
+	d.POST("/:project/envs/:env/reset/", controllers.ResetServiceHandler)
+	d.DELETE("/:project/envs/:env/force/", controllers.ForceServiceDeletionHandler)
+	d.PUT("/:project/envs/:env/", controllers.UpdateServiceHandler)
+	d.POST("/:project/envs/:env/sync/", controllers.SyncServiceHandler)
+	d.GET("/:project/envs/:env", controllers.GetServiceHandler)
+	d.GET("/:project/envs/:env/builds/", controllers.GetServiceBuildsHandler)
+
 	// Setup service routes
-	s := api.Group("/environments")
+	s := api.Group("/envs")
 	s.GET("/", controllers.GetServicesHandler)
-	s.GET("/:service", controllers.GetServiceHandler)
 	s.GET("/search/", controllers.SearchServicesHandler)
-	s.GET("/:service/builds/", controllers.GetServiceBuildsHandler)
 	s.GET("/:service/builds/:build", controllers.GetServiceBuildHandler)
 	s.POST("/", controllers.CreateServiceHandler)
 	s.POST("/import/", controllers.CreateServiceHandler)
-	s.POST("/:service/reset/", controllers.ResetServiceHandler)
-	s.POST("/:service/sync/", controllers.SyncServiceHandler)
-	s.PUT("/:name/", controllers.UpdateServiceHandler)
-	s.DELETE("/:environment", controllers.DeleteServiceHandler)
-	s.DELETE("/:environment/force/", controllers.ForceServiceDeletionHandler)
 	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
 
 	// Setup components

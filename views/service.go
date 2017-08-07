@@ -42,9 +42,13 @@ type ServiceRender struct {
 
 // Render : Map a Service to a ServiceRender
 func (o *ServiceRender) Render(s models.Service) (err error) {
+	o.Name = s.Name
+	parts := strings.Split(o.Name, "-")
+	if len(parts) > 1 {
+		o.Name = parts[1]
+	}
 	o.ID = s.ID
 	o.DatacenterID = s.DatacenterID
-	o.Name = s.Name
 	o.Version = s.Version.String()
 	o.Status = s.Status
 	o.UserID = s.UserID

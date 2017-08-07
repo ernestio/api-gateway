@@ -23,8 +23,7 @@ func GetServiceBuildsHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/builds")
 	if st == 200 {
-		p := h.GetParamFilter(c)
-		st, b = services.Builds(au, p)
+		st, b = services.Builds(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -36,8 +35,7 @@ func GetServiceHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/get")
 	if st == 200 {
-		p := h.GetParamFilter(c)
-		st, b = services.Get(au, p)
+		st, b = services.Get(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -46,7 +44,7 @@ func GetServiceHandler(c echo.Context) (err error) {
 // SearchServicesHandler : Finds all services
 func SearchServicesHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "services/get")
+	st, b := h.IsAuthorized(&au, "services/search")
 	if st == 200 {
 		p := h.GetSearchFilter(c)
 		st, b = services.Search(au, p)
@@ -61,8 +59,7 @@ func SyncServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/sync")
 	if st == 200 {
-		name := c.Param("name")
-		st, b = services.Sync(au, name)
+		st, b = services.Sync(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -74,8 +71,7 @@ func ResetServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/reset")
 	if st == 200 {
-		name := c.Param("service")
-		st, b = services.Reset(au, name)
+		st, b = services.Reset(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -93,6 +89,7 @@ func CreateServiceHandler(c echo.Context) error {
 	if err != nil {
 		return h.Respond(c, 400, []byte(err.Error()))
 	}
+	input.Name = buildStringID(input.Datacenter, input.Name)
 	isAnImport := strings.Contains(c.Path(), "/import/")
 	dry := c.QueryParam("dry")
 	st, b = services.Create(au, input, definition, jsonbody, isAnImport, dry)
@@ -110,10 +107,9 @@ func UpdateServiceHandler(c echo.Context) error {
 
 	st = 500
 	b = []byte("Invalid input")
-	name := c.Param("name")
 	body, err := h.GetRequestBody(c)
 	if err == nil {
-		st, b = services.Update(au, name, body)
+		st, b = services.Update(au, buildID(c), body)
 	}
 
 	return h.Respond(c, st, b)
@@ -121,10 +117,32 @@ func UpdateServiceHandler(c echo.Context) error {
 
 // DeleteServiceHandler : Deletes a service by name
 func DeleteServiceHandler(c echo.Context) error {
-	return genericDelete(c, "service", services.Delete)
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/delete")
+	if st == 200 {
+		st, b = services.Delete(au, buildID(c))
+	}
+
+	return h.Respond(c, st, b)
 }
 
 // ForceServiceDeletionHandler : Deletes a service by name forcing it
 func ForceServiceDeletionHandler(c echo.Context) error {
-	return genericDelete(c, "service", services.ForceDeletion)
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/delete")
+	if st == 200 {
+		st, b = services.ForceDeletion(au, buildID(c))
+	}
+
+	return h.Respond(c, st, b)
+}
+
+func buildID(c echo.Context) string {
+	env := c.Param("env")
+	proj := c.Param("project")
+	return buildStringID(proj, env)
+}
+
+func buildStringID(project, env string) string {
+	return project + "-" + env
 }
