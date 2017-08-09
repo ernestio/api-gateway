@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
@@ -17,22 +16,24 @@ import (
 
 // Datacenter holds the datacenter response from datacenter-store
 type Datacenter struct {
-	ID              int    `json:"id"`
-	Name            string `json:"name"`
-	Type            string `json:"type"`
-	Region          string `json:"region"`
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	VCloudURL       string `json:"vcloud_url"`
-	VseURL          string `json:"vse_url"`
-	ExternalNetwork string `json:"external_network"`
-	AccessKeyID     string `json:"aws_access_key_id,omitempty"`
-	SecretAccessKey string `json:"aws_secret_access_key,omitempty"`
-	SubscriptionID  string `json:"azure_subscription_id,omitempty"`
-	ClientID        string `json:"azure_client_id,omitempty"`
-	ClientSecret    string `json:"azure_client_secret,omitempty"`
-	TenantID        string `json:"azure_tenant_id"`
-	Environment     string `json:"azure_environment"`
+	ID              int      `json:"id"`
+	Name            string   `json:"name"`
+	Type            string   `json:"type"`
+	Region          string   `json:"region"`
+	Username        string   `json:"username"`
+	Password        string   `json:"password"`
+	VCloudURL       string   `json:"vcloud_url"`
+	VseURL          string   `json:"vse_url"`
+	ExternalNetwork string   `json:"external_network"`
+	AccessKeyID     string   `json:"aws_access_key_id,omitempty"`
+	SecretAccessKey string   `json:"aws_secret_access_key,omitempty"`
+	SubscriptionID  string   `json:"azure_subscription_id,omitempty"`
+	ClientID        string   `json:"azure_client_id,omitempty"`
+	ClientSecret    string   `json:"azure_client_secret,omitempty"`
+	TenantID        string   `json:"azure_tenant_id"`
+	Environment     string   `json:"azure_environment"`
+	Environments    []string `json:"environments,omitempty"`
+	Roles           []string `json:"roles,omitempty"`
 }
 
 // Validate the datacenter
@@ -91,7 +92,7 @@ func (d *Datacenter) FindByID(id int) (err error) {
 // FindByIDs : Gets a model by its id
 func (d *Datacenter) FindByIDs(ids []string, ds *[]Datacenter) (err error) {
 	query := make(map[string]interface{})
-	query["ids"] = ids
+	query["names"] = ids
 	if err := NewBaseModel("datacenter").FindBy(query, ds); err != nil {
 		return err
 	}
@@ -154,7 +155,7 @@ func (d *Datacenter) Services() (services []Service, err error) {
 
 // GetID : ID getter
 func (d *Datacenter) GetID() string {
-	return strconv.Itoa(d.ID)
+	return d.Name
 }
 
 // GetType : Gets the resource type

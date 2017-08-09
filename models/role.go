@@ -14,6 +14,7 @@ import (
 
 // Role holds the role response from role
 type Role struct {
+	ID           uint   `json:"id"`
 	UserID       string `json:"user_id"`
 	ResourceID   string `json:"resource_id"`
 	ResourceType string `json:"resource_type"`
@@ -30,8 +31,8 @@ func (l *Role) Validate() error {
 		return errors.New("Resource is empty")
 	}
 
-	if l.ResourceType != "projects" && l.ResourceType != "environments" {
-		return errors.New("Resource type accepted values are ['projects', 'environments']")
+	if l.ResourceType != "project" && l.ResourceType != "environment" {
+		return errors.New("Resource type accepted values are ['project', 'environment']")
 	}
 
 	if l.Role == "" {
@@ -90,6 +91,19 @@ func (l *Role) FindAllIDsByUserAndType(u, r string) (ids []string, err error) {
 	return
 }
 
+// FindAllByResource : Searches for all roles on the system by user and resource type
+func (l *Role) FindAllByResource(id, r string, roles *[]Role) (err error) {
+	query := make(map[string]interface{})
+	query["resource_id"] = id
+	query["resource_type"] = r
+
+	if err := NewBaseModel("authorization").FindBy(query, roles); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Save : calls role.set with the marshalled current role
 func (l *Role) Save() (err error) {
 	if err := NewBaseModel("authorization").Save(l); err != nil {
@@ -105,7 +119,7 @@ func (l *Role) Get(userID, resourceID, resourceType string) (role *Role, err err
 	query["resource_id"] = resourceID
 	query["resource_type"] = resourceType
 	query["user_id"] = userID
-	if err = NewBaseModel("authorization").FindBy(query, roles); err != nil {
+	if err = NewBaseModel("authorization").FindBy(query, &roles); err != nil {
 		return nil, err
 	}
 	if len(roles) == 0 {
@@ -117,11 +131,37 @@ func (l *Role) Get(userID, resourceID, resourceType string) (role *Role, err err
 // Delete : will delete a role by its type
 func (l *Role) Delete() (err error) {
 	query := make(map[string]interface{})
-	query["resource_id"] = l.ResourceID
-	query["resource_type"] = l.ResourceType
-	query["user_id"] = l.UserID
-	if err := NewBaseModel("role").Delete(query); err != nil {
+	query["id"] = l.ID
+	if err := NewBaseModel("authorization").Delete(query); err != nil {
 		return err
 	}
 	return nil
+}
+
+// ResourceExists : check if related resource exists
+func (l *Role) ResourceExists() bool {
+	if l.ResourceType == "project" {
+		var r Datacenter
+		err := r.FindByName(l.ResourceID, &r)
+		if err == nil && &r != nil {
+			return true
+		}
+	} else if l.ResourceType == "environment" {
+		var r Service
+		err := r.FindByName(l.ResourceID, &r)
+		if err == nil && &r != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// UserExists : check if related user exists
+func (l *Role) UserExists() bool {
+	var r User
+	err := r.FindByUserName(l.UserID, &r)
+	if err == nil && &r != nil {
+		return true
+	}
+	return false
 }

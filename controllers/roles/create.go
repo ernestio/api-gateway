@@ -24,13 +24,23 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
+	if !d.ResourceExists() {
+		return 404, []byte("Specified resource not found")
+	}
+
+	if !d.UserExists() {
+		return 404, []byte("Specified user not found")
+	}
+
+	if !au.Admin {
+		if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
+			return 403, []byte("You're not authorized to perform this action")
+		}
+	}
+
 	existing, err := d.Get(d.UserID, d.ResourceID, d.ResourceType)
 	if err != nil || existing != nil {
 		return 409, []byte("Specified role already exists")
-	}
-
-	if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
-		return 403, []byte("You're not authorized to perform this action")
 	}
 
 	if err = d.Save(); err != nil {

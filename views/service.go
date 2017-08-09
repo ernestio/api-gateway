@@ -38,6 +38,7 @@ type ServiceRender struct {
 	LoadBalancers   []map[string]string `json:"load_balancers"`
 	SQLDatabases    []map[string]string `json:"sql_databases"`
 	VirtualMachines []map[string]string `json:"virtual_machines"`
+	Roles           []string            `json:"roles"`
 }
 
 // Render : Map a Service to a ServiceRender
@@ -75,6 +76,7 @@ func (o *ServiceRender) Render(s models.Service) (err error) {
 	o.LoadBalancers = RenderLoadBalancers(g)
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
+	o.Roles = s.Roles
 
 	return err
 }

@@ -32,6 +32,7 @@ type Service struct {
 	Sync         bool        `json:"sync"`
 	SyncType     string      `json:"sync_type"`
 	SyncInterval int         `json:"sync_interval"`
+	Roles        []string    `json:"roles,omitempty"`
 }
 
 // Validate the service
