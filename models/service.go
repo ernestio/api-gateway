@@ -186,15 +186,39 @@ func (s *Service) Mapping() (*graph.Graph, error) {
 }
 
 // Reset : will reset the service status to errored
-func (s *Service) Reset() (err error) {
+func (s *Service) Reset() error {
+	var r map[string]interface{}
+
 	s.Status = "errored"
 	query := make(map[string]interface{})
 	query["id"] = s.ID
 	query["status"] = "errored"
 
-	err = NewBaseModel("service").Set(query)
+	data, err := json.Marshal(query)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
 
-	return err
+	resp, err := N.Request("build.set.status", data, time.Second*5)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+
+	err = json.Unmarshal(resp.Data, &r)
+	if err != nil {
+		h.L.Error(err.Error())
+		return err
+	}
+
+	if r["error"] != nil {
+		err = errors.New(r["error"].(string))
+		h.L.Error(err.Error())
+		return err
+	}
+
+	return nil
 }
 
 // FindByDatacenterID : find a services for the given datacenter id
