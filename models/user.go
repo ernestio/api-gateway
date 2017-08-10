@@ -27,12 +27,14 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID          int    `json:"id"`
-	Username    string `json:"username"`
-	Password    string `json:"password,omitempty"`
-	OldPassword string `json:"oldpassword,omitempty"`
-	Salt        string `json:"salt,omitempty"`
-	Admin       bool   `json:"admin"`
+	ID          int      `json:"id"`
+	Username    string   `json:"username"`
+	Password    string   `json:"password,omitempty"`
+	OldPassword string   `json:"oldpassword,omitempty"`
+	Salt        string   `json:"salt,omitempty"`
+	Admin       bool     `json:"admin"`
+	Envs        []string `json:"envs"`
+	Projects    []string `json:"projects"`
 }
 
 // Validate validates a user
