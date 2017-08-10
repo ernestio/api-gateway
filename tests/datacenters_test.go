@@ -85,7 +85,7 @@ func TestDatacenters(t *testing.T) {
 			createDatacenterSubscriber()
 
 			mockDC := models.Datacenter{
-				Name:      "new-test",
+				Name:      "new_test",
 				Type:      "vcloud",
 				Username:  "test",
 				Password:  "test",
@@ -103,7 +103,7 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
 						So(d.ID, ShouldEqual, 3)
-						So(d.Name, ShouldEqual, "new-test")
+						So(d.Name, ShouldEqual, "new_test")
 					})
 				})
 
@@ -116,7 +116,7 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
 						So(d.ID, ShouldEqual, 3)
-						So(d.Name, ShouldEqual, "new-test")
+						So(d.Name, ShouldEqual, "new_test")
 					})
 				})
 			})

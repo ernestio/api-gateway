@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
@@ -39,19 +40,23 @@ type Datacenter struct {
 // Validate the datacenter
 func (d *Datacenter) Validate() error {
 	if d.Name == "" {
-		return errors.New("Datacenter name is empty")
+		return errors.New("Project name is empty")
+	}
+
+	if strings.Contains(d.Name, EnvNameSeparator) {
+		return errors.New("Project name does not support char '" + EnvNameSeparator + "' as part of its name")
 	}
 
 	if d.Type == "" {
-		return errors.New("Datacenter type is empty")
+		return errors.New("Project type is empty")
 	}
 
 	if d.Username == "" && d.Type != "azure" && d.Type != "azure-fake" {
-		return errors.New("Datacenter username is empty")
+		return errors.New("Project username is empty")
 	}
 
 	if d.Type == "vcloud" && d.VCloudURL == "" {
-		return errors.New("Datacenter vcloud url is empty")
+		return errors.New("Project vcloud url is empty")
 	}
 
 	return nil

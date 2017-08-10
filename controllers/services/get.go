@@ -16,6 +16,7 @@ func Get(au models.User, name string) (int, []byte) {
 	var s models.Service
 	var err error
 	var r models.Role
+	var d models.Datacenter
 	var roles []models.Role
 
 	if !au.IsReader(s.GetType(), name) {
@@ -36,6 +37,13 @@ func Get(au models.User, name string) (int, []byte) {
 			s.Roles = append(s.Roles, v.UserID+" ("+v.Role+")")
 		}
 	}
+
+	if err := d.FindByID(s.DatacenterID); err != nil {
+		return 404, []byte("Project not found")
+	}
+
+	s.Project = d.Name
+	s.Provider = d.Type
 
 	if err := o.Render(s); err != nil {
 		h.L.Warning(err.Error())

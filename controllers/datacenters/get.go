@@ -3,6 +3,7 @@ package datacenters
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/ernestio/api-gateway/models"
 )
@@ -18,6 +19,8 @@ func Get(au models.User, datacenter string) (int, []byte) {
 	var body []byte
 	var err error
 
+	appended := make(map[string]string)
+
 	if err := d.FindByName(datacenter, &d); err != nil {
 		return 404, []byte("Project not found")
 	}
@@ -26,7 +29,11 @@ func Get(au models.User, datacenter string) (int, []byte) {
 	query["datacenter_id"] = d.ID
 	if err := s.Find(query, &envs); err == nil {
 		for _, v := range envs {
-			d.Environments = append(d.Environments, v.Name)
+			nameParts := strings.Split(v.Name, models.EnvNameSeparator)
+			if _, ok := appended[nameParts[1]]; !ok {
+				d.Environments = append(d.Environments, nameParts[1])
+				appended[nameParts[1]] = "x"
+			}
 		}
 	}
 

@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -29,6 +30,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	var dt models.Datacenter
 
 	// *********** VALIDATIONS *********** //
+
+	if parts := strings.Split(s.Name, models.EnvNameSeparator); len(parts) > 2 {
+		return 400, []byte("Environment name does not support char '" + models.EnvNameSeparator + "' as part of its name")
+	}
 
 	// Get datacenter
 	if err = dt.FindByName(s.Datacenter, &dt); err != nil {

@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -47,6 +48,11 @@ func List(au models.User) (int, []byte) {
 			}
 			list = append(list, s)
 		}
+	}
+
+	for i := range list {
+		nameParts := strings.Split(list[i].Name, models.EnvNameSeparator)
+		list[i].Name = nameParts[1]
 	}
 
 	body, err = json.Marshal(list)

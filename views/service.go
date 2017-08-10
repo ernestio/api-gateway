@@ -18,6 +18,8 @@ import (
 type ServiceRender struct {
 	ID              string              `json:"id"`
 	DatacenterID    int                 `json:"datacenter_id"`
+	Project         string              `json:"project"`
+	Provider        string              `json:"provider"`
 	Name            string              `json:"name"`
 	Version         string              `json:"version"`
 	Status          string              `json:"status"`
@@ -44,7 +46,7 @@ type ServiceRender struct {
 // Render : Map a Service to a ServiceRender
 func (o *ServiceRender) Render(s models.Service) (err error) {
 	o.Name = s.Name
-	parts := strings.Split(o.Name, "-")
+	parts := strings.Split(o.Name, models.EnvNameSeparator)
 	if len(parts) > 1 {
 		o.Name = parts[1]
 	}
@@ -77,6 +79,8 @@ func (o *ServiceRender) Render(s models.Service) (err error) {
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
 	o.Roles = s.Roles
+	o.Project = s.Project
+	o.Provider = s.Provider
 
 	return err
 }

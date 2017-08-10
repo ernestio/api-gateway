@@ -14,12 +14,16 @@ import (
 	graph "gopkg.in/r3labs/graph.v2"
 )
 
+// EnvNameSeparator : environment name separator
+var EnvNameSeparator = "/"
+
 // Service holds the service response from service-store
 type Service struct {
 	ID           string      `json:"id"`
 	UserID       int         `json:"user_id"`
 	UserName     string      `json:"user_name,omitempty"`
 	Project      string      `json:"project,omitempty"`
+	Provider     string      `json:"provider,omitempty"`
 	DatacenterID int         `json:"datacenter_id"`
 	Name         string      `json:"name"`
 	Type         string      `json:"type"`

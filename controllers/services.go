@@ -9,6 +9,7 @@ import (
 
 	"github.com/ernestio/api-gateway/controllers/services"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
@@ -144,5 +145,5 @@ func buildID(c echo.Context) string {
 }
 
 func buildStringID(project, env string) string {
-	return project + "-" + env
+	return project + models.EnvNameSeparator + env
 }
