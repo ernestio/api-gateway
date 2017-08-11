@@ -167,3 +167,46 @@ func (d *Datacenter) GetID() string {
 func (d *Datacenter) GetType() string {
 	return "project"
 }
+
+// Override : override not empty parameters with the given datacenter ones
+func (d *Datacenter) Override(dt Datacenter) {
+	if dt.Region != "" {
+		d.Region = dt.Region
+	}
+	if dt.Username != "" {
+		d.Username = dt.Username
+	}
+	if dt.Password != "" {
+		d.Password = dt.Password
+	}
+	if dt.VCloudURL != "" {
+		d.VCloudURL = dt.VCloudURL
+	}
+	if dt.VseURL != "" {
+		d.VseURL = dt.VseURL
+	}
+	if dt.ExternalNetwork != "" {
+		d.ExternalNetwork = dt.ExternalNetwork
+	}
+	if dt.AccessKeyID != "" {
+		d.AccessKeyID = dt.AccessKeyID
+	}
+	if dt.SecretAccessKey != "" {
+		d.SecretAccessKey = dt.SecretAccessKey
+	}
+	if dt.SubscriptionID != "" {
+		d.SubscriptionID = dt.SubscriptionID
+	}
+	if dt.ClientID != "" {
+		d.ClientID = dt.ClientID
+	}
+	if dt.ClientSecret != "" {
+		d.ClientSecret = dt.ClientSecret
+	}
+	if dt.TenantID != "" {
+		d.TenantID = dt.TenantID
+	}
+	if dt.Environment != "" {
+		d.Environment = dt.Environment
+	}
+}

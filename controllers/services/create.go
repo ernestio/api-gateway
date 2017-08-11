@@ -41,12 +41,6 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return 400, []byte("Specified datacenter does not exist")
 	}
 
-	rawDatacenter, err := json.Marshal(dt)
-	if err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte("Internal error trying to get the datacenter")
-	}
-
 	var currentUser models.User
 	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
 		h.L.Error(err.Error())
@@ -61,6 +55,26 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 			h.L.Error("Service is still in progress")
 			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
+	}
+
+	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
+	if previous.ProjectInfo != nil {
+		var prevDT models.Datacenter
+		if err := json.Unmarshal(*previous.ProjectInfo, &prevDT); err == nil {
+			dt.Override(prevDT)
+		}
+	}
+	if s.ProjectInfo != nil {
+		var newDT models.Datacenter
+		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
+			dt.Override(newDT)
+		}
+	}
+
+	rawDatacenter, err := json.Marshal(dt)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, []byte("Internal error trying to get the datacenter")
 	}
 
 	// *********** REQUESTING DEFINITION ************ //

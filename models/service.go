@@ -19,24 +19,25 @@ var EnvNameSeparator = "/"
 
 // Service holds the service response from service-store
 type Service struct {
-	ID           string      `json:"id"`
-	UserID       int         `json:"user_id"`
-	UserName     string      `json:"user_name,omitempty"`
-	Project      string      `json:"project,omitempty"`
-	Provider     string      `json:"provider,omitempty"`
-	DatacenterID int         `json:"datacenter_id"`
-	Name         string      `json:"name"`
-	Type         string      `json:"type"`
-	Version      time.Time   `json:"version"`
-	Options      string      `json:"options"`
-	Status       string      `json:"status"`
-	Endpoint     string      `json:"endpoint"`
-	Definition   interface{} `json:"definition"`
-	Maped        string      `json:"mapping"`
-	Sync         bool        `json:"sync"`
-	SyncType     string      `json:"sync_type"`
-	SyncInterval int         `json:"sync_interval"`
-	Roles        []string    `json:"roles,omitempty"`
+	ID           string           `json:"id"`
+	UserID       int              `json:"user_id"`
+	UserName     string           `json:"user_name,omitempty"`
+	Project      string           `json:"project,omitempty"`
+	Provider     string           `json:"provider,omitempty"`
+	DatacenterID int              `json:"datacenter_id"`
+	ProjectInfo  *json.RawMessage `json:"datacenter_info"`
+	Name         string           `json:"name"`
+	Type         string           `json:"type"`
+	Version      time.Time        `json:"version"`
+	Options      string           `json:"options"`
+	Status       string           `json:"status"`
+	Endpoint     string           `json:"endpoint"`
+	Definition   interface{}      `json:"definition"`
+	Maped        string           `json:"mapping"`
+	Sync         bool             `json:"sync"`
+	SyncType     string           `json:"sync_type"`
+	SyncInterval int              `json:"sync_interval"`
+	Roles        []string         `json:"roles,omitempty"`
 }
 
 // Validate the service
