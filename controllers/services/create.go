@@ -25,7 +25,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	var err error
 	var group []byte
 	var previous models.Service
-	var service []byte
+	var mapping map[string]interface{}
 	var prevID string
 	var dt models.Datacenter
 
@@ -92,9 +92,9 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 	var def models.Definition
 	if isAnImport == true {
-		service, err = def.MapImport(body)
+		mapping, err = def.MapImport(body)
 	} else {
-		service, err = def.MapCreation(body)
+		mapping, err = def.MapCreation(body)
 	}
 
 	if err != nil {
@@ -105,7 +105,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	// *********** BUILD REQUEST IF IS DRY *********** //
 
 	if dry == "true" {
-		res, err := views.RenderDefinition(service)
+		res, err := views.RenderDefinition(mapping)
 		if err != nil {
 			h.L.Error(err.Error())
 			return 400, []byte("Internal error")
@@ -123,7 +123,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		Version:      time.Now(),
 		Status:       "in_progress",
 		Definition:   string(definition),
-		Maped:        string(service),
+		Mapped:       mapping,
 	}
 
 	if err := ss.Save(); err != nil {
@@ -136,9 +136,9 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 
 	// Apply changes
 	if isAnImport == true {
-		err = ss.RequestImport(service)
+		err = ss.RequestImport(mapping)
 	} else {
-		err = ss.RequestCreation(service)
+		err = ss.RequestCreation(mapping)
 	}
 
 	if err != nil {

@@ -8,8 +8,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/ernestio/api-gateway/models"
 	"log"
+
+	"github.com/ernestio/api-gateway/models"
 
 	graph "gopkg.in/r3labs/graph.v2"
 )
@@ -387,29 +388,20 @@ func (o *ServiceRender) ToJSON() ([]byte, error) {
 }
 
 // RenderDefinition : renders service defiition steps
-func RenderDefinition(service []byte) (result []byte, err error) {
+func RenderDefinition(service map[string]interface{}) (result []byte, err error) {
 	var lines []string
-	var s map[string]json.RawMessage
 	var actions = map[string]string{"create": "Create", "update": "Update", "delete": "Delete"}
 
-	if err = json.Unmarshal(service, &s); err != nil {
-		log.Println("Error unmarshalling definition mapping")
-		return result, err
+	for _, change := range service["changes"].([]interface{}) {
+		component := change.(map[string]interface{})
+		c := component["_component"].(string)
+		c = strings.Replace(c, "_", " ", -1)
+		n := component["name"].(string)
+		a := component["_action"].(string)
+		line := actions[a] + " a " + c + " named " + n
+		lines = append(lines, line)
 	}
-	var changes []interface{}
-	if err = json.Unmarshal(s["changes"], &changes); err == nil {
 
-		for i := range changes {
-			component := changes[i].(map[string]interface{})
-			c := component["_component"].(string)
-			c = strings.Replace(c, "_", " ", -1)
-			n := component["name"].(string)
-			a := component["_action"].(string)
-			line := actions[a] + " a " + c + " named " + n
-			lines = append(lines, line)
-		}
-
-	}
 	result, err = json.Marshal(lines)
 	if err != nil {
 		return result, err
