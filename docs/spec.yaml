@@ -37,29 +37,29 @@ paths:
             $ref: '#/definitions/Error'
         '403':
           description: You're not authorized to proceed with the login
-  '/api/services/':
+  '/api/projects/':
     get:
-      summary: List all services
+      summary: List all projects
       description: |
-        returns all services viewable by a logged in user
+        returns all projects viewable by a logged in user
       produces:
         - application/json
       tags:
-        - Services
+        - Projects
       responses:
         '200':
-          description: A json array containing all available services
+          description: A json array containing all available projects
           schema:
             type: array
             items:
-              $ref: '#/definitions/Service'
+              $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
     post:
-      summary: Create a service
+      summary: Create a project
       description: |
-        accepts a valid service model
-        return a service model populated with an ID
+        accepts a valid project model
+        return a project model populated with an ID
       consumes:
         - application/json
       produces:
@@ -67,112 +67,274 @@ paths:
       parameters:
         - name: body
           in: body
-          description: The service to be created
+          description: The project to be created
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Project'
       tags:
-        - Services
+        - Projects
       responses:
         '201':
-          description: Returns the created service
+          description: Returns the created project
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
-  '/api/services/{service}':
+  '/api/projects/{project}':
     get:
-      summary: Get a service
+      summary: Get a project
       description: |
-        Returns a service by name
+        Returns a project by name
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
           required: true
           type: string
           format: string
       tags:
-        - Services
+        - Projects
       responses:
         '200':
-          description: A json array containing all available services
+          description: A json array containing all available projects
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Environment'
         '403':
           description: You're not authorized to view this resource
         '404':
           description: Resource does not exist
     put:
-      summary: Update a service
+      summary: Update a project
       description: |
-        accepts a valid service model
-        return a service model populated with an ID
+        accepts a valid project model
+        return a project model populated with an ID
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
           required: true
           type: string
           format: string
         - name: body
           in: body
-          description: The service to be created
+          description: The project to be created
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Environment'
       tags:
-        - Services
+        - Projects
       responses:
         '201':
-          description: Returns the created service
+          description: Returns the created project
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Environment'
         '403':
           description: You're not authorized to view this resource
     delete:
-      summary: Delete a service
+      summary: Delete a project
       description: |
         return a build model populated with an ID
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
           required: true
           type: string
           format: string
         - name: body
           in: body
-          description: The service to be created
+          description: The project to be created
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Environment'
       tags:
-        - Services
+        - Projects
       responses:
         '202':
-          description: Returns the build used to delete a service
+          description: Returns the build used to delete a project
           schema:
             $ref: '#/definitions/Build'
         '403':
           description: You're not authorized to view this resource
-  '/api/services/{service}/builds/':
+  '/api/projects/{project}/environments/':
+    get:
+      summary: List all environments
+      description: |
+        returns all environments viewable by a logged in user
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a environment
+      description: |
+        accepts a valid environment model
+        return a environment model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: The environment to be created
+          schema:
+            $ref: '#/definitions/Environment'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created environment
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}':
+    get:
+      summary: Get a environment
+      description: |
+        Returns a environment by name
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a environment
+      description: |
+        accepts a valid environment model
+        return a environment model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The environment to be created
+          schema:
+            $ref: '#/definitions/Environment'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created environment
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a environment
+      description: |
+        return a build model populated with an ID
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The environment to be created
+          schema:
+            $ref: '#/definitions/Environment'
+      tags:
+        - Environments
+      responses:
+        '202':
+          description: Returns the build used to delete a environment
+          schema:
+            $ref: '#/definitions/Build'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/builds/':
     get:
       summary: List all builds
       description: |
-        returns all builds associated with a service
+        returns all builds associated with a environment
       produces:
         - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
+          required: true
+          type: string
+          format: string
       tags:
         - Builds
       responses:
         '200':
-          description: A json array containing all available services
+          description: A json array containing all available environments
           schema:
             type: array
             items:
@@ -182,16 +344,22 @@ paths:
     post:
       summary: Create a build
       description: |
-        accepts a service's yaml
+        accepts a environment's yaml
         return a build model populated with an ID and status
       consumes:
         - application/yaml
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
           required: true
           type: string
           format: string
@@ -204,7 +372,7 @@ paths:
             $ref: '#/definitions/Build'
         '403':
           description: You're not authorized to view this resource
-  '/api/services/{service}/builds/{build}':
+  '/api/projects/{project}/environments/{environment}/builds/{build}':
     get:
       summary: Get a build
       description: |
@@ -212,9 +380,15 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service associated with the build
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment associated with the build
           required: true
           type: string
           format: string
@@ -228,14 +402,14 @@ paths:
         - Builds
       responses:
         '200':
-          description: A json array containing all available services
+          description: A json array containing all available environments
           schema:
-            $ref: '#/definitions/Service'
+            $ref: '#/definitions/Environment'
         '403':
           description: You're not authorized to view this resource
         '404':
           description: Resource does not exist
-  '/api/services/{service}/builds/{build}/definition/':
+  '/api/projects/{project}/environments/{environment}/builds/{build}/definition/':
     get:
       summary: Get the definition used for a build
       description: |
@@ -243,9 +417,15 @@ paths:
       produces:
         - application/yaml
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service associated with the build
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment associated with the build
           required: true
           type: string
           format: string
@@ -264,7 +444,7 @@ paths:
           description: You're not authorized to view this resource
         '404':
           description: Resource does not exist
-  '/api/services/{service}/builds/{build}/mapping/':
+  '/api/projects/{project}/environments/{environment}/builds/{build}/mapping/':
     get:
       summary: Get the build graph/mapping
       description: |
@@ -272,9 +452,15 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service associated with the build
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment associated with the build
           required: true
           type: string
           format: string
@@ -293,30 +479,36 @@ paths:
           description: You're not authorized to view this resource
         '404':
           description: Resource does not exist
-  '/api/services/{service}/import/':
+  '/api/projects/{project}/environments/{environment}/import/':
     post:
-      summary: Import a service
+      summary: Import a environment
       description: |
-        accepts a service's yaml
-        return a service model populated with an ID
+        accepts a environment's yaml
+        return a environment model populated with an ID
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
           required: true
           type: string
           format: string
         - name: body
           in: body
-          description: The service to be created
+          description: The environment to be created
           schema:
             $ref: '#/definitions/Import'
       tags:
-        - Services
+        - Environments
       responses:
         '201':
           description: Returns the created build
@@ -324,30 +516,36 @@ paths:
             $ref: '#/definitions/Build'
         '403':
           description: You're not authorized to view this resource
-  '/api/services/{service}/reapply/':
+  '/api/projects/{project}/environments/{environment}/reapply/':
     post:
-      summary: Reapply a previous service build
+      summary: Reapply a previous environment build
       description: |
         accepts a reapply model
-        return a service model populated with an ID
+        return a environment model populated with an ID
       consumes:
         - application/json
       produces:
         - application/json
       parameters:
-        - name: service
+        - name: project
           in: path
-          description: name of service to return
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
           required: true
           type: string
           format: string
         - name: body
           in: body
-          description: The service to be created
+          description: The environment to be created
           schema:
             $ref: '#/definitions/Reapply'
       tags:
-        - Services
+        - Environments
       responses:
         '201':
           description: Returns the created build
@@ -362,48 +560,63 @@ definitions:
       token:
         type: string
         description: JWT Token to be used in future connections
-  Service:
+  Project:
     type: object
     required:
-      - datacenter_id
       - name
       - type
     properties:
       id:
         type: integer
-        description: service id
+        description: environment id
         readOnly: true
-      group_id:
-        type: integer
-        description: the group id scope of the service
-        readOnly: true
-      datacenter_id:
-        type: integer
-        description: the id of the datacenter that will be used by the service
       name:
         type: string
-        description: the name of the service
+        description: the name of the environment
       type:
         type: string
-        description: the type of service
+        description: the type of environment
+      credentials:
+        $ref: '#/definitions/Credentials'
+  Environment:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      id:
+        type: integer
+        description: environment id
+        readOnly: true
+      name:
+        type: string
+        description: the name of the environment
+      type:
+        type: string
+        description: the type of environment
       status:
         type: string
-        description: the status of the service
+        description: the status of the environment
         readOnly: true
+      options:
+        $ref: '#/definitions/EnvironmentOptions'
+  EnvironmentOptions:
+    type: object
+    properties:
       sync:
         type: boolean
-        description: sync enablement of the service
+        description: sync enablement of the environment
         default: false
       sync_type:
         type: string
         enum:
           - hard
           - soft
-        description: the sync configuration of the service
+        description: the sync configuration of the environment
         default: soft
       sync_interval:
         type: integer
-        description: the sync configuration of the service
+        description: the sync configuration of the environment
         default: hard
   Build:
     type: object
@@ -412,9 +625,9 @@ definitions:
         type: string
         format: uuid
         description: the unique id of the build
-      service_id:
+      environment_id:
         type: integer
-        description: the service id associated with the build
+        description: the environment id associated with the build
       user_id:
         type: integer
         description: the user id of the user who created the build
@@ -441,6 +654,12 @@ definitions:
         type: string
         format: date-time
         description: the finish time of the build
+  Credentials:
+    type: object
+    properties:
+      provider_type:
+        type: string
+        description: type of credentials
   Import:
     type: object
     properties:
@@ -454,4 +673,4 @@ definitions:
     properties:
       build_id:
         type: string
-        description: the build id of the state you wish to return a service to
+        description: the build id of the state you wish to return a environment to
