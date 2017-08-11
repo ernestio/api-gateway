@@ -148,6 +148,14 @@ func deleteServiceSubscriber() {
 	})
 }
 
+func serviceResetSubscriber() {
+	_, _ = models.N.Subscribe("build.set.status", func(msg *nats.Msg) {
+		if err := models.N.Publish(msg.Reply, []byte(`{"status":"success"}`)); err != nil {
+			log.Println(err)
+		}
+	})
+}
+
 func notFoundSubscriber(subject string, max int) {
 	sub, _ := models.N.Subscribe(subject, func(msg *nats.Msg) {
 		if err := models.N.Publish(msg.Reply, []byte(`{"_error","Not found"}`)); err != nil {

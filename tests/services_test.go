@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/ernestio/api-gateway/config"
@@ -26,7 +27,7 @@ func TestServices(t *testing.T) {
 
 		Convey("Given my existing service is in progress", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","status":"in_progress"},{"id":"2","name":"fake/test","status":"done"}]`, 1)
-
+			serviceResetSubscriber()
 			Convey("When I do a call to /services/reset", func() {
 				s, b := services.Reset(au, "foo")
 				Convey("Then it should return a success message", func() {
@@ -282,6 +283,7 @@ func TestServices(t *testing.T) {
 				st, resp := services.Delete(au, "foo-bar")
 
 				Convey("Then I should get a response with id and stream id", func() {
+					fmt.Println(string(resp))
 					So(st, ShouldEqual, 200)
 					So(string(resp), ShouldEqual, `{"id":"foo-bar"}`)
 				})
