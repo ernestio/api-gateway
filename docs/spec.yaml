@@ -479,14 +479,11 @@ paths:
           description: You're not authorized to view this resource
         '404':
           description: Resource does not exist
-  '/api/projects/{project}/environments/{environment}/import/':
-    post:
-      summary: Import a environment
+  '/api/projects/{project}/environments/{environment}/actions/':
+    get:
+      summary: List all actions
       description: |
-        accepts a environment's yaml
-        return a environment model populated with an ID
-      consumes:
-        - application/json
+        returns all actions associated with a environment
       produces:
         - application/json
       parameters:
@@ -502,26 +499,22 @@ paths:
           required: true
           type: string
           format: string
-        - name: body
-          in: body
-          description: The environment to be created
-          schema:
-            $ref: '#/definitions/Import'
       tags:
-        - Environments
+        - Actions
       responses:
-        '201':
-          description: Returns the created build
+        '200':
+          description: A json array containing all available actions associated with an environment
           schema:
-            $ref: '#/definitions/Build'
+            type: array
+            items:
+              $ref: '#/definitions/Action'
         '403':
           description: You're not authorized to view this resource
-  '/api/projects/{project}/environments/{environment}/reapply/':
     post:
-      summary: Reapply a previous environment build
+      summary: Trigger an action
       description: |
-        accepts a reapply model
-        return a environment model populated with an ID
+        accepts an action with valid type
+        returns an action
       consumes:
         - application/json
       produces:
@@ -543,14 +536,48 @@ paths:
           in: body
           description: The environment to be created
           schema:
-            $ref: '#/definitions/Reapply'
+            $ref: '#/definitions/Action'
       tags:
-        - Environments
+        - Actions
       responses:
         '201':
           description: Returns the created build
           schema:
-            $ref: '#/definitions/Build'
+            $ref: '#/definitions/Action'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/actions/{action}':
+    get:
+      summary: List all actions
+      description: returns an action by id
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to return
+          required: true
+          type: string
+          format: string
+        - name: action
+          in: path
+          description: id of the action to return
+          required: true
+          type: integer
+          format: integer
+      tags:
+        - Actions
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            $ref: '#/definitions/Action'
         '403':
           description: You're not authorized to view this resource
 definitions:
@@ -624,6 +651,7 @@ definitions:
       id:
         type: string
         format: uuid
+        readOnly: true
         description: the unique id of the build
       environment_id:
         type: integer
@@ -660,17 +688,42 @@ definitions:
       provider_type:
         type: string
         description: type of credentials
-  Import:
+  Action:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: the unique id of the Action
+        readOnly: true
+      status:
+        type: string
+        description: status of the action
+        readOnly: true
+      type:
+        type: string
+        enum:
+          - import
+          - reapply
+          - clone
+      options:
+        $ref: '#/definitions/ActionOptions'
+      resource_id:
+        type: string # We have mixed path identifiers (envs, projects - string) and (builds - integer) that will cause issues
+        description: the id of the created/modified resource
+        readOnly: true
+      resource_type:
+        type: string
+        description: the type of resource created/modified
+        readOnly: true
+  ActionOptions:
     type: object
     properties:
       filters:
         type: array
-        description: values that limit the scope of the
-  Reapply:
-    type: object
-    required:
-      - build_id
-    properties:
+        description: For when action type is 'import' -  values that limit the scope of the import
       build_id:
         type: string
-        description: the build id of the state you wish to return a environment to
+        description: For when action type is 'reapply' or 'clone' - the build id of the state you wish to return a environment to
+      environment:
+        type: string
+        description: For when action type is 'clone' - the name of the environment you wish to clone
