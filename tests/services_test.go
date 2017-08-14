@@ -275,7 +275,7 @@ func TestServices(t *testing.T) {
 
 		Convey("Given a service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
-			foundSubscriber("definition.map.deletion", `""`, 1)
+			foundSubscriber("definition.map.deletion", `{}`, 1)
 			foundSubscriber("service.delete", `""`, 1)
 			res := `[{"resource_id":"1","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)

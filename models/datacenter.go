@@ -25,14 +25,14 @@ type Datacenter struct {
 	Password        string   `json:"password"`
 	VCloudURL       string   `json:"vcloud_url"`
 	VseURL          string   `json:"vse_url"`
-	ExternalNetwork string   `json:"external_network"`
+	ExternalNetwork string   `json:"external_network,omitempty"`
 	AccessKeyID     string   `json:"aws_access_key_id,omitempty"`
 	SecretAccessKey string   `json:"aws_secret_access_key,omitempty"`
 	SubscriptionID  string   `json:"azure_subscription_id,omitempty"`
 	ClientID        string   `json:"azure_client_id,omitempty"`
 	ClientSecret    string   `json:"azure_client_secret,omitempty"`
-	TenantID        string   `json:"azure_tenant_id"`
-	Environment     string   `json:"azure_environment"`
+	TenantID        string   `json:"azure_tenant_id,omitempty"`
+	Environment     string   `json:"azure_environment,omitempty"`
 	Environments    []string `json:"environments,omitempty"`
 	Roles           []string `json:"roles,omitempty"`
 }
@@ -209,4 +209,35 @@ func (d *Datacenter) Override(dt Datacenter) {
 	if dt.Environment != "" {
 		d.Environment = dt.Environment
 	}
+}
+
+// Encrypt : encrypts sensible data
+func (d *Datacenter) Encrypt() {
+	d.Region, _ = crypt(d.Region)
+	d.Username, _ = crypt(d.Username)
+	d.Password, _ = crypt(d.Password)
+	d.VCloudURL, _ = crypt(d.VCloudURL)
+	d.VseURL, _ = crypt(d.VseURL)
+	d.ExternalNetwork, _ = crypt(d.ExternalNetwork)
+	d.AccessKeyID, _ = crypt(d.AccessKeyID)
+	d.SecretAccessKey, _ = crypt(d.SecretAccessKey)
+	d.SubscriptionID, _ = crypt(d.SubscriptionID)
+	d.ClientID, _ = crypt(d.ClientID)
+	d.ClientSecret, _ = crypt(d.ClientSecret)
+	d.TenantID, _ = crypt(d.TenantID)
+	d.Environment, _ = crypt(d.Environment)
+}
+
+func crypt(s string) (string, error) {
+	crypto := aes.New()
+	key := os.Getenv("ERNEST_CRYPTO_KEY")
+	if s != "" {
+		encrypted, err := crypto.Encrypt(s, key)
+		if err != nil {
+			return "", err
+		}
+		s = encrypted
+	}
+
+	return s, nil
 }

@@ -58,20 +58,31 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
-	if previous.ProjectInfo != nil {
-		var prevDT models.Datacenter
-		if err := json.Unmarshal(*previous.ProjectInfo, &prevDT); err == nil {
-			dt.Override(prevDT)
-		}
-	}
-	if s.ProjectInfo != nil {
-		var newDT models.Datacenter
-		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
-			dt.Override(newDT)
+	credentials := models.Datacenter{}
+	if &previous != nil {
+		if previous.ProjectInfo != nil {
+			var prevDT models.Datacenter
+			if err := json.Unmarshal(*previous.ProjectInfo, &prevDT); err == nil {
+				credentials.Override(prevDT)
+			}
 		}
 	}
 
+	if s.ProjectInfo != nil {
+		var newDT models.Datacenter
+		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
+			newDT.Encrypt()
+			credentials.Override(newDT)
+		}
+	}
+
+	dt.Override(credentials)
 	rawDatacenter, err := json.Marshal(dt)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, []byte("Internal error trying to get the datacenter")
+	}
+	rawCredentials, err := json.Marshal(credentials)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error trying to get the datacenter")
@@ -113,6 +124,11 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return http.StatusOK, res
 	}
 
+	d := string(definition)
+	if defParts := strings.Split(d, "credentials:"); len(defParts) > 0 {
+		d = defParts[0]
+	}
+
 	// *********** SAVE NEW SERVICE AND PROCESS CREATION / IMPORT *********** //
 	ss := models.Service{
 		ID:           payload.ID,
@@ -122,8 +138,9 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		DatacenterID: dt.ID,
 		Version:      time.Now(),
 		Status:       "in_progress",
-		Definition:   string(definition),
+		Definition:   d,
 		Mapped:       mapping,
+		ProjectInfo:  (*json.RawMessage)(&rawCredentials),
 	}
 
 	if err := ss.Save(); err != nil {

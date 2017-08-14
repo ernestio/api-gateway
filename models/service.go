@@ -25,7 +25,7 @@ type Service struct {
 	Project      string                 `json:"project,omitempty"`
 	Provider     string                 `json:"provider,omitempty"`
 	DatacenterID int                    `json:"datacenter_id"`
-	ProjectInfo  *json.RawMessage       `json:"datacenter_info"`
+	ProjectInfo  *json.RawMessage       `json:"credentials,omitempty"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
 	Version      time.Time              `json:"version"`

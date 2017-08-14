@@ -34,9 +34,11 @@ func Delete(au models.User, name string) (int, []byte) {
 	dID := strconv.Itoa(s.DatacenterID)
 	body, err := def.MapDeletion(s.ID, s.Type, dID)
 	if err != nil {
+		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the service"`)
 	}
 	if err := s.RequestDeletion(body); err != nil {
+		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't call service.delete"`)
 	}
 

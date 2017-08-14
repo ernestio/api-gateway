@@ -52,12 +52,12 @@ func TestUsers(t *testing.T) {
 			getUserSubscriber(1)
 			Convey("When I call /users/:user on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
-					st, resp := users.Get(admin, "1")
+					st, resp := users.Get(admin, "test")
 					Convey("It should return the correct set of data", func() {
 						var u models.User
 						err = json.Unmarshal(resp, &u)
-						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
+						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
 						So(u.Password, ShouldEqual, "")
@@ -65,12 +65,12 @@ func TestUsers(t *testing.T) {
 					})
 				})
 				Convey("And the user is the same as registered  user", func() {
-					st, resp := users.Get(au, "1")
+					st, resp := users.Get(au, "test")
 					Convey("It should return the correct set of data", func() {
 						var u models.User
 						err = json.Unmarshal(resp, &u)
-						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
+						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
 						So(u.Password, ShouldEqual, "")

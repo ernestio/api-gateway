@@ -39,13 +39,6 @@ func List(au models.User) (int, []byte) {
 					s.UserName = name
 				}
 			}
-			var d models.Datacenter
-			var ds []models.Datacenter
-			if err := d.FindAll(au, &ds); err == nil {
-				for _, d = range ds {
-					s.Project = d.Name
-				}
-			}
 			list = append(list, s)
 		}
 	}
@@ -53,6 +46,7 @@ func List(au models.User) (int, []byte) {
 	for i := range list {
 		nameParts := strings.Split(list[i].Name, models.EnvNameSeparator)
 		list[i].Name = nameParts[1]
+		list[i].Project = nameParts[0]
 	}
 
 	body, err = json.Marshal(list)
