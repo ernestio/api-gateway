@@ -775,7 +775,7 @@ definitions:
         enum:
           - admin
           - owner
-          -
+          - reader
   User:
     type: object
     required:
