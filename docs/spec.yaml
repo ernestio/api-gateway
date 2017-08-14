@@ -37,6 +37,166 @@ paths:
             $ref: '#/definitions/Error'
         '403':
           description: You're not authorized to proceed with the login
+  '/api/roles/':
+    get:
+      summary: List all roles
+      description: |
+        returns all roles viewable by a logged in user
+      produces:
+        - application/json
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: A json array containing all available roles
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Role'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a role
+      description: |
+        accepts a valid role model
+        return a role model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: The role to be created
+          schema:
+            $ref: '#/definitions/Role'
+      tags:
+        - Roles
+      responses:
+        '201':
+          description: Returns the created role
+          schema:
+            $ref: '#/definitions/Role'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/roles/{role}':
+    get:
+      summary: Get a role
+      description: |
+        returns a role by id
+      produces:
+        - application/
+      parameters:
+        - name: role
+          in: path
+          description: id of role to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: A valid role object
+          schema:
+            $ref: '#/definitions/Role'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/users/':
+    get:
+      summary: List all users
+      description: |
+        returns all users viewable by a logged in user
+      produces:
+        - application/json
+      tags:
+        - Users
+      responses:
+        '200':
+          description: A json array containing all available users
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a user
+      description: |
+        accepts a valid user model
+        return a user model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: The user to be created
+          schema:
+            $ref: '#/definitions/UserCreate'
+      tags:
+        - Users
+      responses:
+        '201':
+          description: Returns the created user
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/users/{user}':
+    get:
+      summary: Get a user
+      description: |
+        returns a user by id
+      produces:
+        - application/
+      parameters:
+        - name: user
+          in: path
+          description: id of user to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Users
+      responses:
+        '200':
+          description: A valid user object
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    put:
+      summary: Update a user
+      description: |
+        accepts a valid user model
+        return a project model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: user
+          in: path
+          description: id of user to update
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The user to be created
+          schema:
+            $ref: '#/definitions/UserUpdate'
+      tags:
+        - Projects
+      responses:
+        '201':
+          description: Returns the created user
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
   '/api/projects/':
     get:
       summary: List all projects
@@ -97,9 +257,9 @@ paths:
         - Projects
       responses:
         '200':
-          description: A json array containing all available projects
+          description: A valid project object
           schema:
-            $ref: '#/definitions/Environment'
+            $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
         '404':
@@ -124,20 +284,20 @@ paths:
           in: body
           description: The project to be created
           schema:
-            $ref: '#/definitions/Environment'
+            $ref: '#/definitions/Project'
       tags:
         - Projects
       responses:
         '201':
           description: Returns the created project
           schema:
-            $ref: '#/definitions/Environment'
+            $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
     delete:
       summary: Delete a project
       description: |
-        return a build model populated with an ID
+        deletes a project if all related environments have been removed
       produces:
         - application/json
       parameters:
@@ -151,14 +311,12 @@ paths:
           in: body
           description: The project to be created
           schema:
-            $ref: '#/definitions/Environment'
+            $ref: '#/definitions/Project'
       tags:
         - Projects
       responses:
         '202':
-          description: Returns the build used to delete a project
-          schema:
-            $ref: '#/definitions/Build'
+          description: Indicates the project has been successfully deleted
         '403':
           description: You're not authorized to view this resource
   '/api/projects/{project}/environments/':
@@ -234,7 +392,7 @@ paths:
         - Environments
       responses:
         '200':
-          description: A json array containing all available environments
+          description: A valid environment object
           schema:
             $ref: '#/definitions/Environment'
         '403':
@@ -587,6 +745,73 @@ definitions:
       token:
         type: string
         description: JWT Token to be used in future connections
+  Role:
+    type: object
+    required:
+      - user_id
+      - resource_id
+      - resource_type
+      - role
+    properties:
+      id:
+        type: integer
+        description: role id
+        readOnly: true
+      user_id:
+        type: integer
+        description: user id that the role applies to
+      resource_id:
+        type: integer
+        description: the id of the resource that the role applies to
+      resource_type:
+        type: string
+        description: the type of resource that the role applies to
+        enum:
+          - project
+          - environment
+      role:
+        type: string
+        description: the type of role
+        enum:
+          - admin
+          - owner
+          -
+  User:
+    type: object
+    required:
+      - username
+    properties:
+      id:
+        type: integer
+        description: role id
+        readOnly: true
+      username:
+        type: string
+        description: unique username of user
+      admin:
+        type: boolean
+        default: false
+        description: indicates if user is a system wide admin
+  UserCreate:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        required:
+          - password
+        properties:
+          password:
+            type: string
+            description: valid user password
+  UserUpdate:
+    allOf:
+      - $ref: '#/definitions/UserCreate'
+      - type: object
+        required:
+          - old_password
+        properties:
+          old_password:
+            type: string
+            description: valid user password
   Project:
     type: object
     required:
