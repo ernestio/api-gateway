@@ -359,6 +359,12 @@ paths:
           description: The environment to be created
           schema:
             $ref: '#/definitions/Environment'
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
       tags:
         - Environments
       responses:
@@ -761,7 +767,7 @@ definitions:
         type: integer
         description: user id that the role applies to
       resource_id:
-        type: integer
+        type: string
         description: the id of the resource that the role applies to
       resource_type:
         type: string
