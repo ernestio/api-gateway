@@ -189,7 +189,7 @@ paths:
           schema:
             $ref: '#/definitions/UserUpdate'
       tags:
-        - Projects
+        - Users
       responses:
         '201':
           description: Returns the created user
