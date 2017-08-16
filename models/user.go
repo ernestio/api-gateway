@@ -60,7 +60,7 @@ func (u *User) Authenticate() (*authResponse, error) {
 	return &res, nil
 }
 
-// Validate checks user input details for missing values or invalid characters
+// Validate checks user input details for missing values and invalid characters
 func (u *User) Validate() error {
 	if u.Username == "" {
 		return errors.New("Username cannot be empty")

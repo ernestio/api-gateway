@@ -31,7 +31,7 @@ func AuthenticatedUser(c echo.Context) models.User {
 	return u
 }
 
-// AuthenticateHandler : manages user authentication
+// AuthenticateHandler manages user authentication
 func AuthenticateHandler(c echo.Context) error {
 	var u models.User
 
