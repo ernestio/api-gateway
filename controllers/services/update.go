@@ -34,15 +34,15 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 400, []byte(`"Service is already applying some changes, please wait until they are done"`)
 	}
 
-	s.Sync = input.Sync
-	s.SyncType = input.SyncType
-	s.SyncInterval = input.SyncInterval
-	if s.Sync == true {
-		if s.SyncType != "hard" {
-			s.SyncType = "soft"
+	s.Options["sync"] = input.Options["sync"]
+	s.Options["sync_type"] = input.Options["sync_type"]
+	s.Options["sync_interval"] = input.Options["sync_interval"]
+	if s.Options["sync"] == true {
+		if s.Options["sync_type"] != "hard" {
+			s.Options["sync_type"] = "soft"
 		}
-		if s.SyncInterval == 0 {
-			s.SyncInterval = 5
+		if s.Options["sync_interval"] == 0 {
+			s.Options["sync_interval"] = 5
 		}
 	}
 

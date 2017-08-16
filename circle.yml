@@ -25,15 +25,19 @@ machine:
     ernest.local: 127.0.0.1
 dependencies:
   pre:
-    - docker run -d -p 4222:4222 nats
-    - make dev-deps
     - mkdir -p $ROOTPATH/
+    - rm -rf $ROOTPATH/api-gateway
+    - cp -R /home/ubuntu/api-gateway $ROOTPATH/api-gateway
+
+  override:
+    - cd $ROOTPATH/api-gateway && docker run -d -p 4222:4222 nats
+    - cd $ROOTPATH/api-gateway && make dev-deps
     - rm -rf $ROOTPATH/toolset/ && git clone git@github.com:ernestio/toolset.git $ROOTPATH/toolset/
     - cd $ROOTPATH/toolset/ernestci/ && bundle install
 
 test:
   override:
-    - make test
+    - cd $ROOTPATH/api-gateway && make test
     - docker kill `docker ps | grep nats | awk '{print $1}'`
     - ruby $ROOTPATH/toolset/ernestci/run.rb .ernest-ci
-    - make lint
+    - cd $ROOTPATH/api-gateway && make lint

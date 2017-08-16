@@ -58,26 +58,29 @@ func AuthenticateHandler(c echo.Context) error {
 		return h.ErrUnauthorized
 	}
 
-	if u.Username == username && u.ValidPassword(password) {
-		claims := make(jwt.MapClaims)
-
-		claims["group_id"] = u.GroupID
-		claims["username"] = u.Username
-		claims["admin"] = u.Admin
-		claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
-
-		// Create token
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-		// Generate encoded token and send it as response.
-		t, err := token.SignedString([]byte(Secret))
-		if err != nil {
-			return err
-		}
-		return c.JSON(http.StatusOK, map[string]string{
-			"token": t,
-		})
+	if !(u.Username == username && u.ValidPassword(password)) {
+		return echo.NewHTTPError(403, "The keypair user / password does not match any user on the database, please try again")
 	}
 
-	return echo.NewHTTPError(403, "The keypair user / password does not match any user on the database, please try again")
+	if err := h.ValidCliVersion(c.Request()); err != nil {
+		return echo.NewHTTPError(403, err.Error())
+	}
+
+	claims := make(jwt.MapClaims)
+
+	claims["group_id"] = u.GroupID
+	claims["username"] = u.Username
+	claims["admin"] = u.Admin
+	claims["exp"] = time.Now().Add(time.Hour * 48).Unix()
+
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte(Secret))
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"token": t})
 }
