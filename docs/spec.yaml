@@ -36,72 +36,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '403':
-          description: You're not authorized to proceed with the login
-  '/api/roles/':
-    get:
-      summary: List all roles
-      description: |
-        returns all roles viewable by a logged in user
-      produces:
-        - application/json
-      tags:
-        - Roles
-      responses:
-        '200':
-          description: A json array containing all available roles
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Role'
-        '403':
-          description: You're not authorized to view this resource
-    post:
-      summary: Create a role
-      description: |
-        accepts a valid role model
-        return a role model populated with an ID
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - name: body
-          in: body
-          description: The role to be created
-          schema:
-            $ref: '#/definitions/Role'
-      tags:
-        - Roles
-      responses:
-        '201':
-          description: Returns the created role
-          schema:
-            $ref: '#/definitions/Role'
-        '403':
-          description: You're not authorized to view this resource
-  '/api/roles/{role}':
-    get:
-      summary: Get a role
-      description: |
-        returns a role by id
-      produces:
-        - application/
-      parameters:
-        - name: role
-          in: path
-          description: id of role to return
-          required: true
-          type: string
-          format: string
-      tags:
-        - Roles
-      responses:
-        '200':
-          description: A valid role object
-          schema:
-            $ref: '#/definitions/Role'
-        '403':
-          description: You're not authorized to view this resource
+          description: You're not authorized
   '/api/users/':
     get:
       summary: List all users
@@ -150,7 +85,7 @@ paths:
       description: |
         returns a user by id
       produces:
-        - application/
+        - application/json
       parameters:
         - name: user
           in: path
@@ -195,6 +130,28 @@ paths:
           description: Returns the created user
           schema:
             $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a user
+      description: |
+        deletes a user
+      produces:
+        - application/json
+      parameters:
+        - name: user
+          in: path
+          description: name of user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Users
+      responses:
+        '202':
+          description: Indicates the user has been successfully deleted
+          schema:
+            $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
   '/api/projects/':
@@ -303,20 +260,129 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project to delete
           required: true
           type: string
           format: string
-        - name: body
-          in: body
-          description: The project to be created
-          schema:
-            $ref: '#/definitions/Project'
       tags:
         - Projects
       responses:
         '202':
           description: Indicates the project has been successfully deleted
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/members/':
+    get:
+      summary: List all members
+      description: |
+        returns all members viewable by a logged in user
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: A json array containing all available members
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a member
+      description: |
+        accepts a valid member model
+        return a member model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The member to be created
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Projects
+      responses:
+        '201':
+          description: Returns the created member
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/members/{member}':
+    get:
+      summary: Get a member
+      description: |
+        returns a member by id
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: id of member to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: A valid member object
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a project member
+      description: |
+        deletes a project member
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: name of member user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '202':
+          description: Indicates the project member has been successfully deleted
+          schema:
+            $ref: '#/definitions/Member'
         '403':
           description: You're not authorized to view this resource
   '/api/projects/{project}/environments/':
@@ -329,7 +395,7 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
@@ -354,17 +420,17 @@ paths:
       produces:
         - application/json
       parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
         - name: body
           in: body
           description: The environment to be created
           schema:
             $ref: '#/definitions/Environment'
-        - name: project
-          in: path
-          description: name of project to return
-          required: true
-          type: string
-          format: string
       tags:
         - Environments
       responses:
@@ -384,13 +450,13 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
@@ -417,19 +483,19 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
         - name: body
           in: body
-          description: The environment to be created
+          description: The environment to be updated
           schema:
             $ref: '#/definitions/Environment'
       tags:
@@ -450,21 +516,16 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
-        - name: body
-          in: body
-          description: The environment to be created
-          schema:
-            $ref: '#/definitions/Environment'
       tags:
         - Environments
       responses:
@@ -474,6 +535,143 @@ paths:
             $ref: '#/definitions/Build'
         '403':
           description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/members/':
+    get:
+      summary: List all members
+      description: |
+        returns all environment members
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A json array containing all available members
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a member
+      description: |
+        accepts a valid member model
+        return a member model
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The member to be created
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created member
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/members/{member}':
+    get:
+      summary: Get a member
+      description: |
+        returns a member by username
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: name of member user
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A valid member object
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a project member
+      description: |
+        deletes a environment member
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: name of member user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '202':
+          description: Indicates the environment member has been successfully deleted
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+
   '/api/projects/{project}/environments/{environment}/builds/':
     get:
       summary: List all builds
@@ -484,13 +682,13 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
@@ -517,13 +715,13 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
@@ -546,19 +744,19 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment associated with the build
+          description: name of environment
           required: true
           type: string
           format: string
         - name: build
           in: path
-          description: id of build to return
+          description: id of build
           required: true
           type: string
           format: string
@@ -583,19 +781,19 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment associated with the build
+          description: name of environment
           required: true
           type: string
           format: string
         - name: build
           in: path
-          description: id of build to return
+          description: id of build
           required: true
           type: string
           format: string
@@ -618,19 +816,19 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment associated with the build
+          description: name of environment
           required: true
           type: string
           format: string
         - name: build
           in: path
-          description: id of build to return
+          description: id of build
           required: true
           type: string
           format: string
@@ -653,13 +851,13 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
@@ -667,7 +865,8 @@ paths:
         - Actions
       responses:
         '200':
-          description: A json array containing all available actions associated with an environment
+          description: |
+            A json array containing all available actions associated with an environment
           schema:
             type: array
             items:
@@ -686,13 +885,13 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
@@ -719,19 +918,19 @@ paths:
       parameters:
         - name: project
           in: path
-          description: name of project to return
+          description: name of project
           required: true
           type: string
           format: string
         - name: environment
           in: path
-          description: name of environment to return
+          description: name of environment
           required: true
           type: string
           format: string
         - name: action
           in: path
-          description: id of the action to return
+          description: id of the action
           required: true
           type: integer
           format: integer
@@ -751,30 +950,15 @@ definitions:
       token:
         type: string
         description: JWT Token to be used in future connections
-  Role:
+  Member:
     type: object
     required:
-      - user_id
-      - resource_id
-      - resource_type
+      - user
       - role
     properties:
-      id:
-        type: integer
-        description: role id
-        readOnly: true
-      user_id:
-        type: integer
-        description: user id that the role applies to
-      resource_id:
+      user:
         type: string
-        description: the id of the resource that the role applies to
-      resource_type:
-        type: string
-        description: the type of resource that the role applies to
-        enum:
-          - project
-          - environment
+        description: name of user that the role applies to
       role:
         type: string
         description: the type of role
@@ -939,7 +1123,7 @@ definitions:
       options:
         $ref: '#/definitions/ActionOptions'
       resource_id:
-        type: string # We have mixed path identifiers (envs, projects - string) and (builds - integer) that will cause issues
+        type: string
         description: the id of the created/modified resource
         readOnly: true
       resource_type:
@@ -951,10 +1135,16 @@ definitions:
     properties:
       filters:
         type: array
-        description: For when action type is 'import' -  values that limit the scope of the import
+        description: >-
+          For when action type is 'import' -  values that limit the scope of the
+          import
       build_id:
         type: string
-        description: For when action type is 'reapply' or 'clone' - the build id of the state you wish to return a environment to
+        description: >-
+          For when action type is 'reapply' or 'clone' - the build id of the
+          state you wish to return a environment to
       environment:
         type: string
-        description: For when action type is 'clone' - the name of the environment you wish to clone
+        description: >-
+          For when action type is 'clone' - the name of the environment you wish
+          to clone
