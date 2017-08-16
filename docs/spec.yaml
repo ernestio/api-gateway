@@ -11,7 +11,7 @@ produces:
   - application/json
 paths:
   '/auth':
-    get:
+    post:
       summary: Authentication endpoint
       description: |
         Manages user authentication based on jwt tokens
@@ -34,7 +34,7 @@ paths:
         '200':
           description: A json string containing the token to be used to log in
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/Token'
         '403':
           description: You're not authorized
   '/api/users/':
@@ -329,34 +329,6 @@ paths:
         '403':
           description: You're not authorized to view this resource
   '/api/projects/{project}/members/{member}':
-    get:
-      summary: Get a member
-      description: |
-        returns a member by id
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: member
-          in: path
-          description: id of member to return
-          required: true
-          type: string
-          format: string
-      tags:
-        - Projects
-      responses:
-        '200':
-          description: A valid member object
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
     delete:
       summary: Delete a project member
       description: |
@@ -603,42 +575,8 @@ paths:
         '403':
           description: You're not authorized to view this resource
   '/api/projects/{project}/environments/{environment}/members/{member}':
-    get:
-      summary: Get a member
-      description: |
-        returns a member by username
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment
-          required: true
-          type: string
-          format: string
-        - name: member
-          in: path
-          description: name of member user
-          required: true
-          type: string
-          format: string
-      tags:
-        - Environments
-      responses:
-        '200':
-          description: A valid member object
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
     delete:
-      summary: Delete a project member
+      summary: Delete a environment member
       description: |
         deletes a environment member
       produces:
@@ -944,7 +882,7 @@ paths:
         '403':
           description: You're not authorized to view this resource
 definitions:
-  Error:
+  Token:
     type: object
     properties:
       token:
@@ -1020,6 +958,11 @@ definitions:
         description: the type of environment
       credentials:
         $ref: '#/definitions/Credentials'
+      members:
+        type: array
+        readOnly: true
+        items:
+            $ref: '#/definitions/Member'
   Environment:
     type: object
     required:
@@ -1042,6 +985,11 @@ definitions:
         readOnly: true
       options:
         $ref: '#/definitions/EnvironmentOptions'
+      members:
+        type: array
+        readOnly: true
+        items:
+            $ref: '#/definitions/Member'
   EnvironmentOptions:
     type: object
     properties:
@@ -1135,16 +1083,16 @@ definitions:
     properties:
       filters:
         type: array
-        description: >-
+        description: |
           For when action type is 'import' -  values that limit the scope of the
           import
       build_id:
         type: string
-        description: >-
+        description: |
           For when action type is 'reapply' or 'clone' - the build id of the
           state you wish to return a environment to
       environment:
         type: string
-        description: >-
+        description: |
           For when action type is 'clone' - the name of the environment you wish
           to clone
