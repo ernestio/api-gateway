@@ -51,8 +51,8 @@ func AuthenticateHandler(c echo.Context) error {
 	}
 
 	if !res.OK {
-		h.L.Error("Authentication for user '" + u.Username + "' failed")
-		return echo.NewHTTPError(403, "Authentication failed")
+		h.L.Error(res.Message + " (" + u.Username + ")")
+		return echo.NewHTTPError(403, res.Message)
 	}
 
 	if err := h.ValidCliVersion(c.Request()); err != nil {

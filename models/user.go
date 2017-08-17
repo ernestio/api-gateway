@@ -40,8 +40,9 @@ type User struct {
 
 // Describes an Authenticator service response
 type authResponse struct {
-	OK    bool   `json:"ok"`
-	Token string `json:"token,omitempty"`
+	OK      bool   `json:"ok"`
+	Token   string `json:"token,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 // Authenticate verifies user credentials
