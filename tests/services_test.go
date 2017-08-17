@@ -98,31 +98,6 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
-	Convey("Scenario: getting a service's builds", t, func() {
-		Convey("Given the service exists on the store", func() {
-			Convey("And I call /service/:service/builds/ on the api", func() {
-				findUserSubscriber()
-				foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
-				foundSubscriber("service.get.mapping", `{"name":"fake/test", "networks":{"items":[{"name":"a"}]}}`, 4)
-				findServiceSubscriber()
-				var s []views.ServiceRender
-				st, b := services.Builds(au, "fake/test")
-
-				Convey("When I'm authenticated as an admin user", func() {
-					Convey("Then I should get the service's builds", func() {
-						So(st, ShouldEqual, 200)
-						err := json.Unmarshal(b, &s)
-
-						So(err, ShouldBeNil)
-						So(len(s), ShouldEqual, 2)
-						So(s[0].ID, ShouldEqual, "1")
-						So(s[0].Name, ShouldEqual, "test")
-					})
-				})
-
-			})
-		})
-	})
 
 	Convey("Scenario: searching for services", t, func() {
 		Convey("Given the service exists on the store", func() {
