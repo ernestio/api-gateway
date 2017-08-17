@@ -3,7 +3,8 @@ package helpers
 // User : interface for users
 type User interface {
 	GetAdmin() bool
-	GetGroupID() int
+	IsOwner(resourceType, resourceID string) bool
+	IsReader(resourceType, resourceID string) bool
 }
 
 var (
@@ -13,8 +14,6 @@ var (
 	AuthNonOwner = []byte("You don't have permissions to perform this action, please login as a resource owner")
 	// AuthNonReadable : Response body for non authorized requests on admin resources
 	AuthNonReadable = []byte("You don't have permissions to perform this action, please contact the resource owner")
-	// AuthNonGroup : Response body for non autherized requests due to a non group users
-	AuthNonGroup = []byte("Current user does not belong to any group.\nPlease assign the user to a group before performing this action")
 )
 
 // IsAuthorized : Validates if the given user has access to the given resource
@@ -42,13 +41,6 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 	}
 
 	adminResources := map[string]int{
-		"groups/add_datacenter":     403,
-		"groups/add_user":           403,
-		"groups/create":             403,
-		"groups/delete":             403,
-		"groups/rm_datacenter":      403,
-		"groups/rm_user":            403,
-		"groups/update":             403,
 		"loggers/create":            403,
 		"loggers/delete":            403,
 		"loggers/list":              403,
@@ -65,41 +57,21 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 	if st, ok := adminResources[resource]; ok {
 		return st, AuthNonAdmin
 	}
-
-	groupResources := map[string]int{
-		"services/create": 401,
-	}
-	if st, ok := groupResources[resource]; ok {
-		if au.GetGroupID() == 0 {
-			return st, AuthNonGroup
-		}
-	}
-
 	if resourceID != "" {
 		ownedResources := map[string]int{}
 		if st, ok := ownedResources[resource]; ok {
-			if !IsOwner(au, resource, resourceID) {
+			if !au.IsOwner(resource, resourceID) {
 				return st, AuthNonOwner
 			}
 		}
 
 		readableResources := map[string]int{}
 		if st, ok := readableResources[resource]; ok {
-			if !IsReader(au, resource, resourceID) {
+			if !au.IsReader(resource, resourceID) {
 				return st, AuthNonReadable
 			}
 		}
 	}
 
 	return 200, []byte("")
-}
-
-// IsOwner : Checks if the given user is owner of a specific resource
-func IsOwner(au User, resource, resourceID string) bool {
-	return true
-}
-
-// IsReader : Checks if the given user has read permissions on a specific resource
-func IsReader(au User, resource, resourceID string) bool {
-	return true
 }

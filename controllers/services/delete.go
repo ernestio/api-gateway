@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -11,18 +10,21 @@ import (
 
 // Delete : Deletes a service by name
 func Delete(au models.User, name string) (int, []byte) {
-	var raw []byte
 	var err error
 	var def models.Definition
+	var s models.Service
 
-	if raw, err = getServiceRaw(name, au.GroupID); err != nil {
-		return 404, []byte(err.Error())
+	if !au.IsOwner(s.GetType(), name) {
+		return 403, []byte("You're not allowed to access this resource")
 	}
 
-	s := models.Service{}
-	if err := json.Unmarshal(raw, &s); err != nil {
+	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return 500, []byte("Internal error")
+	}
+
+	if s.ID == "" {
+		return 404, []byte("Specified environment name does not exist")
 	}
 
 	if s.Status == "in_progress" {
@@ -32,9 +34,11 @@ func Delete(au models.User, name string) (int, []byte) {
 	dID := strconv.Itoa(s.DatacenterID)
 	body, err := def.MapDeletion(s.ID, s.Type, dID)
 	if err != nil {
+		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the service"`)
 	}
 	if err := s.RequestDeletion(body); err != nil {
+		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't call service.delete"`)
 	}
 

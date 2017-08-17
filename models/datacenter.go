@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	aes "github.com/ernestio/crypto/aes"
@@ -16,42 +17,46 @@ import (
 
 // Datacenter holds the datacenter response from datacenter-store
 type Datacenter struct {
-	ID              int    `json:"id"`
-	GroupID         int    `json:"group_id"`
-	GroupName       string `json:"group_name"`
-	Name            string `json:"name"`
-	Type            string `json:"type"`
-	Region          string `json:"region"`
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	VCloudURL       string `json:"vcloud_url"`
-	VseURL          string `json:"vse_url"`
-	ExternalNetwork string `json:"external_network"`
-	AccessKeyID     string `json:"aws_access_key_id,omitempty"`
-	SecretAccessKey string `json:"aws_secret_access_key,omitempty"`
-	SubscriptionID  string `json:"azure_subscription_id,omitempty"`
-	ClientID        string `json:"azure_client_id,omitempty"`
-	ClientSecret    string `json:"azure_client_secret,omitempty"`
-	TenantID        string `json:"azure_tenant_id"`
-	Environment     string `json:"azure_environment"`
+	ID              int      `json:"id"`
+	Name            string   `json:"name"`
+	Type            string   `json:"type"`
+	Region          string   `json:"region"`
+	Username        string   `json:"username"`
+	Password        string   `json:"password"`
+	VCloudURL       string   `json:"vcloud_url"`
+	VseURL          string   `json:"vse_url"`
+	ExternalNetwork string   `json:"external_network,omitempty"`
+	AccessKeyID     string   `json:"aws_access_key_id,omitempty"`
+	SecretAccessKey string   `json:"aws_secret_access_key,omitempty"`
+	SubscriptionID  string   `json:"azure_subscription_id,omitempty"`
+	ClientID        string   `json:"azure_client_id,omitempty"`
+	ClientSecret    string   `json:"azure_client_secret,omitempty"`
+	TenantID        string   `json:"azure_tenant_id,omitempty"`
+	Environment     string   `json:"azure_environment,omitempty"`
+	Environments    []string `json:"environments,omitempty"`
+	Roles           []string `json:"roles,omitempty"`
 }
 
 // Validate the datacenter
 func (d *Datacenter) Validate() error {
 	if d.Name == "" {
-		return errors.New("Datacenter name is empty")
+		return errors.New("Project name is empty")
+	}
+
+	if strings.Contains(d.Name, EnvNameSeparator) {
+		return errors.New("Project name does not support char '" + EnvNameSeparator + "' as part of its name")
 	}
 
 	if d.Type == "" {
-		return errors.New("Datacenter type is empty")
+		return errors.New("Project type is empty")
 	}
 
 	if d.Username == "" && d.Type != "azure" && d.Type != "azure-fake" {
-		return errors.New("Datacenter username is empty")
+		return errors.New("Project username is empty")
 	}
 
 	if d.Type == "vcloud" && d.VCloudURL == "" {
-		return errors.New("Datacenter vcloud url is empty")
+		return errors.New("Project vcloud url is empty")
 	}
 
 	return nil
@@ -79,43 +84,6 @@ func (d *Datacenter) FindByName(name string, datacenter *Datacenter) (err error)
 	return nil
 }
 
-// FindByGroupID : Searches for all datacenters on the store current user
-// has access to with the specified group id
-func (d *Datacenter) FindByGroupID(id int, datacenters *[]Datacenter) (err error) {
-	query := make(map[string]interface{})
-	query["group_id"] = id
-	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
-		return err
-	}
-	return nil
-}
-
-// FindByNameAndGroupID : Searches for all datacenters with a name equal to the specified
-func (d *Datacenter) FindByNameAndGroupID(name string, id int, datacenters *[]Datacenter) (err error) {
-	query := make(map[string]interface{})
-	query["name"] = name
-	query["group_id"] = id
-	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
-		return err
-	}
-	return nil
-}
-
-// GetByNameAndGroupID : ...
-func (d *Datacenter) GetByNameAndGroupID(name string, group int) (datacenter Datacenter, err error) {
-	var datacenters []Datacenter
-
-	if err = d.FindByNameAndGroupID(name, group, &datacenters); err != nil {
-		return
-	}
-
-	if len(datacenters) == 0 {
-		return datacenter, errors.New(`"Specified datacenter does not exist"`)
-	}
-
-	return datacenters[0], nil
-}
-
 // FindByID : Gets a model by its id
 func (d *Datacenter) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
@@ -126,7 +94,17 @@ func (d *Datacenter) FindByID(id int) (err error) {
 	return nil
 }
 
-// FindAll : Searches for all groups on the store current user
+// FindByIDs : Gets a model by its id
+func (d *Datacenter) FindByIDs(ids []string, ds *[]Datacenter) (err error) {
+	query := make(map[string]interface{})
+	query["names"] = ids
+	if err := NewBaseModel("datacenter").FindBy(query, ds); err != nil {
+		return err
+	}
+	return nil
+}
+
+// FindAll : Searches for all entities on the store current user
 // has access to
 func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
 	query := make(map[string]interface{})
@@ -136,11 +114,12 @@ func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
 	return nil
 }
 
-// Save : calls datacenter.set with the marshalled current group
+// Save : calls datacenter.set with the marshalled current entity
 func (d *Datacenter) Save() (err error) {
 	if err := NewBaseModel("datacenter").Save(d); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -167,19 +146,8 @@ func (d *Datacenter) Redact() {
 	d.Password = ""
 }
 
-// Improve : adds extra data as group name
+// Improve : adds extra data to this entity
 func (d *Datacenter) Improve() {
-	g := d.Group()
-	d.GroupName = g.Name
-}
-
-// Group : Gets the related datacenter group if any
-func (d *Datacenter) Group() (group Group) {
-	if err := group.FindByID(d.GroupID); err != nil {
-		h.L.Error(err.Error())
-	}
-
-	return group
 }
 
 // Services : Get the services related with current datacenter
@@ -188,4 +156,88 @@ func (d *Datacenter) Services() (services []Service, err error) {
 	err = s.FindByDatacenterID(d.ID, &services)
 
 	return services, err
+}
+
+// GetID : ID getter
+func (d *Datacenter) GetID() string {
+	return d.Name
+}
+
+// GetType : Gets the resource type
+func (d *Datacenter) GetType() string {
+	return "project"
+}
+
+// Override : override not empty parameters with the given datacenter ones
+func (d *Datacenter) Override(dt Datacenter) {
+	if dt.Region != "" {
+		d.Region = dt.Region
+	}
+	if dt.Username != "" {
+		d.Username = dt.Username
+	}
+	if dt.Password != "" {
+		d.Password = dt.Password
+	}
+	if dt.VCloudURL != "" {
+		d.VCloudURL = dt.VCloudURL
+	}
+	if dt.VseURL != "" {
+		d.VseURL = dt.VseURL
+	}
+	if dt.ExternalNetwork != "" {
+		d.ExternalNetwork = dt.ExternalNetwork
+	}
+	if dt.AccessKeyID != "" {
+		d.AccessKeyID = dt.AccessKeyID
+	}
+	if dt.SecretAccessKey != "" {
+		d.SecretAccessKey = dt.SecretAccessKey
+	}
+	if dt.SubscriptionID != "" {
+		d.SubscriptionID = dt.SubscriptionID
+	}
+	if dt.ClientID != "" {
+		d.ClientID = dt.ClientID
+	}
+	if dt.ClientSecret != "" {
+		d.ClientSecret = dt.ClientSecret
+	}
+	if dt.TenantID != "" {
+		d.TenantID = dt.TenantID
+	}
+	if dt.Environment != "" {
+		d.Environment = dt.Environment
+	}
+}
+
+// Encrypt : encrypts sensible data
+func (d *Datacenter) Encrypt() {
+	d.Region, _ = crypt(d.Region)
+	d.Username, _ = crypt(d.Username)
+	d.Password, _ = crypt(d.Password)
+	d.VCloudURL, _ = crypt(d.VCloudURL)
+	d.VseURL, _ = crypt(d.VseURL)
+	d.ExternalNetwork, _ = crypt(d.ExternalNetwork)
+	d.AccessKeyID, _ = crypt(d.AccessKeyID)
+	d.SecretAccessKey, _ = crypt(d.SecretAccessKey)
+	d.SubscriptionID, _ = crypt(d.SubscriptionID)
+	d.ClientID, _ = crypt(d.ClientID)
+	d.ClientSecret, _ = crypt(d.ClientSecret)
+	d.TenantID, _ = crypt(d.TenantID)
+	d.Environment, _ = crypt(d.Environment)
+}
+
+func crypt(s string) (string, error) {
+	crypto := aes.New()
+	key := os.Getenv("ERNEST_CRYPTO_KEY")
+	if s != "" {
+		encrypted, err := crypto.Encrypt(s, key)
+		if err != nil {
+			return "", err
+		}
+		s = encrypted
+	}
+
+	return s, nil
 }

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -10,18 +9,10 @@ import (
 
 // ForceDeletion : Deletes a service by name forcing it
 func ForceDeletion(au models.User, name string) (int, []byte) {
-	var raw []byte
-	var err error
 	var service models.Service
 
-	if raw, err = getServiceRaw(name, au.GroupID); err != nil {
-		return 404, []byte(err.Error())
-	}
-
-	s := models.Service{}
-	if err := json.Unmarshal(raw, &s); err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte(err.Error())
+	if !au.IsOwner(service.GetType(), name) {
+		return 403, []byte("You're not allowed to access this resource")
 	}
 
 	if err := service.DeleteByName(name); err != nil {
@@ -29,5 +20,5 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 		return 500, []byte(err.Error())
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + s.ID + `"}`)
+	return http.StatusOK, []byte(`{"id":"` + service.ID + `"}`)
 }

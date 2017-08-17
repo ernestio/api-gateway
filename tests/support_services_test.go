@@ -17,22 +17,19 @@ var (
 	mockServices = []models.Service{
 		models.Service{
 			ID:           "1",
-			Name:         "test",
-			GroupID:      1,
+			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "3",
-			Name:         "test",
-			GroupID:      1,
+			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
 		models.Service{
 			ID:           "2",
-			Name:         "test2",
-			GroupID:      2,
+			Name:         "fake-test2",
 			DatacenterID: 3,
 			Version:      time.Now(),
 		},
@@ -48,19 +45,18 @@ func getServiceSubscriber() {
 			}
 
 			for _, service := range mockServices {
-				if qs.GroupID != 0 && service.GroupID == qs.GroupID && service.ID == qs.ID {
-					data, _ := json.Marshal(service)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
-				} else if qs.GroupID == 0 && service.ID == qs.ID {
+				if service.ID == qs.ID {
 					data, _ := json.Marshal(service)
 					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
+				data, _ := json.Marshal(service)
+				if err := models.N.Publish(msg.Reply, data); err != nil {
+					log.Println(err)
+				}
+				return
 			}
 		}
 		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
@@ -87,8 +83,7 @@ func findServiceSubscriber() {
 
 		for _, service := range mockServices {
 			if service.Name == qs.Name ||
-				service.Name == qs.Name && service.Version == qs.Version && qs.GroupID == 0 ||
-				service.Name == qs.Name && service.GroupID == qs.GroupID {
+				service.Name == qs.Name && service.Version == qs.Version {
 				s = append(s, service)
 			}
 		}
@@ -99,6 +94,16 @@ func findServiceSubscriber() {
 		}
 	})
 	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
+
+	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
+		res := `[{"resource_id":"` + mockServices[0].Name + `"},{"resource_id":"` + mockServices[1].Name + `"}]`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
 }
@@ -117,6 +122,16 @@ func createServiceSubscriber() {
 			log.Println(err)
 		}
 	})
+
+	sub2, _ := models.N.Subscribe("authorization.set", func(msg *nats.Msg) {
+		res := `{}`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func deleteServiceSubscriber() {
@@ -128,6 +143,14 @@ func deleteServiceSubscriber() {
 		}
 
 		if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
+			log.Println(err)
+		}
+	})
+}
+
+func serviceResetSubscriber() {
+	_, _ = models.N.Subscribe("build.set.status", func(msg *nats.Msg) {
+		if err := models.N.Publish(msg.Reply, []byte(`{"status":"success"}`)); err != nil {
 			log.Println(err)
 		}
 	})

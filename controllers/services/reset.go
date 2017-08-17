@@ -12,7 +12,6 @@ func Reset(au models.User, name string) (int, []byte) {
 	var services []models.Service
 
 	filter := make(map[string]interface{})
-	filter["group_id"] = au.GroupID
 	filter["name"] = name
 	if err := s.Find(filter, &services); err != nil {
 		h.L.Warning(err.Error())

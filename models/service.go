@@ -14,13 +14,18 @@ import (
 	graph "gopkg.in/r3labs/graph.v2"
 )
 
+// EnvNameSeparator : environment name separator
+var EnvNameSeparator = "/"
+
 // Service holds the service response from service-store
 type Service struct {
 	ID           string                 `json:"id"`
-	GroupID      int                    `json:"group_id"`
 	UserID       int                    `json:"user_id"`
 	UserName     string                 `json:"user_name,omitempty"`
+	Project      string                 `json:"project,omitempty"`
+	Provider     string                 `json:"provider,omitempty"`
 	DatacenterID int                    `json:"datacenter_id"`
+	ProjectInfo  *json.RawMessage       `json:"credentials,omitempty"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
 	Version      time.Time              `json:"version"`
@@ -29,6 +34,10 @@ type Service struct {
 	Endpoint     string                 `json:"endpoint"`
 	Definition   interface{}            `json:"definition"`
 	Mapped       map[string]interface{} `json:"mapping"`
+	Sync         bool                   `json:"sync"`
+	SyncType     string                 `json:"sync_type"`
+	SyncInterval int                    `json:"sync_interval"`
+	Roles        []string               `json:"roles,omitempty"`
 }
 
 // Validate the service
@@ -38,7 +47,7 @@ func (s *Service) Validate() error {
 	}
 
 	if s.DatacenterID == 0 {
-		return errors.New("Service group is empty")
+		return errors.New("Service datacenter is empty")
 	}
 
 	if s.Type == "" {
@@ -75,6 +84,19 @@ func (s *Service) Find(query map[string]interface{}, services *[]Service) (err e
 	return nil
 }
 
+// FindLastByName : Searches for all services with a name equal to the specified
+func (s *Service) FindLastByName(name string) (service Service, err error) {
+	var ss []Service
+	query := make(map[string]interface{})
+	query["name"] = name
+	err = s.Find(query, &ss)
+	if len(ss) > 0 {
+		service = ss[0]
+	}
+
+	return
+}
+
 // FindByName : Searches for all services with a name equal to the specified
 func (s *Service) FindByName(name string, service *Service) (err error) {
 	query := make(map[string]interface{})
@@ -83,39 +105,6 @@ func (s *Service) FindByName(name string, service *Service) (err error) {
 		return err
 	}
 	return nil
-}
-
-// FindByGroupID : Searches for all services on the store current user
-// has access to with the specified group id
-func (s *Service) FindByGroupID(id int, services *[]Service) (err error) {
-	query := make(map[string]interface{})
-	query["group_id"] = id
-
-	return NewBaseModel("service").FindBy(query, services)
-}
-
-// FindByNameAndGroupID : Searches for all services with a name equal to the specified
-func (s *Service) FindByNameAndGroupID(name string, id int, service *[]Service) (err error) {
-	query := make(map[string]interface{})
-	query["name"] = name
-	query["group_id"] = id
-
-	return NewBaseModel("service").FindBy(query, service)
-}
-
-// GetByNameAndGroupID : Searches for all services with a name equal to the specified
-func (s *Service) GetByNameAndGroupID(name string, group int) (service *Service, err error) {
-	var services []Service
-
-	if err = s.FindByNameAndGroupID(name, group, &services); err != nil {
-		return service, h.ErrGatewayTimeout
-	}
-
-	if len(services) == 0 {
-		return nil, nil
-	}
-
-	return &services[0], nil
 }
 
 // FindByID : Gets a model by its id
@@ -128,18 +117,17 @@ func (s *Service) FindByID(id int) (err error) {
 	return nil
 }
 
-// FindAll : Searches for all groups on the store current user
+// FindAll : Searches for all services s on the store current user
 // has access to
 func (s *Service) FindAll(au User, services *[]Service) (err error) {
 	query := make(map[string]interface{})
-	query["group_id"] = au.GroupID
 	if err := NewBaseModel("service").FindBy(query, services); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Save : calls service.set with the marshalled current group
+// Save : calls service.set with the marshalled
 func (s *Service) Save() (err error) {
 	if err := NewBaseModel("service").Save(s); err != nil {
 		return err
@@ -280,4 +268,14 @@ func (s *Service) RequestSync() error {
 		return err
 	}
 	return nil
+}
+
+// GetID : ID getter
+func (s *Service) GetID() string {
+	return s.Name
+}
+
+// GetType : Gets the resource type
+func (s *Service) GetType() string {
+	return "environment"
 }

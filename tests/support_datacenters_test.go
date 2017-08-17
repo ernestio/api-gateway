@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
@@ -15,17 +16,26 @@ import (
 var (
 	mockDatacenters = []models.Datacenter{
 		models.Datacenter{
-			ID:      1,
-			Name:    "test",
-			GroupID: 1,
+			ID:   1,
+			Name: "test",
 		},
 		models.Datacenter{
-			ID:      2,
-			Name:    "test2",
-			GroupID: 2,
+			ID:   2,
+			Name: "test2",
 		},
 	}
 )
+
+func getNotFoundDatacenterSubscriber(max int) {
+	sub, _ := models.N.Subscribe("datacenter.get", func(msg *nats.Msg) {
+		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub.AutoUnsubscribe(max); err != nil {
+		log.Println(err)
+	}
+}
 
 func getDatacenterSubscriber(max int) {
 	sub, _ := models.N.Subscribe("datacenter.get", func(msg *nats.Msg) {
@@ -37,19 +47,19 @@ func getDatacenterSubscriber(max int) {
 			}
 
 			for _, datacenter := range mockDatacenters {
-				if qd.GroupID != 0 && datacenter.GroupID == qd.GroupID && datacenter.ID == qd.ID {
+				if datacenter.ID == qd.ID {
 					data, _ := json.Marshal(datacenter)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
-				} else if qd.GroupID == 0 && datacenter.ID == qd.ID {
-					data, _ := json.Marshal(datacenter)
+					println("A")
 					if err := models.N.Publish(msg.Reply, data); err != nil {
 						log.Println(err)
 					}
 					return
 				}
+				data, _ := json.Marshal(datacenter)
+				if err := models.N.Publish(msg.Reply, data); err != nil {
+					log.Println(err)
+				}
+				return
 			}
 		}
 		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
@@ -71,6 +81,19 @@ func findDatacenterSubscriber() {
 	if err := sub.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
+
+	id1 := strconv.Itoa(mockDatacenters[0].ID)
+	id2 := strconv.Itoa(mockDatacenters[1].ID)
+
+	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
+		res := `[{"resource_id":"` + id1 + `"},{"resource_id":"` + id2 + `"}]`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func createDatacenterSubscriber() {
@@ -88,6 +111,16 @@ func createDatacenterSubscriber() {
 		}
 	})
 	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
+
+	sub2, _ := models.N.Subscribe("authorization.set", func(msg *nats.Msg) {
+		res := `{}`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
 }

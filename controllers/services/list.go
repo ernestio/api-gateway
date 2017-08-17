@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -11,18 +12,17 @@ import (
 // List : responds to GET /services/ with a list of all
 // services for current user group
 func List(au models.User) (int, []byte) {
-	var services []models.Service
 	var list []models.Service
 	var body []byte
-	var service models.Service
 	var user models.User
 
-	users := user.FindAllKeyValue()
-
-	// au := AuthenticatedUser(c)
-	if err := service.FindAll(au, &services); err != nil {
+	query := make(map[string]interface{}, 0)
+	services, err := au.ServicesBy(query)
+	if err != nil {
 		h.L.Warning(err.Error())
+		return 404, []byte("Environment not found")
 	}
+
 	for _, s := range services {
 		exists := false
 		for i, e := range list {
@@ -34,7 +34,7 @@ func List(au models.User) (int, []byte) {
 			}
 		}
 		if exists == false {
-			for id, name := range users {
+			for id, name := range user.FindAllKeyValue() {
 				if id == s.UserID {
 					s.UserName = name
 				}
@@ -43,7 +43,13 @@ func List(au models.User) (int, []byte) {
 		}
 	}
 
-	body, err := json.Marshal(list)
+	for i := range list {
+		nameParts := strings.Split(list[i].Name, models.EnvNameSeparator)
+		list[i].Name = nameParts[1]
+		list[i].Project = nameParts[0]
+	}
+
+	body, err = json.Marshal(list)
 	if err != nil {
 		return 500, []byte("Internal error")
 	}

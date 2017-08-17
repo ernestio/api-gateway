@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"github.com/ernestio/api-gateway/controllers/groups"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
@@ -28,7 +27,7 @@ func genericGet(c echo.Context, entity string, fn get) error {
 	st, b := h.IsAuthorized(&au, entity+"s/get")
 	if st == 200 {
 		g := c.Param(entity)
-		st, b = groups.Get(au, g)
+		st, b = fn(au, g)
 	}
 
 	return h.Respond(c, st, b)

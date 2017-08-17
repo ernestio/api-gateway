@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"regexp"
 	"strconv"
 
@@ -26,14 +27,14 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID          int    `json:"id"`
-	GroupID     int    `json:"group_id"`
-	GroupName   string `json:"group_name"`
-	Username    string `json:"username"`
-	Password    string `json:"password,omitempty"`
-	OldPassword string `json:"oldpassword,omitempty"`
-	Salt        string `json:"salt,omitempty"`
-	Admin       bool   `json:"admin"`
+	ID          int      `json:"id"`
+	Username    string   `json:"username"`
+	Password    string   `json:"password,omitempty"`
+	OldPassword string   `json:"oldpassword,omitempty"`
+	Salt        string   `json:"salt,omitempty"`
+	Admin       bool     `json:"admin"`
+	Envs        []string `json:"envs"`
+	Projects    []string `json:"projects"`
 }
 
 // Validate validates a user
@@ -90,7 +91,7 @@ func (u *User) FindByUserName(name string, user *User) (err error) {
 func (u *User) FindAll(users *[]User) (err error) {
 	query := make(map[string]interface{})
 	if !u.Admin {
-		query["group_id"] = u.GroupID
+		// TODO add auth
 	}
 	if err := NewBaseModel("user").FindBy(query, users); err != nil {
 		return err
@@ -106,7 +107,7 @@ func (u *User) FindByID(id string, user *User) (err error) {
 		return err
 	}
 	if !u.Admin {
-		query["group_id"] = u.GroupID
+		// TODO add auth
 	}
 	if err := NewBaseModel("user").GetBy(query, user); err != nil {
 		return err
@@ -141,10 +142,8 @@ func (u *User) Redact() {
 	u.Salt = ""
 }
 
-// Improve : adds extra data as group name
+// Improve : adds extra data
 func (u *User) Improve() {
-	g := u.Group()
-	u.GroupName = g.Name
 }
 
 // ValidPassword : checks if a submitted password matches
@@ -173,30 +172,6 @@ func (u *User) ValidPassword(pw string) bool {
 	return false
 }
 
-// Group : Gets the related user group if any
-func (u *User) Group() (group Group) {
-	if err := group.FindByID(u.GroupID); err != nil {
-		h.L.Warning(err.Error())
-	}
-
-	return group
-}
-
-// Groups : Gets the groups the user has access to
-func (u *User) Groups() (gs []Group, err error) {
-	var g Group
-
-	if u.Admin == true {
-		err = g.FindAll(&gs)
-	} else {
-		if err = g.FindByID(u.GroupID); err != nil {
-			h.L.Warning(err.Error())
-		}
-		gs = append(gs, g)
-	}
-	return
-}
-
 // Datacenters : Gets the related user datacenters if any
 func (u *User) Datacenters() (ds []Datacenter, err error) {
 	var d Datacenter
@@ -204,10 +179,27 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 	if u.Admin == true {
 		err = d.FindAll(*u, &ds)
 	} else {
-		err = d.FindByGroupID(u.GroupID, &ds)
+		var r Role
+		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), d.GetType()); err == nil {
+			err = d.FindByIDs(ids, &ds)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		} else {
+			log.Println(err.Error())
+		}
 	}
 
 	return ds, err
+}
+
+// DatacenterByName : Gets the related user datacenters if any
+func (u *User) DatacenterByName(name string) (d Datacenter, err error) {
+	if err = d.FindByName(name, &d); err != nil {
+		err = errors.New("Project not found")
+	}
+
+	return
 }
 
 // FindAllKeyValue : Finds all users on a id:name hash
@@ -229,9 +221,6 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 	var s Service
 
 	query := make(map[string]interface{})
-	if !u.Admin {
-		query["group_id"] = u.GroupID
-	}
 	query["id"] = id
 	err = s.Find(query, &services)
 
@@ -247,28 +236,31 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err error) {
 	var s Service
 
-	if u.Admin != true {
-		filters["group_id"] = u.GetGroupID()
+	if u.Admin == false {
+		var r Role
+		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
+			filters["names"] = ids
+		}
 	}
-	err = s.Find(filters, &ss)
+
+	if err = s.Find(filters, &ss); err != nil {
+		log.Println(err.Error())
+	}
 
 	return ss, err
 }
 
 // CanBeChangedBy : Checks if an user has write permissions on another user
 func (u *User) CanBeChangedBy(user User) bool {
-	if u.Username != user.Username && user.Admin != true {
-		return false
+	if user.Admin {
+		return true
 	}
-	return true
-}
 
-// CanChangeGroupResource : Checks if it can change a group's resource
-func (u *User) CanChangeGroupResource(groupID int) bool {
-	if u.Admin != true && u.GroupID != groupID {
-		return false
+	if u.Username == user.Username {
+		return true
 	}
-	return true
+
+	return false
 }
 
 // GetAdmin : admin getter
@@ -276,7 +268,77 @@ func (u *User) GetAdmin() bool {
 	return u.Admin
 }
 
-// GetGroupID : admin getter
-func (u *User) GetGroupID() int {
-	return u.GroupID
+// GetID : ID getter
+func (u *User) GetID() string {
+	return u.Username
+}
+
+type resource interface {
+	GetID() string
+	GetType() string
+}
+
+// SetOwner : ...
+func (u *User) SetOwner(o resource) error {
+	return u.setRole(o, "owner")
+}
+
+// SetReader : ...
+func (u *User) SetReader(o resource) error {
+	return u.setRole(o, "reader")
+}
+
+// setRole : ...
+func (u *User) setRole(o resource, r string) error {
+	role := Role{
+		UserID:       u.GetID(),
+		ResourceID:   o.GetID(),
+		ResourceType: o.GetType(),
+		Role:         r,
+	}
+
+	return role.Save()
+}
+
+// Owns : Checks if the user owns a specific resource
+func (u *User) Owns(o resource) bool {
+	return u.IsOwner(o.GetType(), o.GetID())
+
+}
+
+// IsOwner : check if is the owner of a specific resource
+func (u *User) IsOwner(resourceType, resourceID string) bool {
+	if role, err := u.getRole(resourceType, resourceID); err != nil {
+		if role == "owner" {
+			return true
+		}
+	}
+
+	return true
+}
+
+// IsReader : check if has reader permissions on a specific resource
+func (u *User) IsReader(resourceType, resourceID string) bool {
+	if u.Admin {
+		return true
+	}
+
+	if role, err := u.getRole(resourceType, resourceID); err != nil {
+		if role == "reader" || role == "owner" {
+			return true
+		}
+	}
+
+	return true
+}
+
+func (u *User) getRole(resourceType, resourceID string) (string, error) {
+	var role Role
+
+	existing, err := role.Get(u.GetID(), resourceID, resourceType)
+	if err == nil || existing == nil {
+		return "", errors.New("Not found")
+	}
+
+	return existing.Role, nil
 }

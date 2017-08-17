@@ -48,25 +48,10 @@ func setupAPI(e *echo.Echo) {
 	u.PUT("/:user", controllers.UpdateUserHandler)
 	u.DELETE("/:user", controllers.DeleteUserHandler)
 
-	// Setup group routes
-	g := api.Group("/groups")
-	g.GET("/", controllers.GetGroupsHandler)
-	g.GET("/:group", controllers.GetGroupHandler)
-	g.POST("/", controllers.CreateGroupHandler)
-	g.PUT("/:group", controllers.UpdateGroupHandler)
-	g.DELETE("/:group", controllers.DeleteGroupHandler)
-	g.POST("/:group/users/", controllers.AddUserToGroupHandler)
-	g.DELETE("/:group/users/:user", controllers.DeleteUserFromGroupHandler)
-	g.POST("/:group/datacenters/", controllers.AddDatacenterToGroupHandler)
-	g.DELETE("/:group/datacenters/:datacenter", controllers.DeleteDatacenterFromGroupHandler)
-
-	// Setup datacenter routes
-	d := api.Group("/datacenters")
-	d.GET("/", controllers.GetDatacentersHandler)
-	d.GET("/:datacenter", controllers.GetDatacenterHandler)
-	d.POST("/", controllers.CreateDatacenterHandler)
-	d.PUT("/:datacenter", controllers.UpdateDatacenterHandler)
-	d.DELETE("/:datacenter", controllers.DeleteDatacenterHandler)
+	// Setup roles routes
+	r := api.Group("/roles")
+	r.POST("/", controllers.CreateRoleHandler)
+	r.DELETE("/", controllers.DeleteRoleHandler)
 
 	// Setup logger routes
 	l := api.Group("/loggers")
@@ -74,20 +59,28 @@ func setupAPI(e *echo.Echo) {
 	l.POST("/", controllers.CreateLoggerHandler)
 	l.DELETE("/:logger", controllers.DeleteLoggerHandler)
 
+	// Setup project routes
+	d := api.Group("/projects")
+	d.GET("/", controllers.GetDatacentersHandler)
+	d.GET("/:project", controllers.GetDatacenterHandler)
+	d.POST("/", controllers.CreateDatacenterHandler)
+	d.PUT("/:project", controllers.UpdateDatacenterHandler)
+	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
+	d.DELETE("/:project/envs/:env", controllers.DeleteServiceHandler)
+	d.POST("/:project/envs/:env/reset/", controllers.ResetServiceHandler)
+	d.DELETE("/:project/envs/:env/force/", controllers.ForceServiceDeletionHandler)
+	d.PUT("/:project/envs/:env/", controllers.UpdateServiceHandler)
+	d.POST("/:project/envs/:env/sync/", controllers.SyncServiceHandler)
+	d.GET("/:project/envs/:env", controllers.GetServiceHandler)
+	d.GET("/:project/envs/:env/builds/", controllers.GetServiceBuildsHandler)
+
 	// Setup service routes
-	s := api.Group("/services")
+	s := api.Group("/envs")
 	s.GET("/", controllers.GetServicesHandler)
-	s.GET("/:service", controllers.GetServiceHandler)
 	s.GET("/search/", controllers.SearchServicesHandler)
-	s.GET("/:service/builds/", controllers.GetServiceBuildsHandler)
 	s.GET("/:service/builds/:build", controllers.GetServiceBuildHandler)
 	s.POST("/", controllers.CreateServiceHandler)
 	s.POST("/import/", controllers.CreateServiceHandler)
-	s.POST("/:service/reset/", controllers.ResetServiceHandler)
-	s.POST("/:service/sync/", controllers.SyncServiceHandler)
-	s.PUT("/:name/", controllers.UpdateServiceHandler)
-	s.DELETE("/:service", controllers.DeleteServiceHandler)
-	s.DELETE("/:service/force/", controllers.ForceServiceDeletionHandler)
 	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
 
 	// Setup components

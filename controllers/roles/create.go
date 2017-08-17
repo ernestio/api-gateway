@@ -1,4 +1,4 @@
-package datacenters
+package roles
 
 import (
 	"encoding/json"
@@ -8,12 +8,11 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Create : responds to POST /datacenters/ by creating a
-// datacenter on the data store
+// Create : responds to POST /roles/ by creating a
+// role on the data store
 func Create(au models.User, body []byte) (int, []byte) {
 	var err error
-	var d models.Datacenter
-	var existing models.Datacenter
+	var d models.Role
 
 	if d.Map(body) != nil {
 		return 400, []byte("Input is not valid")
@@ -25,15 +24,27 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	if err := existing.FindByName(d.Name, &existing); err == nil {
-		return 409, []byte("Specified datacenter already exists")
+	if !d.ResourceExists() {
+		return 404, []byte("Specified resource not found")
+	}
+
+	if !d.UserExists() {
+		return 404, []byte("Specified user not found")
+	}
+
+	if !au.Admin {
+		if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
+			return 403, []byte("You're not authorized to perform this action")
+		}
+	}
+
+	existing, err := d.Get(d.UserID, d.ResourceID, d.ResourceType)
+	if err != nil || existing != nil {
+		return 409, []byte("Specified role already exists")
 	}
 
 	if err = d.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
-	}
-	if err := au.SetOwner(&d); err != nil {
 		return 500, []byte("Internal server error")
 	}
 

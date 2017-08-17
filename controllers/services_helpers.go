@@ -10,21 +10,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-// ServiceInput : service received by the endpoint
-type ServiceInput struct {
-	Datacenter string `json:"datacenter"`
-	Name       string `json:"name"`
-}
-
-// ServicePayload : payload to be sent to workflow manager
-type ServicePayload struct {
-	ID         string           `json:"id"`
-	PrevID     string           `json:"previous_id"`
-	Datacenter *json.RawMessage `json:"datacenter"`
-	Group      *json.RawMessage `json:"client"`
-	Service    *json.RawMessage `json:"service"`
-}
-
 // Given an echo context, it will extract the json or yml
 // request body and will processes it in order to extract
 // a valid defintion

@@ -12,13 +12,11 @@ var (
 	mockUsers = []models.User{
 		models.User{
 			ID:       1,
-			GroupID:  1,
 			Username: "test",
 			Password: "test1234",
 		},
 		models.User{
 			ID:       2,
-			GroupID:  2,
 			Username: "test2",
 			Password: "7bxJZHmyYoEZ9EcjJA85+XXUnZpTcV1Dk4ELpNCfTBeAYougTOcX2+0c/L+jGWuYOLr/UxnmzktpbpQLrBrcaQ==",
 			Salt:     "yk5c0e8MDkehRv6K83x/5zdo4Jrj/EGBzqTimzJStOo=",
@@ -36,23 +34,13 @@ func getUserSubscriber(max int) {
 			}
 
 			for _, user := range mockUsers {
-				if qu.GroupID != 0 {
-					if user.ID == qu.ID && user.GroupID == qu.GroupID ||
-						user.Username == qu.Username && user.GroupID == qu.GroupID {
-						data, _ := json.Marshal(user)
-						if err := models.N.Publish(msg.Reply, data); err != nil {
-							log.Println(err)
-						}
-						return
+				if user.ID == qu.ID ||
+					user.Username == qu.Username {
+					data, _ := json.Marshal(user)
+					if err := models.N.Publish(msg.Reply, data); err != nil {
+						log.Println(err)
 					}
-				} else {
-					if user.ID == qu.ID || user.Username == qu.Username {
-						data, _ := json.Marshal(user)
-						if err := models.N.Publish(msg.Reply, data); err != nil {
-							log.Println(err)
-						}
-						return
-					}
+					return
 				}
 			}
 		}
@@ -84,7 +72,7 @@ func findUserSubscriber() {
 		}
 
 		for _, user := range mockUsers {
-			if user.Username == qu.Username || user.GroupID == qu.GroupID || user.ID == qu.ID {
+			if user.Username == qu.Username || user.ID == qu.ID {
 				ur = append(ur, user)
 			}
 		}

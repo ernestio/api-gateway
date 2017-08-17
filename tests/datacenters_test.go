@@ -17,11 +17,9 @@ import (
 func TestDatacenters(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, GroupID: 1, Username: "test", Password: "test1234"}
-
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
-			getGroupSubscriber(2)
 			findDatacenterSubscriber()
 			Convey("When I call /datacenters/", func() {
 				st, resp := datacenters.List(au)
@@ -43,7 +41,7 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
-			getDatacenterSubscriber(3)
+			getDatacenterSubscriber(1)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				st, resp := datacenters.Get(au, "1")
@@ -83,13 +81,11 @@ func TestDatacenters(t *testing.T) {
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {
-			getDatacenterSubscriber(1)
+			getNotFoundDatacenterSubscriber(1)
 			createDatacenterSubscriber()
-			getGroupSubscriber(2)
 
 			mockDC := models.Datacenter{
-				GroupID:   1,
-				Name:      "new-test",
+				Name:      "new_test",
 				Type:      "vcloud",
 				Username:  "test",
 				Password:  "test",
@@ -107,12 +103,12 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
 						So(d.ID, ShouldEqual, 3)
-						So(d.Name, ShouldEqual, "new-test")
+						So(d.Name, ShouldEqual, "new_test")
 					})
 				})
 
 				Convey("And the datacenter group matches the authenticated users group", func() {
-					ft := models.User{ID: 1, Username: "test", Admin: false, GroupID: 1}
+					ft := models.User{ID: 1, Username: "test", Admin: false}
 					st, resp := datacenters.Create(ft, data)
 					Convey("It should create the datacenter and return the correct set of data", func() {
 						var d models.Datacenter
@@ -120,7 +116,7 @@ func TestDatacenters(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
 						So(d.ID, ShouldEqual, 3)
-						So(d.Name, ShouldEqual, "new-test")
+						So(d.Name, ShouldEqual, "new_test")
 					})
 				})
 			})
@@ -132,14 +128,13 @@ func TestDatacenters(t *testing.T) {
 			deleteDatacenterSubscriber()
 			getDatacenterSubscriber(2)
 			findServiceSubscriber()
-			getGroupSubscriber(1)
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
-				ft := models.User{ID: 1, Username: "test", Admin: false, GroupID: 1}
+				ft := models.User{ID: 1, Username: "test", Admin: false}
 				st, resp := datacenters.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
 					So(st, ShouldEqual, 400)
-					So(string(resp), ShouldEqual, "Existing services are referring to this datacenter.")
+					So(string(resp), ShouldEqual, "Existing environments are referring to this project.")
 				})
 			})
 		})

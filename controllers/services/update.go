@@ -20,7 +20,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	}
 
 	// Get existing service
-	if raw, err = getServiceRaw(name, au.GroupID); err != nil {
+	if raw, err = getServiceRaw(au, name); err != nil {
 		return 404, []byte(err.Error())
 	}
 
