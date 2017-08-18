@@ -36,6 +36,7 @@ type User struct {
 	Admin       bool     `json:"admin"`
 	Envs        []string `json:"envs"`
 	Projects    []string `json:"projects"`
+	Type        string   `json:"type"`
 }
 
 // Describes an Authenticator service response
