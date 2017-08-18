@@ -13,13 +13,17 @@ import (
 func Sync(au models.User, name string) (int, []byte) {
 	var raw []byte
 	var err error
+	var s models.Service
+
+	if st, res := h.IsAuthorizedToResource(&au, h.SyncEnv, s.GetType(), name); st != 200 {
+		return st, res
+	}
 
 	// Get existing service
 	if raw, err = getServiceRaw(au, name); err != nil {
 		return 404, []byte(err.Error())
 	}
 
-	s := models.Service{}
 	if err := json.Unmarshal(raw, &s); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())

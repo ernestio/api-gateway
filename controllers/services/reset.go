@@ -11,6 +11,10 @@ func Reset(au models.User, name string) (int, []byte) {
 	var s models.Service
 	var services []models.Service
 
+	if st, res := h.IsAuthorizedToResource(&au, h.ResetBuild, s.GetType(), name); st != 200 {
+		return st, res
+	}
+
 	filter := make(map[string]interface{})
 	filter["name"] = name
 	if err := s.Find(filter, &services); err != nil {

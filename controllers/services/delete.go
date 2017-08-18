@@ -14,8 +14,8 @@ func Delete(au models.User, name string) (int, []byte) {
 	var def models.Definition
 	var s models.Service
 
-	if !au.IsOwner(s.GetType(), name) {
-		return 403, []byte("You're not allowed to access this resource")
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnv, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
 	if s, err = s.FindLastByName(name); err != nil {

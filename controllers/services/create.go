@@ -55,6 +55,13 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 			h.L.Error("Service is still in progress")
 			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
+		if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, previous.GetType(), s.Name); st != 200 {
+			return st, res
+		}
+	} else {
+		if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, dt.GetType(), s.Datacenter); st != 200 {
+			return st, res
+		}
 	}
 
 	// *********** OVERRIDE PROJECT CREDENTIALS ************ //

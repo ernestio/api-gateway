@@ -16,8 +16,8 @@ func Builds(au models.User, name string) (int, []byte) {
 	var builds []models.Service
 	var err error
 
-	if !au.IsReader(s.GetType(), name) {
-		return 403, []byte("You're not allowed to access this resource")
+	if st, res := h.IsAuthorizedToResource(&au, h.ListBuilds, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
 	query := make(map[string]interface{}, 0)

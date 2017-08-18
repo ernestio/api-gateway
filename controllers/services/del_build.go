@@ -21,6 +21,10 @@ func DelBuild(au models.User, id string) (int, []byte) {
 		return 404, []byte("Not found")
 	}
 
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteBuild, build.GetType(), build.Name); st != 200 {
+		return st, res
+	}
+
 	if err := build.Delete(); err != nil {
 		h.L.Warning(err.Error())
 		return 500, []byte("Oops something went wrong")

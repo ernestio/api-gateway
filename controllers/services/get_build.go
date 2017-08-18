@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/api-gateway/views"
 )
@@ -23,6 +24,9 @@ func GetBuild(au models.User, query map[string]interface{}) (int, []byte) {
 	}
 
 	if len(list) > 0 {
+		if st, res := h.IsAuthorizedToResource(&au, h.GetBuild, builds[0].GetType(), builds[0].Name); st != 200 {
+			return st, res
+		}
 		body, err := json.Marshal(list[0])
 		if err != nil {
 			return 500, []byte("Internal server error")

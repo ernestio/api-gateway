@@ -9,16 +9,16 @@ import (
 
 // ForceDeletion : Deletes a service by name forcing it
 func ForceDeletion(au models.User, name string) (int, []byte) {
-	var service models.Service
+	var s models.Service
 
-	if !au.IsOwner(service.GetType(), name) {
-		return 403, []byte("You're not allowed to access this resource")
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnvForce, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
-	if err := service.DeleteByName(name); err != nil {
+	if err := s.DeleteByName(name); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(err.Error())
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + service.ID + `"}`)
+	return http.StatusOK, []byte(`{"id":"` + s.ID + `"}`)
 }

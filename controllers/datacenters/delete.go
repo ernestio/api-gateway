@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -17,8 +18,8 @@ func Delete(au models.User, datacenter string) (int, []byte) {
 		return 404, []byte("Datacenter not found")
 	}
 
-	if ok := au.Owns(&d); !ok {
-		return http.StatusForbidden, []byte("You don't have permissions to acccess this resource")
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteProject, d.GetType(), d.Name); st != 200 {
+		return st, res
 	}
 
 	ss, err := d.Services()
