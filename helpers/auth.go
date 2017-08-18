@@ -14,12 +14,34 @@ var (
 	AuthNonOwner = []byte("You don't have permissions to perform this action, please login as a resource owner")
 	// AuthNonReadable : Response body for non authorized requests on admin resources
 	AuthNonReadable = []byte("You don't have permissions to perform this action, please contact the resource owner")
+	// GetProject : ...
+	GetProject = "get_project"
+	// DeleteProject : ...
+	DeleteProject = "delete_project"
+	// UpdateProject : ...
+	UpdateProject = "update_project"
+	// DeleteEnv : ...
+	DeleteEnv = "delete_env"
+	// DeleteEnvForce : ..
+	DeleteEnvForce = "delete_env_force"
+	// UpdateEnv : ...
+	UpdateEnv = "update_env"
+	// GetEnv : ...
+	GetEnv = "get_environment"
+	// SyncEnv : ...
+	SyncEnv = "sync_env"
+	// ListBuilds : ...
+	ListBuilds = "list_builds"
+	// DeleteBuild : ...
+	DeleteBuild = "delete_build"
+	// GetBuild : ...
+	GetBuild = "get_build"
+	// ResetBuild : ...
+	ResetBuild = "reset_build"
 )
 
 // IsAuthorized : Validates if the given user has access to the given resource
 func IsAuthorized(au User, resource string) (int, []byte) {
-	resourceID := ""
-
 	licensedResources := map[string]int{
 		"notifications/add_service": 405,
 		"notifications/create":      405,
@@ -57,16 +79,36 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 	if st, ok := adminResources[resource]; ok {
 		return st, AuthNonAdmin
 	}
+
+	return 200, []byte("")
+}
+
+// IsAuthorizedToResource : check  if the user is authorized to access a specific resource
+func IsAuthorizedToResource(au User, endpoint, resource, resourceID string) (int, []byte) {
 	if resourceID != "" {
-		ownedResources := map[string]int{}
-		if st, ok := ownedResources[resource]; ok {
+		ownedResources := map[string]int{
+			DeleteBuild:    403,
+			DeleteEnv:      403,
+			DeleteEnvForce: 403,
+			UpdateEnv:      403,
+			DeleteProject:  403,
+			UpdateProject:  403,
+			ResetBuild:     403,
+			SyncEnv:        403,
+		}
+		if st, ok := ownedResources[endpoint]; ok {
 			if !au.IsOwner(resource, resourceID) {
 				return st, AuthNonOwner
 			}
 		}
 
-		readableResources := map[string]int{}
-		if st, ok := readableResources[resource]; ok {
+		readableResources := map[string]int{
+			GetProject: 403,
+			GetEnv:     403,
+			ListBuilds: 403,
+			GetBuild:   403,
+		}
+		if st, ok := readableResources[endpoint]; ok {
 			if !au.IsReader(resource, resourceID) {
 				return st, AuthNonReadable
 			}

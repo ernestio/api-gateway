@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -18,6 +19,10 @@ func Get(au models.User, datacenter string) (int, []byte) {
 	var d models.Datacenter
 	var body []byte
 	var err error
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetProject, d.GetType(), datacenter); st != 200 {
+		return st, res
+	}
 
 	appended := make(map[string]string)
 

@@ -14,6 +14,10 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	var err error
 	var input models.Service
 
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, input.GetType(), name); st != 200 {
+		return st, res
+	}
+
 	if err := json.Unmarshal(body, &input); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())

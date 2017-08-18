@@ -19,8 +19,8 @@ func Get(au models.User, name string) (int, []byte) {
 	var d models.Datacenter
 	var roles []models.Role
 
-	if !au.IsReader(s.GetType(), name) {
-		return 403, []byte("You're not allowed to access this resource")
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
 	if s, err = s.FindLastByName(name); err != nil {
