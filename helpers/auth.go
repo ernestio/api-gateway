@@ -85,33 +85,31 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 
 // IsAuthorizedToResource : check  if the user is authorized to access a specific resource
 func IsAuthorizedToResource(au User, endpoint, resource, resourceID string) (int, []byte) {
-	if resourceID != "" {
-		ownedResources := map[string]int{
-			DeleteBuild:    403,
-			DeleteEnv:      403,
-			DeleteEnvForce: 403,
-			UpdateEnv:      403,
-			DeleteProject:  403,
-			UpdateProject:  403,
-			ResetBuild:     403,
-			SyncEnv:        403,
+	ownedResources := map[string]int{
+		DeleteBuild:    403,
+		DeleteEnv:      403,
+		DeleteEnvForce: 403,
+		UpdateEnv:      403,
+		DeleteProject:  403,
+		UpdateProject:  403,
+		ResetBuild:     403,
+		SyncEnv:        403,
+	}
+	if st, ok := ownedResources[endpoint]; ok {
+		if !au.IsOwner(resource, resourceID) {
+			return st, AuthNonOwner
 		}
-		if st, ok := ownedResources[endpoint]; ok {
-			if !au.IsOwner(resource, resourceID) {
-				return st, AuthNonOwner
-			}
-		}
+	}
 
-		readableResources := map[string]int{
-			GetProject: 403,
-			GetEnv:     403,
-			ListBuilds: 403,
-			GetBuild:   403,
-		}
-		if st, ok := readableResources[endpoint]; ok {
-			if !au.IsReader(resource, resourceID) {
-				return st, AuthNonReadable
-			}
+	readableResources := map[string]int{
+		GetProject: 403,
+		GetEnv:     403,
+		ListBuilds: 403,
+		GetBuild:   403,
+	}
+	if st, ok := readableResources[endpoint]; ok {
+		if !au.IsReader(resource, resourceID) {
+			return st, AuthNonReadable
 		}
 	}
 

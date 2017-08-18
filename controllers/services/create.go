@@ -55,11 +55,15 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 			h.L.Error("Service is still in progress")
 			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
-		if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, previous.GetType(), s.Name); st != 200 {
+	}
+	if prevID == "" {
+		if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, dt.GetType(), s.Datacenter); st != 200 {
+			println("project level ")
 			return st, res
 		}
 	} else {
-		if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, dt.GetType(), s.Datacenter); st != 200 {
+		if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, previous.GetType(), s.Name); st != 200 {
+			println("env level " + prevID)
 			return st, res
 		}
 	}
@@ -154,8 +158,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return 500, []byte(err.Error())
 	}
 
-	if err := au.SetOwner(&ss); err != nil {
-		return 500, []byte("Internal server error")
+	if &previous == nil {
+		if err := au.SetOwner(&ss); err != nil {
+			return 500, []byte("Internal server error")
+		}
 	}
 
 	// Apply changes

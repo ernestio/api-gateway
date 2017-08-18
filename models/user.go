@@ -181,6 +181,9 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 	} else {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), d.GetType()); err == nil {
+			if ids == nil {
+				return ds, nil
+			}
 			err = d.FindByIDs(ids, &ds)
 			if err != nil {
 				log.Println(err.Error())
@@ -239,6 +242,9 @@ func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err err
 	if u.Admin == false {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
+			if ids == nil {
+				return ss, nil
+			}
 			filters["names"] = ids
 		}
 	}
@@ -308,13 +314,17 @@ func (u *User) Owns(o resource) bool {
 
 // IsOwner : check if is the owner of a specific resource
 func (u *User) IsOwner(resourceType, resourceID string) bool {
-	if role, err := u.getRole(resourceType, resourceID); err != nil {
+	if u.Admin {
+		return true
+	}
+
+	if role, err := u.getRole(resourceType, resourceID); err == nil {
 		if role == "owner" {
 			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 // IsReader : check if has reader permissions on a specific resource
@@ -323,20 +333,20 @@ func (u *User) IsReader(resourceType, resourceID string) bool {
 		return true
 	}
 
-	if role, err := u.getRole(resourceType, resourceID); err != nil {
+	if role, err := u.getRole(resourceType, resourceID); err == nil {
 		if role == "reader" || role == "owner" {
 			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 func (u *User) getRole(resourceType, resourceID string) (string, error) {
 	var role Role
 
 	existing, err := role.Get(u.GetID(), resourceID, resourceType)
-	if err == nil || existing == nil {
+	if err != nil || existing == nil {
 		return "", errors.New("Not found")
 	}
 
