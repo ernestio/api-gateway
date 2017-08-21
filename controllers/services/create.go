@@ -58,12 +58,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 	if prevID == "" {
 		if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, dt.GetType(), s.Datacenter); st != 200 {
-			println("project level ")
 			return st, res
 		}
 	} else {
 		if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, previous.GetType(), s.Name); st != 200 {
-			println("env level " + prevID)
 			return st, res
 		}
 	}
@@ -158,7 +156,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return 500, []byte(err.Error())
 	}
 
-	if &previous == nil {
+	if prevID == "" {
 		if err := au.SetOwner(&ss); err != nil {
 			return 500, []byte("Internal server error")
 		}

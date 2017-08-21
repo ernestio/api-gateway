@@ -19,10 +19,6 @@ func Get(au models.User, name string) (int, []byte) {
 	var d models.Datacenter
 	var roles []models.Role
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, s.GetType(), name); st != 200 {
-		return st, res
-	}
-
 	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error")
@@ -30,6 +26,10 @@ func Get(au models.User, name string) (int, []byte) {
 
 	if s.ID == "" {
 		return 404, []byte("Specified environment name does not exist")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
 	if err := r.FindAllByResource(s.GetID(), s.GetType(), &roles); err == nil {

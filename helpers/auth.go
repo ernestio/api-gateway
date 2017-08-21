@@ -49,7 +49,6 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 		"notifications/list":        405,
 		"notifications/rm_service":  405,
 		"notifications/update":      405,
-		"services/sync":             405,
 		"services/update":           405,
 	}
 	if st, ok := licensedResources[resource]; ok {
