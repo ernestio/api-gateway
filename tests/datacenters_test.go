@@ -130,6 +130,8 @@ func TestDatacenters(t *testing.T) {
 			findServiceSubscriber()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
+				res := `[{"resource_id":"1","role":"owner"}]`
+				foundSubscriber("authorization.find", res, 1)
 				ft := models.User{ID: 1, Username: "test", Admin: false}
 				st, resp := datacenters.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
