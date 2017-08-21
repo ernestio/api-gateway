@@ -69,6 +69,16 @@ func getDatacenterSubscriber(max int) {
 	if err := sub.AutoUnsubscribe(max); err != nil {
 		log.Println(err)
 	}
+
+	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
+		res := `[{"role":"owner"}]`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
 }
 
 func findDatacenterSubscriber() {
@@ -138,6 +148,15 @@ func deleteDatacenterSubscriber() {
 		}
 	})
 	if err := sub.AutoUnsubscribe(1); err != nil {
+		log.Println(err)
+	}
+	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
+		res := `[{"role":"owner"}]`
+		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
+			log.Println(err)
+		}
+	})
+	if err := sub2.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
 }

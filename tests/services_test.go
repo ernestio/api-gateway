@@ -39,6 +39,7 @@ func TestServices(t *testing.T) {
 
 		Convey("Given my existing service is errored", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","status":"errored"},{"id":"2","name":"fake/test","status":"done"}]`, 1)
+			foundSubscriber("authorization.find", `[{"role":"owner","resource_id":"1"}]`, 1)
 
 			Convey("When I do a call to /services/reset", func() {
 				s, b := services.Reset(au, "foo")

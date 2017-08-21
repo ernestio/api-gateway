@@ -14,17 +14,18 @@ func Delete(au models.User, name string) (int, []byte) {
 	var def models.Definition
 	var s models.Service
 
-	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnv, s.GetType(), name); st != 200 {
-		return st, res
-	}
-
 	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error")
 	}
 
 	if s.ID == "" {
+		println("innnn")
 		return 404, []byte("Specified environment name does not exist")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnv, s.GetType(), name); st != 200 {
+		return st, res
 	}
 
 	if s.Status == "in_progress" {
