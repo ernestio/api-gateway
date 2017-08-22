@@ -6,18 +6,8 @@ package controllers
 
 import (
 	"github.com/ernestio/api-gateway/controllers/envs"
-	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
-
-// GetServiceBuildHandler : gets the details of a specific service build
-func GetServiceBuildHandler(c echo.Context) (err error) {
-	au := AuthenticatedUser(c)
-	query := h.GetAuthorizedParamFilter(c, &au)
-	s, b := envs.GetBuild(au, query)
-
-	return c.JSONBlob(s, b)
-}
 
 // DelServiceBuildHandler : will delete the specified build from a service
 func DelServiceBuildHandler(c echo.Context) (err error) {

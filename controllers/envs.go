@@ -18,6 +18,20 @@ func GetServicesHandler(c echo.Context) (err error) {
 	return genericList(c, "service", envs.List)
 }
 
+// GetServiceBuildHandler : gets the details of a specific service build
+func GetServiceBuildHandler(c echo.Context) (err error) {
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/build")
+	if st == 200 {
+		st, b = envs.Builds(au, buildID(c))
+	}
+
+	query := h.GetAuthorizedParamFilter(c, &au)
+	s, b := envs.GetBuild(au, query)
+
+	return c.JSONBlob(s, b)
+}
+
 // GetServiceBuildsHandler : gets the list of builds for the specified
 // service
 func GetServiceBuildsHandler(c echo.Context) error {
