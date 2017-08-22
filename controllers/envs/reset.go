@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	h "github.com/ernestio/api-gateway/helpers"
@@ -8,8 +8,8 @@ import (
 // Reset : Respons to POST /services/:service/reset/ and updates the
 // service status to errored from in_progress
 func Reset(au models.User, name string) (int, []byte) {
-	var s models.Service
-	var services []models.Service
+	var s models.Env
+	var envs []models.Env
 
 	if st, res := h.IsAuthorizedToResource(&au, h.ResetBuild, s.GetType(), name); st != 200 {
 		return st, res
@@ -17,19 +17,19 @@ func Reset(au models.User, name string) (int, []byte) {
 
 	filter := make(map[string]interface{})
 	filter["name"] = name
-	if err := s.Find(filter, &services); err != nil {
+	if err := s.Find(filter, &envs); err != nil {
 		h.L.Warning(err.Error())
 		return 500, []byte("Internal Error")
 	}
 
-	if len(services) == 0 {
-		return 404, []byte("Service not found with this name")
+	if len(envs) == 0 {
+		return 404, []byte("Environment not found with this name")
 	}
 
-	s = services[0]
+	s = envs[0]
 
 	if s.Status != "in_progress" {
-		return 200, []byte("Reset only applies to 'in progress' serices, however service '" + name + "' is on status '" + s.Status)
+		return 200, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + s.Status)
 	}
 
 	if err := s.Reset(); err != nil {

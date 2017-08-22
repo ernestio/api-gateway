@@ -1,4 +1,4 @@
-package datacenters
+package projects
 
 import (
 	"encoding/json"
@@ -9,24 +9,24 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Get : responds to GET /datacenter/:id:/ with the specified
-// datacenter details
-func Get(au models.User, datacenter string) (int, []byte) {
-	var s models.Service
-	var envs []models.Service
+// Get : responds to GET /projects/:id:/ with the specified
+// project details
+func Get(au models.User, project string) (int, []byte) {
+	var s models.Env
+	var envs []models.Env
 	var r models.Role
 	var roles []models.Role
-	var d models.Datacenter
+	var d models.Project
 	var body []byte
 	var err error
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetProject, d.GetType(), datacenter); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.GetProject, d.GetType(), project); st != 200 {
 		return st, res
 	}
 
 	appended := make(map[string]string)
 
-	if err := d.FindByName(datacenter, &d); err != nil {
+	if err := d.FindByName(project, &d); err != nil {
 		return 404, []byte("Project not found")
 	}
 

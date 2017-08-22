@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	mockDatacenters = []models.Datacenter{
-		models.Datacenter{
+	mockDatacenters = []models.Project{
+		models.Project{
 			ID:   1,
 			Name: "test",
 		},
-		models.Datacenter{
+		models.Project{
 			ID:   2,
 			Name: "test2",
 		},
@@ -40,7 +40,7 @@ func getNotFoundDatacenterSubscriber(max int) {
 func getDatacenterSubscriber(max int) {
 	sub, _ := models.N.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
-			qd := models.Datacenter{}
+			qd := models.Project{}
 			if err := json.Unmarshal(msg.Data, &qd); err != nil {
 				log.Println(err)
 				return
@@ -108,7 +108,7 @@ func findDatacenterSubscriber() {
 
 func createDatacenterSubscriber() {
 	sub, _ := models.N.Subscribe("datacenter.set", func(msg *nats.Msg) {
-		var d models.Datacenter
+		var d models.Project
 
 		if err := json.Unmarshal(msg.Data, &d); err != nil {
 			log.Println(err)
@@ -137,7 +137,7 @@ func createDatacenterSubscriber() {
 
 func deleteDatacenterSubscriber() {
 	sub, _ := models.N.Subscribe("datacenter.del", func(msg *nats.Msg) {
-		var u models.Datacenter
+		var u models.Project
 
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)

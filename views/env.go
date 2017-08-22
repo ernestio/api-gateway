@@ -45,7 +45,7 @@ type ServiceRender struct {
 }
 
 // Render : Map a Service to a ServiceRender
-func (o *ServiceRender) Render(s models.Service) (err error) {
+func (o *ServiceRender) Render(s models.Env) (err error) {
 	o.Name = s.Name
 	parts := strings.Split(o.Name, models.EnvNameSeparator)
 	if len(parts) > 1 {
@@ -371,7 +371,7 @@ func renderResources(g *graph.Graph, resourceType string, f convert) (resources 
 }
 
 // RenderCollection : Maps a collection of Service on a collection of ServiceRender
-func (o *ServiceRender) RenderCollection(services []models.Service) (list []ServiceRender, err error) {
+func (o *ServiceRender) RenderCollection(services []models.Env) (list []ServiceRender, err error) {
 	for _, s := range services {
 		var output ServiceRender
 		if err := output.Render(s); err == nil {

@@ -15,8 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Datacenter holds the datacenter response from datacenter-store
-type Datacenter struct {
+// Project holds the project response from datacenter-store
+type Project struct {
 	ID              int      `json:"id"`
 	Name            string   `json:"name"`
 	Type            string   `json:"type"`
@@ -37,8 +37,8 @@ type Datacenter struct {
 	Roles           []string `json:"roles,omitempty"`
 }
 
-// Validate the datacenter
-func (d *Datacenter) Validate() error {
+// Validate the project
+func (d *Project) Validate() error {
 	if d.Name == "" {
 		return errors.New("Project name is empty")
 	}
@@ -62,8 +62,8 @@ func (d *Datacenter) Validate() error {
 	return nil
 }
 
-// Map : maps a datacenter from a request's body and validates the input
-func (d *Datacenter) Map(data []byte) error {
+// Map : maps a project from a request's body and validates the input
+func (d *Project) Map(data []byte) error {
 	if err := json.Unmarshal(data, &d); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
@@ -74,31 +74,31 @@ func (d *Datacenter) Map(data []byte) error {
 	return nil
 }
 
-// FindByName : Searches for all datacenters with a name equal to the specified
-func (d *Datacenter) FindByName(name string, datacenter *Datacenter) (err error) {
+// FindByName : Searches for all projects with a name equal to the specified
+func (d *Project) FindByName(name string, project *Project) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel("datacenter").GetBy(query, datacenter); err != nil {
+	if err := NewBaseModel(d.getStore()).GetBy(query, project); err != nil {
 		return err
 	}
 	return nil
 }
 
 // FindByID : Gets a model by its id
-func (d *Datacenter) FindByID(id int) (err error) {
+func (d *Project) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	if err := NewBaseModel("datacenter").GetBy(query, d); err != nil {
+	if err := NewBaseModel(d.getStore()).GetBy(query, d); err != nil {
 		return err
 	}
 	return nil
 }
 
 // FindByIDs : Gets a model by its id
-func (d *Datacenter) FindByIDs(ids []string, ds *[]Datacenter) (err error) {
+func (d *Project) FindByIDs(ids []string, ds *[]Project) (err error) {
 	query := make(map[string]interface{})
 	query["names"] = ids
-	if err := NewBaseModel("datacenter").FindBy(query, ds); err != nil {
+	if err := NewBaseModel(d.getStore()).FindBy(query, ds); err != nil {
 		return err
 	}
 	return nil
@@ -106,28 +106,28 @@ func (d *Datacenter) FindByIDs(ids []string, ds *[]Datacenter) (err error) {
 
 // FindAll : Searches for all entities on the store current user
 // has access to
-func (d *Datacenter) FindAll(au User, datacenters *[]Datacenter) (err error) {
+func (d *Project) FindAll(au User, projects *[]Project) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel("datacenter").FindBy(query, datacenters); err != nil {
+	if err := NewBaseModel(d.getStore()).FindBy(query, projects); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Save : calls datacenter.set with the marshalled current entity
-func (d *Datacenter) Save() (err error) {
-	if err := NewBaseModel("datacenter").Save(d); err != nil {
+func (d *Project) Save() (err error) {
+	if err := NewBaseModel(d.getStore()).Save(d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// Delete : will delete a datacenter by its id
-func (d *Datacenter) Delete() (err error) {
+// Delete : will delete a project by its id
+func (d *Project) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = d.ID
-	if err := NewBaseModel("datacenter").Delete(query); err != nil {
+	if err := NewBaseModel(d.getStore()).Delete(query); err != nil {
 		return err
 	}
 	return nil
@@ -135,7 +135,7 @@ func (d *Datacenter) Delete() (err error) {
 
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
-func (d *Datacenter) Redact() {
+func (d *Project) Redact() {
 	d.AccessKeyID = ""
 	d.SecretAccessKey = ""
 	crypto := aes.New()
@@ -147,29 +147,28 @@ func (d *Datacenter) Redact() {
 }
 
 // Improve : adds extra data to this entity
-func (d *Datacenter) Improve() {
+func (d *Project) Improve() {
 }
 
-// Services : Get the services related with current datacenter
-func (d *Datacenter) Services() (services []Service, err error) {
-	var s Service
-	err = s.FindByDatacenterID(d.ID, &services)
-
-	return services, err
+// Envs : Get the envs related with current project
+func (d *Project) Envs() (envs []Env, err error) {
+	var s Env
+	err = s.FindByProjectID(d.ID, &envs)
+	return
 }
 
 // GetID : ID getter
-func (d *Datacenter) GetID() string {
+func (d *Project) GetID() string {
 	return d.Name
 }
 
 // GetType : Gets the resource type
-func (d *Datacenter) GetType() string {
+func (d *Project) GetType() string {
 	return "project"
 }
 
-// Override : override not empty parameters with the given datacenter ones
-func (d *Datacenter) Override(dt Datacenter) {
+// Override : override not empty parameters with the given project ones
+func (d *Project) Override(dt Project) {
 	if dt.Region != "" {
 		d.Region = dt.Region
 	}
@@ -212,7 +211,7 @@ func (d *Datacenter) Override(dt Datacenter) {
 }
 
 // Encrypt : encrypts sensible data
-func (d *Datacenter) Encrypt() {
+func (d *Project) Encrypt() {
 	d.Region, _ = crypt(d.Region)
 	d.Username, _ = crypt(d.Username)
 	d.Password, _ = crypt(d.Password)
@@ -240,4 +239,8 @@ func crypt(s string) (string, error) {
 	}
 
 	return s, nil
+}
+
+func (d *Project) getStore() string {
+	return "datacenter"
 }

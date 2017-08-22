@@ -14,20 +14,20 @@ import (
 )
 
 var (
-	mockServices = []models.Service{
-		models.Service{
+	mockServices = []models.Env{
+		models.Env{
 			ID:           "1",
 			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
-		models.Service{
+		models.Env{
 			ID:           "3",
 			Name:         "fake-test",
 			DatacenterID: 1,
 			Version:      time.Now(),
 		},
-		models.Service{
+		models.Env{
 			ID:           "2",
 			Name:         "fake-test2",
 			DatacenterID: 3,
@@ -39,7 +39,7 @@ var (
 func getServiceSubscriber() {
 	_, _ = models.N.Subscribe("service.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
-			qs := models.Service{}
+			qs := models.Env{}
 			if err := json.Unmarshal(msg.Data, &qs); err != nil {
 				log.Println(err)
 			}
@@ -67,8 +67,8 @@ func getServiceSubscriber() {
 
 func findServiceSubscriber() {
 	sub, _ := models.N.Subscribe("service.find", func(msg *nats.Msg) {
-		var s []models.Service
-		var qs models.Service
+		var s []models.Env
+		var qs models.Env
 		if err := json.Unmarshal(msg.Data, &qs); err != nil {
 			log.Println(err)
 		}
@@ -110,7 +110,7 @@ func findServiceSubscriber() {
 
 func createServiceSubscriber() {
 	_, _ = models.N.Subscribe("service.set", func(msg *nats.Msg) {
-		var s models.Service
+		var s models.Env
 
 		if err := json.Unmarshal(msg.Data, &s); err != nil {
 			log.Println(err)
@@ -136,7 +136,7 @@ func createServiceSubscriber() {
 
 func deleteServiceSubscriber() {
 	_, _ = models.N.Subscribe("service.del", func(msg *nats.Msg) {
-		var s models.Service
+		var s models.Env
 
 		if err := json.Unmarshal(msg.Data, &s); err != nil {
 			log.Println(err)

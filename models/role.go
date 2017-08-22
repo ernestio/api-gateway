@@ -141,13 +141,13 @@ func (l *Role) Delete() (err error) {
 // ResourceExists : check if related resource exists
 func (l *Role) ResourceExists() bool {
 	if l.ResourceType == "project" {
-		var r Datacenter
+		var r Project
 		err := r.FindByName(l.ResourceID, &r)
 		if err == nil && &r != nil {
 			return true
 		}
 	} else if l.ResourceType == "environment" {
-		var r Service
+		var r Env
 		err := r.FindByName(l.ResourceID, &r)
 		if err == nil && &r != nil {
 			return true

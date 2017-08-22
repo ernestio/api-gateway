@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -12,8 +12,8 @@ import (
 // Builds : gets the list of builds for the specified service
 func Builds(au models.User, name string) (int, []byte) {
 	var o views.ServiceRender
-	var s models.Service
-	var builds []models.Service
+	var s models.Env
+	var builds []models.Env
 	var err error
 
 	if st, res := h.IsAuthorizedToResource(&au, h.ListBuilds, s.GetType(), name); st != 200 {

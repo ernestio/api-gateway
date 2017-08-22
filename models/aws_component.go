@@ -6,7 +6,7 @@ import (
 
 // AWSComponent : AWS Component generic representation
 type AWSComponent struct {
-	Datacenter *Datacenter       `json:"datacenter"`
+	Datacenter *Project          `json:"datacenter"`
 	Tags       map[string]string `json:"tags"`
 	Name       string            `json:"name"`
 }

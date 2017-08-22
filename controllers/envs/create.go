@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -24,10 +24,10 @@ type ServicePayload struct {
 func Create(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
 	var err error
 	var group []byte
-	var previous models.Service
+	var previous models.Env
 	var mapping map[string]interface{}
 	var prevID string
-	var dt models.Datacenter
+	var dt models.Project
 
 	// *********** VALIDATIONS *********** //
 
@@ -47,13 +47,13 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	// Get previous service if exists
+	// Get previous env if exists
 	previous, _ = previous.FindLastByName(s.Name)
 	if &previous != nil {
 		prevID = previous.ID
 		if previous.Status == "in_progress" {
-			h.L.Error("Service is still in progress")
-			return http.StatusNotFound, []byte(`"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
+			h.L.Error("Environment is still in progress")
+			return http.StatusNotFound, []byte(`"Your environment process is 'in progress' if your're sure you want to fix it please reset it first"`)
 		}
 	}
 	if prevID == "" {
@@ -67,10 +67,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
-	credentials := models.Datacenter{}
+	credentials := models.Project{}
 	if &previous != nil {
 		if previous.ProjectInfo != nil {
-			var prevDT models.Datacenter
+			var prevDT models.Project
 			if err := json.Unmarshal(*previous.ProjectInfo, &prevDT); err == nil {
 				credentials.Override(prevDT)
 			}
@@ -78,7 +78,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	if s.ProjectInfo != nil {
-		var newDT models.Datacenter
+		var newDT models.Project
 		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
 			newDT.Encrypt()
 			credentials.Override(newDT)
@@ -100,7 +100,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	// *********** REQUESTING DEFINITION ************ //
 
 	payload := ServicePayload{
-		ID:         generateServiceID(s.Name + "-" + s.Datacenter),
+		ID:         generateEnvID(s.Name + "-" + s.Datacenter),
 		PrevID:     prevID,
 		Service:    (*json.RawMessage)(&body),
 		Datacenter: (*json.RawMessage)(&rawDatacenter),
@@ -138,8 +138,8 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		d = defParts[0]
 	}
 
-	// *********** SAVE NEW SERVICE AND PROCESS CREATION / IMPORT *********** //
-	ss := models.Service{
+	// *********** SAVE NEW ENV AND PROCESS CREATION / IMPORT *********** //
+	ss := models.Env{
 		ID:           payload.ID,
 		Name:         s.Name,
 		Type:         dt.Type,

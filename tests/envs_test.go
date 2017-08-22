@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/ernestio/api-gateway/config"
-	"github.com/ernestio/api-gateway/controllers/services"
+	"github.com/ernestio/api-gateway/controllers/envs"
 	"github.com/ernestio/api-gateway/views"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -29,7 +29,7 @@ func TestServices(t *testing.T) {
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","status":"in_progress"},{"id":"2","name":"fake/test","status":"done"}]`, 1)
 			serviceResetSubscriber()
 			Convey("When I do a call to /services/reset", func() {
-				s, b := services.Reset(au, "foo")
+				s, b := envs.Reset(au, "foo")
 				Convey("Then it should return a success message", func() {
 					So(s, ShouldEqual, 200)
 					So(string(b), ShouldEqual, `success`)
@@ -42,10 +42,10 @@ func TestServices(t *testing.T) {
 			foundSubscriber("authorization.find", `[{"role":"owner","resource_id":"1"}]`, 1)
 
 			Convey("When I do a call to /services/reset", func() {
-				s, b := services.Reset(au, "foo")
+				s, b := envs.Reset(au, "foo")
 				Convey("Then it should return an error message", func() {
 					So(s, ShouldEqual, 200)
-					So(string(b), ShouldEqual, "Reset only applies to 'in progress' serices, however service 'foo' is on status 'errored")
+					So(string(b), ShouldEqual, "Reset only applies to an 'in progress' environment, however environment 'foo' is on status 'errored")
 				})
 			})
 		})
@@ -56,7 +56,7 @@ func TestServices(t *testing.T) {
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
 			Convey("When I call GET /services/", func() {
 				au.Admin = true
-				s, b := services.List(au)
+				s, b := envs.List(au)
 				Convey("It should return the correct set of data", func() {
 					var sr []views.ServiceRender
 					So(s, ShouldEqual, 200)
@@ -75,27 +75,8 @@ func TestServices(t *testing.T) {
 		Convey("Given the service do not exist on the store", func() {
 			foundSubscriber("service.find", `[]`, 1)
 			Convey("And I call /service/:service on the api", func() {
-				s, _ := services.Get(au, "1")
+				s, _ := envs.Get(au, "1")
 				So(s, ShouldEqual, 404)
-			})
-		})
-
-		Convey("Given the service exists on the store", func() {
-			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
-			foundSubscriber("service.get.mapping", `{"name":"fake/test", "vpcs": {"items":[{"vpc_id":"22"}]}, "networks":{"items":[{"name":"a"}]}}`, 1)
-			Convey("And I call /service/:service on the api", func() {
-				var d views.ServiceRender
-				Convey("When I'm authenticated as an admin user", func() {
-					s, resp := services.Get(au, "1")
-					Convey("Then I should get the existing service", func() {
-
-						So(s, ShouldEqual, 200)
-						err := json.Unmarshal(resp, &d)
-						So(err, ShouldBeNil)
-						So(d.ID, ShouldEqual, "1")
-						So(d.Name, ShouldEqual, "test")
-					})
-				})
 			})
 		})
 	})
@@ -111,7 +92,7 @@ func TestServices(t *testing.T) {
 				params["name"] = "fake/test"
 
 				Convey("When I'm authenticated as an admin user", func() {
-					st, resp := services.Search(au, params)
+					st, resp := envs.Search(au, params)
 					Convey("Then I should get the matching service", func() {
 						err := json.Unmarshal(resp, &s)
 						So(err, ShouldBeNil)
@@ -127,7 +108,7 @@ func TestServices(t *testing.T) {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
 				params["service"] = "1"
-				st, resp := services.Search(au, params)
+				st, resp := envs.Search(au, params)
 
 				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should return an empty array", func() {
@@ -154,7 +135,7 @@ func TestServices(t *testing.T) {
 						headers := map[string]string{}
 						headers["Content-Type"] = "application/json"
 						resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-						st, resp := services.Create(au, params)
+						st, resp := envs.Create(au, params)
 
 						Convey("Then I should get a 404 response", func() {
 							So(err, ShouldEqual, nil)
@@ -241,10 +222,10 @@ func TestServices(t *testing.T) {
 			res := `[{"resource_id":"1","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
-				st, resp := services.Delete(au, "foo-bar")
+				st, resp := envs.Delete(au, "foo-bar")
 				Convey("Then I should get a 400 response", func() {
 					So(st, ShouldEqual, 400)
-					So(string(resp), ShouldEqual, `"Service is already applying some changes, please wait until they are done"`)
+					So(string(resp), ShouldEqual, `"Environment is already applying some changes, please wait until they are done"`)
 				})
 			})
 		})
@@ -256,7 +237,7 @@ func TestServices(t *testing.T) {
 			res := `[{"resource_id":"1","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
-				st, resp := services.Delete(au, "foo-bar")
+				st, resp := envs.Delete(au, "foo-bar")
 
 				Convey("Then I should get a response with id and stream id", func() {
 					fmt.Println(string(resp))

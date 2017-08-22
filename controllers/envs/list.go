@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -12,18 +12,18 @@ import (
 // List : responds to GET /services/ with a list of all
 // services for current user group
 func List(au models.User) (int, []byte) {
-	var list []models.Service
+	var list []models.Env
 	var body []byte
 	var user models.User
 
 	query := make(map[string]interface{}, 0)
-	services, err := au.ServicesBy(query)
+	envs, err := au.EnvsBy(query)
 	if err != nil {
 		h.L.Warning(err.Error())
 		return 404, []byte("Environment not found")
 	}
 
-	for _, s := range services {
+	for _, s := range envs {
 		exists := false
 		for i, e := range list {
 			if e.Name == s.Name {

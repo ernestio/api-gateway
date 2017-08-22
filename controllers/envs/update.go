@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ import (
 func Update(au models.User, name string, body []byte) (int, []byte) {
 	var raw []byte
 	var err error
-	var input models.Service
+	var input models.Env
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, input.GetType(), name); st != 200 {
 		return st, res
@@ -23,19 +23,19 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	// Get existing service
-	if raw, err = getServiceRaw(au, name); err != nil {
+	// Get existing environment
+	if raw, err = getEnvRaw(au, name); err != nil {
 		return 404, []byte(err.Error())
 	}
 
-	s := models.Service{}
+	s := models.Env{}
 	if err := json.Unmarshal(raw, &s); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
 	if s.Status == "in_progress" {
-		return 400, []byte(`"Service is already applying some changes, please wait until they are done"`)
+		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
 	s.Options["sync"] = input.Options["sync"]

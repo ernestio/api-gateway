@@ -10,7 +10,7 @@ import (
 // List : ...
 func List(datacenter, service, component string) (int, []byte) {
 	var body []byte
-	var d models.Datacenter
+	var d models.Project
 
 	if err := d.FindByName(datacenter, &d); err != nil {
 		return 404, []byte("Datacenter not found")
