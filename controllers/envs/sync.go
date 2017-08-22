@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -13,14 +13,14 @@ import (
 func Sync(au models.User, name string) (int, []byte) {
 	var raw []byte
 	var err error
-	var s models.Service
+	var s models.Env
 
 	if st, res := h.IsAuthorizedToResource(&au, h.SyncEnv, s.GetType(), name); st != 200 {
 		return st, res
 	}
 
-	// Get existing service
-	if raw, err = getServiceRaw(au, name); err != nil {
+	// Get existing env
+	if raw, err = getEnvRaw(au, name); err != nil {
 		return 404, []byte(err.Error())
 	}
 
@@ -30,11 +30,11 @@ func Sync(au models.User, name string) (int, []byte) {
 	}
 
 	if s.Status == "in_progress" {
-		return 400, []byte(`"Service is already applying some changes, please wait until they are done"`)
+		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
 	if err = s.RequestSync(); err != nil {
-		return 500, []byte("An error ocurred while ernest was trying to sync your service")
+		return 500, []byte("An error ocurred while ernest was trying to sync your environment")
 	}
 
 	// TODO : This probably needs to use the monit tool instead of this.

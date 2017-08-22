@@ -172,9 +172,9 @@ func (u *User) ValidPassword(pw string) bool {
 	return false
 }
 
-// Datacenters : Gets the related user datacenters if any
-func (u *User) Datacenters() (ds []Datacenter, err error) {
-	var d Datacenter
+// GetProjects : Gets the related user projects if any
+func (u *User) GetProjects() (ds []Project, err error) {
+	var d Project
 
 	if u.Admin == true {
 		err = d.FindAll(*u, &ds)
@@ -196,8 +196,8 @@ func (u *User) Datacenters() (ds []Datacenter, err error) {
 	return ds, err
 }
 
-// DatacenterByName : Gets the related user datacenters if any
-func (u *User) DatacenterByName(name string) (d Datacenter, err error) {
+// ProjectByName : Gets the related user projects if any
+func (u *User) ProjectByName(name string) (d Project, err error) {
 	if err = d.FindByName(name, &d); err != nil {
 		err = errors.New("Project not found")
 	}
@@ -219,15 +219,15 @@ func (u *User) FindAllKeyValue() (list map[int]string) {
 }
 
 // GetBuild : Gets a specific build if authorized
-func (u *User) GetBuild(id string) (build Service, err error) {
-	var services []Service
-	var s Service
+func (u *User) GetBuild(id string) (build Env, err error) {
+	var envs []Env
+	var s Env
 
 	query := make(map[string]interface{})
 	query["id"] = id
-	err = s.Find(query, &services)
+	err = s.Find(query, &envs)
 
-	if len(services) == 0 {
+	if len(envs) == 0 {
 		h.L.Debug("Build " + id + " not found")
 		return build, errors.New("Not found")
 	}
@@ -235,9 +235,9 @@ func (u *User) GetBuild(id string) (build Service, err error) {
 	return
 }
 
-// ServicesBy : Get authorized services by any filter
-func (u *User) ServicesBy(filters map[string]interface{}) (ss []Service, err error) {
-	var s Service
+// EnvsBy : Get authorized envs by any filter
+func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
+	var s Env
 
 	if u.Admin == false {
 		var r Role

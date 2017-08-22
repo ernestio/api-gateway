@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 func GetBuild(au models.User, query map[string]interface{}) (int, []byte) {
 	var o views.ServiceRender
 
-	builds, err := au.ServicesBy(query)
+	builds, err := au.EnvsBy(query)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}

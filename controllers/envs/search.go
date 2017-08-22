@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"encoding/json"
@@ -13,12 +13,12 @@ import (
 func Search(au models.User, query map[string]interface{}) (int, []byte) {
 	var o views.ServiceRender
 
-	services, err := au.ServicesBy(query)
+	envs, err := au.EnvsBy(query)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
 
-	list, err := o.RenderCollection(services)
+	list, err := o.RenderCollection(envs)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}

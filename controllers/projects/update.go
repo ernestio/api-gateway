@@ -1,4 +1,4 @@
-package datacenters
+package projects
 
 import (
 	"encoding/json"
@@ -9,20 +9,20 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Update : responds to PUT /datacenters/:id: by updating
-// an existing datacenter
-func Update(au models.User, datacenter string, body []byte) (int, []byte) {
-	var d models.Datacenter
-	var existing models.Datacenter
+// Update : responds to PUT /projects/:id: by updating
+// an existing project
+func Update(au models.User, project string, body []byte) (int, []byte) {
+	var d models.Project
+	var existing models.Project
 	var err error
 
 	if d.Map(body) != nil {
 		return 400, []byte("Invalid input")
 	}
 
-	id, err := strconv.Atoi(datacenter)
+	id, err := strconv.Atoi(project)
 	if err = existing.FindByID(id); err != nil {
-		return 404, []byte("Datacenter not found")
+		return 404, []byte("Project not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, d.GetType(), d.Name); st != 200 {

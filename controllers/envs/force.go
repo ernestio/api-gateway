@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 // ForceDeletion : Deletes a service by name forcing it
 func ForceDeletion(au models.User, name string) (int, []byte) {
-	var s models.Service
+	var s models.Env
 
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnvForce, s.GetType(), name); st != 200 {
 		return st, res

@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"net/http"
@@ -13,10 +13,10 @@ import (
 func Get(au models.User, name string) (int, []byte) {
 	var o views.ServiceRender
 	var body []byte
-	var s models.Service
+	var s models.Env
 	var err error
 	var r models.Role
-	var d models.Datacenter
+	var d models.Project
 	var roles []models.Role
 
 	if s, err = s.FindLastByName(name); err != nil {

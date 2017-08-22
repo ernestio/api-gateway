@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/ernestio/api-gateway/config"
-	"github.com/ernestio/api-gateway/controllers/datacenters"
+	"github.com/ernestio/api-gateway/controllers/projects"
 	"github.com/ernestio/api-gateway/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -22,9 +22,9 @@ func TestDatacenters(t *testing.T) {
 		Convey("Given datacenters exist on the store", func() {
 			findDatacenterSubscriber()
 			Convey("When I call /datacenters/", func() {
-				st, resp := datacenters.List(au)
+				st, resp := projects.List(au)
 				Convey("Then I should have a response with existing datacenters", func() {
-					var d []models.Datacenter
+					var d []models.Project
 					err := json.Unmarshal(resp, &d)
 					So(st, ShouldEqual, 200)
 					So(err, ShouldBeNil)
@@ -44,11 +44,11 @@ func TestDatacenters(t *testing.T) {
 			getDatacenterSubscriber(1)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
-				st, resp := datacenters.Get(au, "1")
+				st, resp := projects.Get(au, "1")
 
 				Convey("When I'm authenticated as an admin user", func() {
 					Convey("Then I should get the existing datacenter", func() {
-						var d models.Datacenter
+						var d models.Project
 						err := json.Unmarshal(resp, &d)
 
 						So(st, ShouldEqual, 200)
@@ -60,7 +60,7 @@ func TestDatacenters(t *testing.T) {
 
 				Convey("When the datacenter group matches the authenticated users group", func() {
 					Convey("Then I should get the existing datacenter", func() {
-						var d models.Datacenter
+						var d models.Project
 						err := json.Unmarshal(resp, &d)
 						So(st, ShouldEqual, 200)
 						So(err, ShouldBeNil)
@@ -70,7 +70,7 @@ func TestDatacenters(t *testing.T) {
 				})
 
 				SkipConvey("When the datacenter group does not match the authenticated users group", func() {
-					st, _ := datacenters.Get(au, "2")
+					st, _ := projects.Get(au, "2")
 					Convey("Then I should get a 404 error as it doesn't exist", func() {
 						So(st, ShouldEqual, 404)
 					})
@@ -84,7 +84,7 @@ func TestDatacenters(t *testing.T) {
 			getNotFoundDatacenterSubscriber(1)
 			createDatacenterSubscriber()
 
-			mockDC := models.Datacenter{
+			mockDC := models.Project{
 				Name:      "new_test",
 				Type:      "vcloud",
 				Username:  "test",
@@ -96,9 +96,9 @@ func TestDatacenters(t *testing.T) {
 
 			Convey("When I do a post to /datacenters/", func() {
 				Convey("And I am logged in as an admin", func() {
-					st, resp := datacenters.Create(au, data)
+					st, resp := projects.Create(au, data)
 					Convey("Then a datacenter should be created", func() {
-						var d models.Datacenter
+						var d models.Project
 						err := json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
@@ -109,9 +109,9 @@ func TestDatacenters(t *testing.T) {
 
 				Convey("And the datacenter group matches the authenticated users group", func() {
 					ft := models.User{ID: 1, Username: "test", Admin: false}
-					st, resp := datacenters.Create(ft, data)
+					st, resp := projects.Create(ft, data)
 					Convey("It should create the datacenter and return the correct set of data", func() {
-						var d models.Datacenter
+						var d models.Project
 						err := json.Unmarshal(resp, &d)
 						So(err, ShouldBeNil)
 						So(st, ShouldEqual, 200)
@@ -133,7 +133,7 @@ func TestDatacenters(t *testing.T) {
 				res := `[{"resource_id":"1","role":"owner"}]`
 				foundSubscriber("authorization.find", res, 1)
 				ft := models.User{ID: 1, Username: "test", Admin: false}
-				st, resp := datacenters.Delete(ft, "1")
+				st, resp := projects.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
 					So(st, ShouldEqual, 400)
 					So(string(resp), ShouldEqual, "Existing environments are referring to this project.")

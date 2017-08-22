@@ -1,4 +1,4 @@
-package services
+package envs
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var def models.Definition
-	var s models.Service
+	var s models.Env
 
 	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
@@ -29,14 +29,14 @@ func Delete(au models.User, name string) (int, []byte) {
 	}
 
 	if s.Status == "in_progress" {
-		return 400, []byte(`"Service is already applying some changes, please wait until they are done"`)
+		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
 	dID := strconv.Itoa(s.DatacenterID)
 	body, err := def.MapDeletion(s.ID, s.Type, dID)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the service"`)
+		return 500, []byte(`"Couldn't map the environment"`)
 	}
 	if err := s.RequestDeletion(body); err != nil {
 		h.L.Error(err.Error())

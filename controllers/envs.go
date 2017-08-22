@@ -7,7 +7,7 @@ package controllers
 import (
 	"strings"
 
-	"github.com/ernestio/api-gateway/controllers/services"
+	"github.com/ernestio/api-gateway/controllers/envs"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
@@ -15,7 +15,7 @@ import (
 
 // GetServicesHandler : responds to GET /services/ with a list ahorized services
 func GetServicesHandler(c echo.Context) (err error) {
-	return genericList(c, "service", services.List)
+	return genericList(c, "service", envs.List)
 }
 
 // GetServiceBuildsHandler : gets the list of builds for the specified
@@ -24,7 +24,7 @@ func GetServiceBuildsHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/builds")
 	if st == 200 {
-		st, b = services.Builds(au, buildID(c))
+		st, b = envs.Builds(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -36,7 +36,7 @@ func GetServiceHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/get")
 	if st == 200 {
-		st, b = services.Get(au, buildID(c))
+		st, b = envs.Get(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -48,7 +48,7 @@ func SearchServicesHandler(c echo.Context) error {
 	st, b := h.IsAuthorized(&au, "services/search")
 	if st == 200 {
 		p := h.GetSearchFilter(c)
-		st, b = services.Search(au, p)
+		st, b = envs.Search(au, p)
 	}
 
 	return h.Respond(c, st, b)
@@ -60,7 +60,7 @@ func SyncServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/sync")
 	if st == 200 {
-		st, b = services.Sync(au, buildID(c))
+		st, b = envs.Sync(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -72,7 +72,7 @@ func ResetServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/reset")
 	if st == 200 {
-		st, b = services.Reset(au, buildID(c))
+		st, b = envs.Reset(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -93,7 +93,7 @@ func CreateServiceHandler(c echo.Context) error {
 	input.Name = buildStringID(input.Datacenter, input.Name)
 	isAnImport := strings.Contains(c.Path(), "/import/")
 	dry := c.QueryParam("dry")
-	st, b = services.Create(au, input, definition, jsonbody, isAnImport, dry)
+	st, b = envs.Create(au, input, definition, jsonbody, isAnImport, dry)
 
 	return h.Respond(c, st, b)
 }
@@ -110,7 +110,7 @@ func UpdateServiceHandler(c echo.Context) error {
 	b = []byte("Invalid input")
 	body, err := h.GetRequestBody(c)
 	if err == nil {
-		st, b = services.Update(au, buildID(c), body)
+		st, b = envs.Update(au, buildID(c), body)
 	}
 
 	return h.Respond(c, st, b)
@@ -121,7 +121,7 @@ func DeleteServiceHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/delete")
 	if st == 200 {
-		st, b = services.Delete(au, buildID(c))
+		st, b = envs.Delete(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
@@ -132,7 +132,7 @@ func ForceServiceDeletionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/delete")
 	if st == 200 {
-		st, b = services.ForceDeletion(au, buildID(c))
+		st, b = envs.ForceDeletion(au, buildID(c))
 	}
 
 	return h.Respond(c, st, b)
