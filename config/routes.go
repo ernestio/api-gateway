@@ -73,12 +73,12 @@ func setupAPI(e *echo.Echo) {
 	d.POST("/:project/envs/:env/sync/", controllers.SyncServiceHandler)
 	d.GET("/:project/envs/:env", controllers.GetServiceHandler)
 	d.GET("/:project/envs/:env/builds/", controllers.GetServiceBuildsHandler)
+	d.GET("/:project/envs/:env/builds/:build", controllers.GetServiceBuildHandler)
 
 	// Setup service routes
 	s := api.Group("/envs")
 	s.GET("/", controllers.GetServicesHandler)
 	s.GET("/search/", controllers.SearchServicesHandler)
-	s.GET("/:service/builds/:build", controllers.GetServiceBuildHandler)
 	s.POST("/", controllers.CreateServiceHandler)
 	s.POST("/import/", controllers.CreateServiceHandler)
 	s.DELETE("/:service/builds/:build/", controllers.DelServiceBuildHandler)
