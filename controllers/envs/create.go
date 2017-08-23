@@ -38,7 +38,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	// Get datacenter
 	if err = dt.FindByName(s.Datacenter, &dt); err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte("Specified datacenter does not exist")
+		return 400, []byte("Specified project does not exist")
 	}
 
 	var currentUser models.User
@@ -89,12 +89,12 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	rawDatacenter, err := json.Marshal(dt)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error trying to get the datacenter")
+		return 500, []byte("Internal error trying to get the project")
 	}
 	rawCredentials, err := json.Marshal(credentials)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error trying to get the datacenter")
+		return 500, []byte("Internal error trying to get the project")
 	}
 
 	// *********** REQUESTING DEFINITION ************ //
