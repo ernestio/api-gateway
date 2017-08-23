@@ -174,5 +174,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		return 500, []byte(err.Error())
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + payload.ID + `", "name":"` + s.Name + `"}`)
+	parts := strings.Split(s.Name, "/")
+
+	return http.StatusOK, []byte(`{"id":"` + payload.ID + `", "project": "` + parts[0] + `",  "name":"` + parts[1] + `"}`)
 }
