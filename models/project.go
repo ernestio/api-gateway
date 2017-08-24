@@ -17,24 +17,12 @@ import (
 
 // Project holds the project response from datacenter-store
 type Project struct {
-	ID              int      `json:"id"`
-	Name            string   `json:"name"`
-	Type            string   `json:"type"`
-	Region          string   `json:"region"`
-	Username        string   `json:"username"`
-	Password        string   `json:"password"`
-	VCloudURL       string   `json:"vcloud_url"`
-	VseURL          string   `json:"vse_url"`
-	ExternalNetwork string   `json:"external_network,omitempty"`
-	AccessKeyID     string   `json:"aws_access_key_id,omitempty"`
-	SecretAccessKey string   `json:"aws_secret_access_key,omitempty"`
-	SubscriptionID  string   `json:"azure_subscription_id,omitempty"`
-	ClientID        string   `json:"azure_client_id,omitempty"`
-	ClientSecret    string   `json:"azure_client_secret,omitempty"`
-	TenantID        string   `json:"azure_tenant_id,omitempty"`
-	Environment     string   `json:"azure_environment,omitempty"`
-	Environments    []string `json:"environments,omitempty"`
-	Roles           []string `json:"roles,omitempty"`
+	ID           int                    `json:"id"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"`
+	Credentials  map[string]interface{} `json:"credential,omitempty"`
+	Environments []string               `json:"environments,omitempty"`
+	Roles        []string               `json:"roles,omitempty"`
 }
 
 // Validate the project
@@ -49,14 +37,6 @@ func (d *Project) Validate() error {
 
 	if d.Type == "" {
 		return errors.New("Project type is empty")
-	}
-
-	if d.Username == "" && d.Type != "azure" && d.Type != "azure-fake" {
-		return errors.New("Project username is empty")
-	}
-
-	if d.Type == "vcloud" && d.VCloudURL == "" {
-		return errors.New("Project vcloud url is empty")
 	}
 
 	return nil
@@ -136,14 +116,7 @@ func (d *Project) Delete() (err error) {
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (d *Project) Redact() {
-	d.AccessKeyID = ""
-	d.SecretAccessKey = ""
-	crypto := aes.New()
-	key := os.Getenv("ERNEST_CRYPTO_KEY")
-	if d.Username != "" {
-		d.Username, _ = crypto.Decrypt(d.Username, key)
-	}
-	d.Password = ""
+	d.Credentials = nil
 }
 
 // Improve : adds extra data to this entity
@@ -169,62 +142,21 @@ func (d *Project) GetType() string {
 
 // Override : override not empty parameters with the given project ones
 func (d *Project) Override(dt Project) {
-	if dt.Region != "" {
-		d.Region = dt.Region
-	}
-	if dt.Username != "" {
-		d.Username = dt.Username
-	}
-	if dt.Password != "" {
-		d.Password = dt.Password
-	}
-	if dt.VCloudURL != "" {
-		d.VCloudURL = dt.VCloudURL
-	}
-	if dt.VseURL != "" {
-		d.VseURL = dt.VseURL
-	}
-	if dt.ExternalNetwork != "" {
-		d.ExternalNetwork = dt.ExternalNetwork
-	}
-	if dt.AccessKeyID != "" {
-		d.AccessKeyID = dt.AccessKeyID
-	}
-	if dt.SecretAccessKey != "" {
-		d.SecretAccessKey = dt.SecretAccessKey
-	}
-	if dt.SubscriptionID != "" {
-		d.SubscriptionID = dt.SubscriptionID
-	}
-	if dt.ClientID != "" {
-		d.ClientID = dt.ClientID
-	}
-	if dt.ClientSecret != "" {
-		d.ClientSecret = dt.ClientSecret
-	}
-	if dt.TenantID != "" {
-		d.TenantID = dt.TenantID
-	}
-	if dt.Environment != "" {
-		d.Environment = dt.Environment
+	for k, v := range dt.Credentials {
+		d.Credentials[k] = v
 	}
 }
 
 // Encrypt : encrypts sensible data
 func (d *Project) Encrypt() {
-	d.Region, _ = crypt(d.Region)
-	d.Username, _ = crypt(d.Username)
-	d.Password, _ = crypt(d.Password)
-	d.VCloudURL, _ = crypt(d.VCloudURL)
-	d.VseURL, _ = crypt(d.VseURL)
-	d.ExternalNetwork, _ = crypt(d.ExternalNetwork)
-	d.AccessKeyID, _ = crypt(d.AccessKeyID)
-	d.SecretAccessKey, _ = crypt(d.SecretAccessKey)
-	d.SubscriptionID, _ = crypt(d.SubscriptionID)
-	d.ClientID, _ = crypt(d.ClientID)
-	d.ClientSecret, _ = crypt(d.ClientSecret)
-	d.TenantID, _ = crypt(d.TenantID)
-	d.Environment, _ = crypt(d.Environment)
+	for k, v := range d.Credentials {
+		xc, ok := v.(string)
+		if !ok {
+			continue
+		}
+
+		d.Credentials[k], _ = crypt(xc)
+	}
 }
 
 func crypt(s string) (string, error) {
