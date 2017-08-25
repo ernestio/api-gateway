@@ -18,19 +18,21 @@ func GetBuild(au models.User, query map[string]interface{}) (int, []byte) {
 		return 500, []byte(err.Error())
 	}
 
-	list, err := o.RenderCollection(builds)
-	if err != nil {
-		return 500, []byte(err.Error())
-	}
-
-	if len(list) > 0 {
+	if len(builds) > 0 {
 		if st, res := h.IsAuthorizedToResource(&au, h.GetBuild, builds[0].GetType(), builds[0].Name); st != 200 {
 			return st, res
 		}
-		body, err := json.Marshal(list[0])
+
+		err := o.Render(builds[0])
+		if err != nil {
+			return 500, []byte(err.Error())
+		}
+
+		body, err := json.Marshal(o)
 		if err != nil {
 			return 500, []byte("Internal server error")
 		}
+
 		return http.StatusOK, body
 	}
 	return http.StatusNotFound, []byte("")

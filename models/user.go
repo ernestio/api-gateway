@@ -239,7 +239,7 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
 	var s Env
 
-	if u.Admin == false {
+	if u.Admin == false && filters["id"] == nil {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
 			if ids == nil {
