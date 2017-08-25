@@ -37,5 +37,13 @@ func mapInputService(c echo.Context) (s models.ServiceInput, definition []byte, 
 		return s, definition, jsonbody, errors.New(`"Invalid input"`)
 	}
 
+	// Override name and project if they're provided on the url
+	if c.Param("project") != "" {
+		s.Datacenter = c.Param("project")
+	}
+	if c.Param("env") != "" {
+		s.Name = c.Param("env")
+	}
+
 	return s, definition, jsonbody, nil
 }
