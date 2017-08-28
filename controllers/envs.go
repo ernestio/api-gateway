@@ -23,13 +23,11 @@ func GetEnvBuildHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/build")
 	if st == 200 {
-		st, b = envs.Builds(au, buildID(c))
+		query := h.GetAuthorizedParamFilter(c, &au)
+		st, b = envs.GetBuild(au, query)
 	}
 
-	query := h.GetAuthorizedParamFilter(c, &au)
-	s, b := envs.GetBuild(au, query)
-
-	return c.JSONBlob(s, b)
+	return c.JSONBlob(st, b)
 }
 
 // GetEnvBuildsHandler : gets the list of builds for the specified
