@@ -39,8 +39,8 @@ func Create(au models.User, body []byte) (int, []byte) {
 	}
 
 	existing, err := d.Get(d.UserID, d.ResourceID, d.ResourceType)
-	if err != nil || existing != nil {
-		return 409, []byte("Specified role already exists")
+	if err == nil && existing != nil {
+		d.ID = existing.ID
 	}
 
 	if err = d.Save(); err != nil {
