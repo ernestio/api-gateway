@@ -13,28 +13,26 @@ import (
 	"github.com/labstack/echo"
 )
 
-// GetServicesHandler : responds to GET /services/ with a list ahorized services
-func GetServicesHandler(c echo.Context) (err error) {
+// GetEnvsHandler : responds to GET /envs/envs/ with a list ahorized services
+func GetEnvsHandler(c echo.Context) (err error) {
 	return genericList(c, "service", envs.List)
 }
 
-// GetServiceBuildHandler : gets the details of a specific service build
-func GetServiceBuildHandler(c echo.Context) (err error) {
+// GetEnvBuildHandler : gets the details of a specific env build
+func GetEnvBuildHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/build")
 	if st == 200 {
-		st, b = envs.Builds(au, buildID(c))
+		query := h.GetAuthorizedParamFilter(c, &au)
+		st, b = envs.GetBuild(au, query)
 	}
 
-	query := h.GetAuthorizedParamFilter(c, &au)
-	s, b := envs.GetBuild(au, query)
-
-	return c.JSONBlob(s, b)
+	return c.JSONBlob(st, b)
 }
 
-// GetServiceBuildsHandler : gets the list of builds for the specified
-// service
-func GetServiceBuildsHandler(c echo.Context) error {
+// GetEnvBuildsHandler : gets the list of builds for the specified
+// env
+func GetEnvBuildsHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/builds")
 	if st == 200 {
@@ -44,9 +42,9 @@ func GetServiceBuildsHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// GetServiceHandler : responds to GET /services/:service with the
-// details of an existing service
-func GetServiceHandler(c echo.Context) (err error) {
+// GetEnvHandler : responds to GET /envs/:env with the
+// details of an existing env
+func GetEnvHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/get")
 	if st == 200 {
@@ -56,8 +54,8 @@ func GetServiceHandler(c echo.Context) (err error) {
 	return h.Respond(c, st, b)
 }
 
-// SearchServicesHandler : Finds all services
-func SearchServicesHandler(c echo.Context) error {
+// SearchEnvsHandler : Finds all envs
+func SearchEnvsHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/search")
 	if st == 200 {
@@ -68,9 +66,9 @@ func SearchServicesHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// SyncServiceHandler : Respons to POST /services/:service/sync/ and synchronizes a service with
+// SyncEnvHandler : Respons to POST /envs/:env/sync/ and synchronizes a env with
 // its provider representation
-func SyncServiceHandler(c echo.Context) error {
+func SyncEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/sync")
 	if st == 200 {
@@ -80,9 +78,9 @@ func SyncServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// ResetServiceHandler : Respons to POST /services/:service/reset/ and updates the
-// service status to errored from in_progress
-func ResetServiceHandler(c echo.Context) error {
+// ResetEnvHandler : Respons to POST /envs/:env/reset/ and updates the
+// env status to errored from in_progress
+func ResetEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/reset")
 	if st == 200 {
@@ -92,8 +90,8 @@ func ResetServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// CreateServiceHandler : Will receive a service application
-func CreateServiceHandler(c echo.Context) error {
+// CreateEnvHandler : Will receive a env application
+func CreateEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/create")
 	if st != 200 {
@@ -112,8 +110,8 @@ func CreateServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// UpdateServiceHandler : Not implemented
-func UpdateServiceHandler(c echo.Context) error {
+// UpdateEnvHandler : Not implemented
+func UpdateEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/update")
 	if st != 200 {
@@ -130,8 +128,8 @@ func UpdateServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// DeleteServiceHandler : Deletes a service by name
-func DeleteServiceHandler(c echo.Context) error {
+// DeleteEnvHandler : Deletes a env by name
+func DeleteEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/delete")
 	if st == 200 {
@@ -141,8 +139,8 @@ func DeleteServiceHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// ForceServiceDeletionHandler : Deletes a service by name forcing it
-func ForceServiceDeletionHandler(c echo.Context) error {
+// ForceEnvDeletionHandler : Deletes an env by name forcing it
+func ForceEnvDeletionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "services/delete")
 	if st == 200 {
@@ -150,6 +148,11 @@ func ForceServiceDeletionHandler(c echo.Context) error {
 	}
 
 	return h.Respond(c, st, b)
+}
+
+// DelEnvBuildHandler : will delete the specified build from a service
+func DelEnvBuildHandler(c echo.Context) (err error) {
+	return genericDelete(c, "build", envs.DelBuild)
 }
 
 func buildID(c echo.Context) string {

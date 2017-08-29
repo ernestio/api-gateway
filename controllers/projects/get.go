@@ -12,7 +12,6 @@ import (
 // Get : responds to GET /projects/:id:/ with the specified
 // project details
 func Get(au models.User, project string) (int, []byte) {
-	var s models.Env
 	var envs []models.Env
 	var r models.Role
 	var roles []models.Role
@@ -30,9 +29,10 @@ func Get(au models.User, project string) (int, []byte) {
 		return 404, []byte("Project not found")
 	}
 
-	query := make(map[string]interface{})
+	query := make(map[string]interface{}, 0)
 	query["datacenter_id"] = d.ID
-	if err := s.Find(query, &envs); err == nil {
+	envs, err = au.EnvsBy(query)
+	if err == nil {
 		for _, v := range envs {
 			nameParts := strings.Split(v.Name, models.EnvNameSeparator)
 			if _, ok := appended[nameParts[1]]; !ok {

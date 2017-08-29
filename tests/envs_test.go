@@ -82,26 +82,6 @@ func TestServices(t *testing.T) {
 	})
 
 	Convey("Scenario: searching for services", t, func() {
-		Convey("Given the service exists on the store", func() {
-			findServiceSubscriber()
-			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
-			foundSubscriber("service.get.mapping", `{"name":"fake/test", "networks":{"items":[{"name":"a"}]}}`, 2)
-			Convey("And I call /service/search/ on the api", func() {
-				var s []views.ServiceRender
-				params := make(map[string]interface{})
-				params["name"] = "fake/test"
-
-				Convey("When I'm authenticated as an admin user", func() {
-					st, resp := envs.Search(au, params)
-					Convey("Then I should get the matching service", func() {
-						err := json.Unmarshal(resp, &s)
-						So(err, ShouldBeNil)
-						So(st, ShouldEqual, 200)
-						So(len(s), ShouldEqual, 2)
-					})
-				})
-			})
-		})
 		Convey("Given the service doesn't exist on the store", func() {
 			foundSubscriber("service.find", `[]`, 1)
 			Convey("And I call /service/search/ on the api", func() {
