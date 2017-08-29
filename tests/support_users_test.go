@@ -26,6 +26,7 @@ var (
 
 func getUserSubscriber(max int) {
 	sub, _ := models.N.Subscribe("user.get", func(msg *nats.Msg) {
+		var data []byte
 		var qu models.User
 
 		if len(msg.Data) > 0 {
@@ -36,12 +37,15 @@ func getUserSubscriber(max int) {
 			for _, user := range mockUsers {
 				if user.ID == qu.ID ||
 					user.Username == qu.Username {
-					data, _ := json.Marshal(user)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
+					data, _ = json.Marshal(user)
+					break
 				}
+			}
+			if data != nil {
+				if err := models.N.Publish(msg.Reply, data); err != nil {
+					log.Println(err)
+				}
+				return
 			}
 		}
 

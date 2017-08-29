@@ -14,18 +14,18 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestUsers(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-	other := models.User{ID: 3, Username: "other", Password: "test1234"}
 	admin := models.User{ID: 2, Username: "admin", Admin: true}
 
 	Convey("Scenario: getting a list of users", t, func() {
 		findUserSubscriber()
 		Convey("When calling /users/ on the api", func() {
 			Convey("And I'm authenticated as an admin user", func() {
+				foundSubscriber("user.get", `{"id":"1","name":"fake/test","datacenter_id":1}`, 1)
 				st, resp := users.List(admin)
 				Convey("It should show all users", func() {
 					var u []models.User
@@ -46,10 +46,20 @@ func TestUsers(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestGetUser(t *testing.T) {
+	var err error
+	testsSetup()
+	config.Setup()
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	other := models.User{ID: 3, Username: "other", Password: "test1234"}
+	admin := models.User{ID: 2, Username: "admin", Admin: true}
 
 	Convey("Scenario: getting a single user", t, func() {
 		Convey("Given a user exists on the store", func() {
 			getUserSubscriber(1)
+			foundSubscriber("authorization.find", `[{"role":"owner"}]`, 2)
 			Convey("When I call /users/:user on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
 					st, resp := users.Get(admin, "test")
@@ -85,7 +95,6 @@ func TestUsers(t *testing.T) {
 				})
 			})
 		})
-
 		Convey("Given a user doesn't exist", func() {
 			getUserSubscriber(1)
 			Convey("When calling /users/:user on the api", func() {
@@ -96,6 +105,13 @@ func TestUsers(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestCreateUser(t *testing.T) {
+	var err error
+	testsSetup()
+	config.Setup()
+	admin := models.User{ID: 2, Username: "admin", Admin: true}
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
@@ -181,15 +197,25 @@ func TestUsers(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestUpdateUser(t *testing.T) {
+	var err error
+	testsSetup()
+	config.Setup()
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	other := models.User{ID: 3, Username: "other", Password: "test1234"}
+	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
 	Convey("Scenario: updating a user", t, func() {
 		setUserSubscriber()
-		getUserSubscriber(1)
 		Convey("Given existing users on the store", func() {
-			data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 			Convey("When I update a user by calling /users/ on the api", func() {
 				Convey("And I'm authenticated as an admin user", func() {
 					Convey("With a valid payload", func() {
+						var err error
+						getUserSubscriber(1)
 						st, resp := users.Update(admin, "1", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
@@ -204,22 +230,15 @@ func TestUsers(t *testing.T) {
 					})
 					Convey("With an invalid payload", func() {
 						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
-						st, _ := users.Create(admin, invalidData)
+						st, _ := users.Update(admin, "1", invalidData)
 						Convey("It should update the user and return the correct set of data", func() {
 							So(st, ShouldEqual, 400)
 						})
 					})
-					Convey("With a password less than the minimum length", func() {
-						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test"}`)
-						st, resp := users.Create(admin, invalidData)
-						Convey("It should return an error message with a 400 repsonse", func() {
-							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldEqual, `Minimum password length is 8 characters`)
-						})
-					})
 					Convey("With a username using invalid characters", func() {
 						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
-						st, resp := users.Create(admin, invalidData)
+						getUserSubscriber(1)
+						st, resp := users.Update(admin, "1", invalidData)
 
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
@@ -227,36 +246,36 @@ func TestUsers(t *testing.T) {
 						})
 					})
 					Convey("With a password using invalid characters", func() {
+						getUserSubscriber(1)
 						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
-						st, resp := users.Create(admin, invalidData)
+						st, resp := users.Update(admin, "1", invalidData)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
 							So(string(resp), ShouldContainSubstring, "Password can only contain the following characters: a-z 0-9 @._-")
 						})
 					})
 					Convey("With no username", func() {
+						getUserSubscriber(1)
 						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
-						st, resp := users.Create(admin, invalidData)
+						st, resp := users.Update(admin, "1", invalidData)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
 							So(string(resp), ShouldContainSubstring, "Username cannot be empty")
 						})
 					})
 					Convey("With no password", func() {
+						getUserSubscriber(1)
 						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
-						st, resp := users.Create(admin, invalidData)
+						st, resp := users.Update(admin, "1", invalidData)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
 							So(string(resp), ShouldContainSubstring, "Password cannot be empty")
 						})
 					})
-					SkipConvey("With an payload id that does not match the user's id", func() {
-						//TODO: Finish this.
-					})
 				})
-
 				Convey("And I'm authenticated as the user being updated", func() {
 					Convey("With a valid payload", func() {
+						getUserSubscriber(1)
 						st, resp := users.Update(au, "1", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
@@ -272,6 +291,7 @@ func TestUsers(t *testing.T) {
 				})
 
 				Convey("And I'm not authenticated as the user being updated", func() {
+					getUserSubscriber(1)
 					st, _ := users.Update(other, "1", data)
 					Convey("It should return with 403 unauthorized", func() {
 						So(st, ShouldEqual, 403)
@@ -293,6 +313,12 @@ func TestUsers(t *testing.T) {
 		})
 
 	})
+}
+
+func TestDeleteUser(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	admin := models.User{ID: 2, Username: "admin", Admin: true}
 
 	Convey("Scenario: deleting a user", t, func() {
 		deleteUserSubscriber()

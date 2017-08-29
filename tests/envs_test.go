@@ -6,7 +6,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/ernestio/api-gateway/config"
@@ -16,7 +15,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestServices(t *testing.T) {
+func TestResetEnvironment(t *testing.T) {
 	testsSetup()
 	config.Setup()
 	au := mockUsers[0]
@@ -27,6 +26,7 @@ func TestServices(t *testing.T) {
 
 		Convey("Given my existing service is in progress", func() {
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","status":"in_progress"},{"id":"2","name":"fake/test","status":"done"}]`, 1)
+			foundSubscriber("authorization.find", `[{"role":"owner"}]`, 1)
 			serviceResetSubscriber()
 			Convey("When I do a call to /services/reset", func() {
 				s, b := envs.Reset(au, "foo")
@@ -50,9 +50,16 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestListingEnvs(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := mockUsers[0]
 
 	Convey("Scenario: getting a list of services", t, func() {
 		Convey("Given services exist on the store", func() {
+			foundSubscriber("user.find", `[{"id":"1"}]`, 1)
 			foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
 			Convey("When I call GET /services/", func() {
 				au.Admin = true
@@ -70,6 +77,12 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestGetEnv(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := mockUsers[0]
 
 	Convey("Scenario: getting a single service", t, func() {
 		Convey("Given the service do not exist on the store", func() {
@@ -80,10 +93,17 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
+}
+
+func TestSearchEnv(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := mockUsers[0]
 
 	Convey("Scenario: searching for services", t, func() {
 		Convey("Given the service doesn't exist on the store", func() {
 			foundSubscriber("service.find", `[]`, 1)
+			foundSubscriber("authorization.find", `["role":"owner"]`, 1)
 			Convey("And I call /service/search/ on the api", func() {
 				var s []views.ServiceRender
 				params := make(map[string]interface{})
@@ -101,100 +121,12 @@ func TestServices(t *testing.T) {
 			})
 		})
 	})
+}
 
-	/*
-		Convey("Scenario: creating a service", t, func() {
-			params := make(map[string]string)
-			Convey("Given I do a post call to /services ", func() {
-					createServiceSubscriber()
-
-					Convey("And the specified datacenter does not exist", func() {
-						getUserSubscriber(1)
-						foundSubscriber("datacenter.find", "[]", 1)
-						data := []byte(`{"name":"test"}`)
-						headers := map[string]string{}
-						headers["Content-Type"] = "application/json"
-						resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-						st, resp := envs.Create(au, params)
-
-						Convey("Then I should get a 404 response", func() {
-							So(err, ShouldEqual, nil)
-							So(string(resp), ShouldEqual, `"Specified datacenter does not exist"`)
-						})
-					})
-
-						Convey("And the specified group does not exist", func() {
-							notFoundSubscriber("group.get", 1)
-							foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
-							data := []byte(`{"name":"test"}`)
-							headers := map[string]string{}
-							headers["Content-Type"] = "application/json"
-							resp, _ := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-							Convey("Then I should get a 404 response", func() {
-								// So(err.Error(), ShouldEqual, `code=404, message=`)
-								// So(err, ShouldEqual, nil)
-								So(string(resp), ShouldEqual, `"Specified group does not exist"`)
-							})
-						})
-
-						Convey("And I provide a valid input", func() {
-							foundSubscriber("group.get", `{"id":1}`, 1)
-							foundSubscriber("datacenter.find", `[{"id":1}]`, 1)
-							data := []byte(`{"name":"test"}`)
-							headers := map[string]string{}
-							headers["Content-Type"] = "application/json"
-
-							SkipConvey("And the service does not exist", func() {
-								foundSubscriber("service.find", "[]", 1)
-								foundSubscriber("service.create", `{"id":"1"}`, 1)
-								foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-								resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-								Convey("Then I should get a response with a valid id", func() {
-									So(err, ShouldBeNil)
-									So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-									So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-								})
-							})
-
-							SkipConvey("And the service already exists", func() {
-								foundSubscriber("service.create", `{"id":"1"}`, 1)
-								Convey("And the existing service is done", func() {
-									foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-									foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
-									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-									Convey("Then I should get a response with the existing id", func() {
-										So(err, ShouldBeNil)
-										So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-										So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-									})
-								})
-
-								Convey("And the existing service is in progress", func() {
-									foundSubscriber("service.find", `[{"id":"foo-bar","status":"in_progress"}]`, 1)
-									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-									Convey("Then I should get an error as an in_progress service can't be modified", func() {
-										So(err, ShouldEqual, nil)
-										So(string(resp), ShouldEqual, `"Your service process is 'in progress' if your're sure you want to fix it please reset it first"`)
-									})
-								})
-
-								Convey("And the existing service is errored", func() {
-									foundSubscriber("service.find", `[{"id":"foo-bar","status":"errored"}]`, 1)
-									foundSubscriber("definition.map.creation", `{"id":"1"}`, 1)
-									foundSubscriber("service.patch", `{"id":"1"}`, 1)
-									foundSubscriber("service.get.mapping", `{"id":"1"}`, 1)
-									resp, err := doRequestHeaders("POST", "/services/", params, data, controllers.CreateServiceHandler, nil, headers)
-									Convey("Then I should get a response with the existing id", func() {
-										So(err, ShouldEqual, nil)
-										So(strings.Contains(string(resp), `{"id":"`), ShouldEqual, true)
-										So(strings.Contains(string(resp), `-d29d2764b65cae3f4114164bb6cf80cb`), ShouldEqual, true)
-									})
-								})
-							})
-						})
-			})
-		})
-	*/
+func TestDeletingEnvs(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := mockUsers[0]
 
 	Convey("Scenario: deleting a service", t, func() {
 		Convey("Given a service exists with in progress status", func() {
@@ -209,23 +141,20 @@ func TestServices(t *testing.T) {
 				})
 			})
 		})
-
 		Convey("Given a service exists on the store", func() {
 			foundSubscriber("service.find", `[{"id":"foo-bar","status":"done"}]`, 1)
 			foundSubscriber("definition.map.deletion", `{}`, 1)
-			foundSubscriber("service.delete", `""`, 1)
+			foundSubscriber("service.delete", `"success"`, 1)
 			res := `[{"resource_id":"1","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := envs.Delete(au, "foo-bar")
 
 				Convey("Then I should get a response with id and stream id", func() {
-					fmt.Println(string(resp))
 					So(st, ShouldEqual, 200)
 					So(string(resp), ShouldEqual, `{"id":"foo-bar"}`)
 				})
 			})
-
 		})
 	})
 }
