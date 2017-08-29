@@ -20,7 +20,7 @@ type Project struct {
 	ID           int                    `json:"id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
-	Credentials  map[string]interface{} `json:"credential,omitempty"`
+	Credentials  map[string]interface{} `json:"credentials,omitempty"`
 	Environments []string               `json:"environments,omitempty"`
 	Roles        []string               `json:"roles,omitempty"`
 }
