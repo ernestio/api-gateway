@@ -12,6 +12,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/sirupsen/logrus"
@@ -35,9 +36,33 @@ type User struct {
 	Admin       bool     `json:"admin"`
 	Envs        []string `json:"envs"`
 	Projects    []string `json:"projects"`
+	Type        string   `json:"type"`
 }
 
-// Validate validates a user
+// Describes an Authenticator service response
+type authResponse struct {
+	OK      bool   `json:"ok"`
+	Token   string `json:"token,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// Authenticate verifies user credentials
+func (u *User) Authenticate() (*authResponse, error) {
+	msg, err := N.Request("authentication.get", []byte(`{"username": "`+u.Username+`", "password": "`+u.Password+`"}`), 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	res := authResponse{}
+	err = json.Unmarshal(msg.Data, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+// Validate checks user input details for missing values and invalid characters
 func (u *User) Validate() error {
 	if u.Username == "" {
 		return errors.New("Username cannot be empty")

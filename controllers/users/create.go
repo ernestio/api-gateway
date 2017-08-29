@@ -19,6 +19,8 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 400, []byte(`{"code":400, "message":"` + err.Error() + `"}`)
 	}
 
+	u.Type = "local"
+
 	if len(u.Password) < 8 {
 		return 400, []byte(`Minimum password length is 8 characters`)
 	}
