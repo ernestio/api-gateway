@@ -48,7 +48,7 @@ func TestGetProject(t *testing.T) {
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
 			getDatacenterSubscriber(1)
-			time.Sleep(time.Second)
+			time.Sleep(time.Second * 2)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				st, resp := projects.Get(au, "1")
