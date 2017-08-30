@@ -7,6 +7,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"strings"
 
@@ -20,6 +21,7 @@ type Project struct {
 	ID           int                    `json:"id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
+	Region       string                 `json:"region,omitempty"`
 	Credentials  map[string]interface{} `json:"credentials,omitempty"`
 	Environments []string               `json:"environments,omitempty"`
 	Roles        []string               `json:"roles,omitempty"`
@@ -116,6 +118,14 @@ func (d *Project) Delete() (err error) {
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (d *Project) Redact() {
+	region, ok := d.Credentials["region"].(string)
+	if ok {
+		dr, err := decrypt(region)
+		if err != nil {
+			log.Println(err)
+		}
+		d.Region = dr
+	}
 	d.Credentials = nil
 }
 
@@ -157,6 +167,20 @@ func (d *Project) Encrypt() {
 
 		d.Credentials[k], _ = crypt(xc)
 	}
+}
+
+func decrypt(s string) (string, error) {
+	crypto := aes.New()
+	key := os.Getenv("ERNEST_CRYPTO_KEY")
+	if s != "" {
+		encrypted, err := crypto.Decrypt(s, key)
+		if err != nil {
+			return "", err
+		}
+		s = encrypted
+	}
+
+	return s, nil
 }
 
 func crypt(s string) (string, error) {
