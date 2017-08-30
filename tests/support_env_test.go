@@ -36,36 +36,7 @@ var (
 	}
 )
 
-func getServiceSubscriber() {
-	_, _ = models.N.Subscribe("service.get", func(msg *nats.Msg) {
-		if len(msg.Data) != 0 {
-			qs := models.Env{}
-			if err := json.Unmarshal(msg.Data, &qs); err != nil {
-				log.Println(err)
-			}
-
-			for _, service := range mockServices {
-				if service.ID == qs.ID {
-					data, _ := json.Marshal(service)
-					if err := models.N.Publish(msg.Reply, data); err != nil {
-						log.Println(err)
-					}
-					return
-				}
-				data, _ := json.Marshal(service)
-				if err := models.N.Publish(msg.Reply, data); err != nil {
-					log.Println(err)
-				}
-				return
-			}
-		}
-		if err := models.N.Publish(msg.Reply, []byte(`{"_error":"Not found"}`)); err != nil {
-			log.Println(err)
-		}
-	})
-}
-
-func findServiceSubscriber() {
+func findServiceSolo() {
 	sub, _ := models.N.Subscribe("service.find", func(msg *nats.Msg) {
 		var s []models.Env
 		var qs models.Env
@@ -96,7 +67,9 @@ func findServiceSubscriber() {
 	if err := sub.AutoUnsubscribe(1); err != nil {
 		log.Println(err)
 	}
+}
 
+func findService() {
 	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
 		res := `[{"resource_id":"` + mockServices[0].Name + `"},{"resource_id":"` + mockServices[1].Name + `"}]`
 		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
@@ -134,35 +107,12 @@ func createServiceSubscriber() {
 	}
 }
 
-func deleteServiceSubscriber() {
-	_, _ = models.N.Subscribe("service.del", func(msg *nats.Msg) {
-		var s models.Env
-
-		if err := json.Unmarshal(msg.Data, &s); err != nil {
-			log.Println(err)
-		}
-
-		if err := models.N.Publish(msg.Reply, []byte{}); err != nil {
-			log.Println(err)
-		}
-	})
-}
-
 func serviceResetSubscriber() {
 	_, _ = models.N.Subscribe("build.set.status", func(msg *nats.Msg) {
 		if err := models.N.Publish(msg.Reply, []byte(`{"status":"success"}`)); err != nil {
 			log.Println(err)
 		}
 	})
-	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
-		res := `[{"role":"owner"}]`
-		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
-			log.Println(err)
-		}
-	})
-	if err := sub2.AutoUnsubscribe(1); err != nil {
-		log.Println(err)
-	}
 }
 
 func notFoundSubscriber(subject string, max int) {
