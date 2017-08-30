@@ -23,9 +23,8 @@ func (d *Definition) MapCreation(body []byte) (map[string]interface{}, error) {
 }
 
 // MapDeletion : calls definition.map.deletion
-func (d *Definition) MapDeletion(previous, serviceType, datacenterID string) (map[string]interface{}, error) {
-	query := []byte(`{"previous_id":"` + previous + `","datacenter":{"type":"` + serviceType + `","id":` + datacenterID + `}}`)
-	return d.mapDefinition("definition.map.deletion", query)
+func (d *Definition) MapDeletion(body []byte) (map[string]interface{}, error) {
+	return d.mapDefinition("definition.map.deletion", body)
 }
 
 // MapCreation : Calls given subject with given body
