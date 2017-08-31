@@ -43,7 +43,6 @@ func Delete(au models.User, name string) (int, []byte) {
 	if s.ProjectInfo != nil {
 		var newDT models.Project
 		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
-			newDT.Encrypt()
 			credentials.Override(newDT)
 		}
 	}
