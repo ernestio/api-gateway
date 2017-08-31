@@ -27,7 +27,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	var previous models.Env
 	var mapping map[string]interface{}
 	var prevID string
-	var dt models.Project
+
+	dt := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
 
 	// *********** VALIDATIONS *********** //
 
@@ -67,7 +70,10 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
-	pcredentials := models.Project{}
+	pcredentials := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
+
 	if &previous != nil {
 		if previous.Credentials != nil {
 			prevDT := models.Project{
