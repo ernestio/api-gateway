@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
@@ -96,6 +97,8 @@ func getDatacenterSubscriber(max int) {
 	}
 
 	foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
+
+	time.Sleep(2 * time.Second)
 }
 
 func findDatacenterSubscriber() {
