@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"testing"
-	"time"
 
 	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/projects"
@@ -34,9 +33,6 @@ func TestListProjects(t *testing.T) {
 					So(d[0].Name, ShouldEqual, "test")
 				})
 			})
-
-			SkipConvey("Given no datacenters on the store", func() {
-			})
 		})
 	})
 }
@@ -48,7 +44,6 @@ func TestGetProject(t *testing.T) {
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
 			getDatacenterSubscriber(1)
-			time.Sleep(1 * time.Second)
 
 			Convey("And I call /datacenter/:datacenter on the api", func() {
 				st, resp := projects.Get(au, "1")
