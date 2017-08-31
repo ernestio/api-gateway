@@ -71,13 +71,13 @@ func (u *User) Validate() error {
 		return errors.New("Password cannot be empty")
 	}
 
-	r := regexp.MustCompile("^[a-zA-Z0-9@._-]*$")
+	r := regexp.MustCompile(`^[a-zA-Z0-9@._\-]*$`)
 
 	if !r.MatchString(u.Username) {
-		return errors.New("Username can only contain the following characters: a-z 0-9 @._-")
+		return errors.New(`Username can only contain the following characters: a-z 0-9 @._-`)
 	}
 	if !r.MatchString(u.Password) {
-		return errors.New("Password can only contain the following characters: a-z 0-9 @._-")
+		return errors.New(`Password can only contain the following characters: a-z 0-9 @._-`)
 	}
 	return nil
 }
