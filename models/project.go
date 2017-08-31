@@ -118,7 +118,7 @@ func (d *Project) Delete() (err error) {
 // data before outputting to the user
 func (d *Project) Redact() {
 	for k, v := range d.Credentials {
-		if k == "region" || k == "external_network" || k == "username" {
+		if k == "region" || k == "external_network" || k == "username" || k == "vcloud_url" {
 			sv, ok := v.(string)
 			if !ok {
 				log.Println("could not assert credential value")
