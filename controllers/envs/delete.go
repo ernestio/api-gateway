@@ -42,7 +42,10 @@ func Delete(au models.User, name string) (int, []byte) {
 		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
-	credentials := models.Project{}
+	credentials := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
+
 	if s.Credentials != nil {
 		newDT := models.Project{
 			Credentials: s.Credentials,
