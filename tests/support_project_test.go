@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
@@ -37,7 +39,7 @@ func getNotFoundDatacenterSubscriber(max int) {
 	}
 }
 
-func getDatacenterSubscriber(max int) {
+func getDatacenterSolo(max int) {
 	sub, _ := models.N.Subscribe("datacenter.get", func(msg *nats.Msg) {
 		if len(msg.Data) != 0 {
 			qd := models.Project{}
@@ -69,16 +71,34 @@ func getDatacenterSubscriber(max int) {
 	if err := sub.AutoUnsubscribe(max); err != nil {
 		log.Println(err)
 	}
+}
+
+func getDatacenterSubscriber(max int) {
+	getDatacenterSolo(max)
 
 	sub2, _ := models.N.Subscribe("authorization.find", func(msg *nats.Msg) {
-		res := `[{"role":"owner"}]`
+		var res string
+		body := string(msg.Data)
+
+		if strings.Contains(body, "resource_id") && strings.Contains(body, "resource_type") && strings.Contains(body, "user_id") {
+			res = `[{"role":"owner"}]`
+		} else if strings.Contains(body, "user_id") {
+			res = `[{"role":"owner"}]`
+		} else {
+			res = `[{"role":"owner"}]`
+		}
+
 		if err := models.N.Publish(msg.Reply, []byte(res)); err != nil {
 			log.Println(err)
 		}
 	})
-	if err := sub2.AutoUnsubscribe(1); err != nil {
+	if err := sub2.AutoUnsubscribe(3); err != nil {
 		log.Println(err)
 	}
+
+	foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
+
+	time.Sleep(2 * time.Second)
 }
 
 func findDatacenterSubscriber() {

@@ -14,7 +14,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestDatacenters(t *testing.T) {
+func TestListProjects(t *testing.T) {
 	testsSetup()
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
@@ -33,12 +33,14 @@ func TestDatacenters(t *testing.T) {
 					So(d[0].Name, ShouldEqual, "test")
 				})
 			})
-
-			SkipConvey("Given no datacenters on the store", func() {
-			})
 		})
 	})
+}
 
+func TestGetProject(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
 			getDatacenterSubscriber(1)
@@ -57,7 +59,6 @@ func TestDatacenters(t *testing.T) {
 						So(d.Name, ShouldEqual, "test")
 					})
 				})
-
 				Convey("When the datacenter group matches the authenticated users group", func() {
 					Convey("Then I should get the existing datacenter", func() {
 						var d models.Project
@@ -68,16 +69,15 @@ func TestDatacenters(t *testing.T) {
 						So(d.Name, ShouldEqual, "test")
 					})
 				})
-
-				SkipConvey("When the datacenter group does not match the authenticated users group", func() {
-					st, _ := projects.Get(au, "2")
-					Convey("Then I should get a 404 error as it doesn't exist", func() {
-						So(st, ShouldEqual, 404)
-					})
-				})
 			})
 		})
 	})
+}
+
+func TestCreateProject(t *testing.T) {
+	testsSetup()
+	config.Setup()
+	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {
@@ -124,12 +124,15 @@ func TestDatacenters(t *testing.T) {
 			})
 		})
 	})
+}
 
+func TestDeleteProject(t *testing.T) {
+	testsSetup()
+	config.Setup()
 	Convey("Scenario: deleting a datacenter", t, func() {
 		Convey("Given a datacenter exists on the store", func() {
-			deleteDatacenterSubscriber()
-			getDatacenterSubscriber(2)
-			findServiceSubscriber()
+			getDatacenterSolo(1)
+			findServiceSolo()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				res := `[{"resource_id":"1","role":"owner"}]`
@@ -142,6 +145,5 @@ func TestDatacenters(t *testing.T) {
 				})
 			})
 		})
-
 	})
 }
