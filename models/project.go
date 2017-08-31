@@ -21,7 +21,6 @@ type Project struct {
 	ID           int                    `json:"id"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
-	Region       string                 `json:"region,omitempty"`
 	Credentials  map[string]interface{} `json:"credentials,omitempty"`
 	Environments []string               `json:"environments,omitempty"`
 	Roles        []string               `json:"roles,omitempty"`
@@ -118,15 +117,27 @@ func (d *Project) Delete() (err error) {
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (d *Project) Redact() {
-	region, ok := d.Credentials["region"].(string)
-	if ok {
-		dr, err := decrypt(region)
-		if err != nil {
-			log.Println(err)
+	for k, v := range d.Credentials {
+		if k == "region" || k == "external_network" || k == "org" {
+			sv, ok := v.(string)
+			if !ok {
+				log.Println("could not assert credential value")
+				delete(d.Credentials, k)
+				continue
+			}
+
+			dv, err := decrypt(sv)
+			if err != nil {
+				log.Println("could not decrypt credentials value")
+				delete(d.Credentials, k)
+				continue
+			}
+
+			d.Credentials[k] = dv
+		} else {
+			delete(d.Credentials, k)
 		}
-		d.Region = dr
 	}
-	d.Credentials = nil
 }
 
 // Improve : adds extra data to this entity
