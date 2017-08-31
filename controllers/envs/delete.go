@@ -40,11 +40,11 @@ func Delete(au models.User, name string) (int, []byte) {
 	}
 
 	credentials := models.Project{}
-	if s.ProjectInfo != nil {
-		var newDT models.Project
-		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
-			credentials.Override(newDT)
+	if s.Credentials != nil {
+		newDT := models.Project{
+			Credentials: s.Credentials,
 		}
+		credentials.Override(newDT)
 	}
 
 	dt.Override(credentials)

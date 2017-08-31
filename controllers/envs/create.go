@@ -67,31 +67,27 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 
 	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
-	credentials := models.Project{}
+	pcredentials := models.Project{}
 	if &previous != nil {
-		if previous.ProjectInfo != nil {
-			var prevDT models.Project
-			if err := json.Unmarshal(*previous.ProjectInfo, &prevDT); err == nil {
-				credentials.Override(prevDT)
+		if previous.Credentials != nil {
+			prevDT := models.Project{
+				Credentials: previous.Credentials,
 			}
+			pcredentials.Override(prevDT)
 		}
 	}
 
-	if s.ProjectInfo != nil {
-		var newDT models.Project
-		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
-			newDT.Encrypt()
-			credentials.Override(newDT)
+	if s.Credentials != nil {
+		newDT := models.Project{
+			Credentials: s.Credentials,
 		}
+
+		newDT.Encrypt()
+		pcredentials.Override(newDT)
 	}
 
-	dt.Override(credentials)
+	dt.Override(pcredentials)
 	rawDatacenter, err := json.Marshal(dt)
-	if err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte("Internal error trying to get the project")
-	}
-	rawCredentials, err := json.Marshal(credentials)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error trying to get the project")
@@ -149,7 +145,7 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 		Status:       "in_progress",
 		Definition:   d,
 		Mapped:       mapping,
-		ProjectInfo:  (*json.RawMessage)(&rawCredentials),
+		Credentials:  pcredentials.Credentials,
 	}
 
 	if err := ss.Save(); err != nil {
