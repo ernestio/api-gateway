@@ -13,7 +13,10 @@ func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var def models.Definition
 	var s models.Env
-	var dt models.Project
+
+	dt := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
 
 	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
