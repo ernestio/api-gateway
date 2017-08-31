@@ -33,9 +33,9 @@ func AuthenticatedUser(c echo.Context) models.User {
 
 // AuthenticateHandler manages user authentication
 func AuthenticateHandler(c echo.Context) error {
-	u := &models.User{}
+	var u models.User
 
-	err := c.Bind(u)
+	err := c.Bind(&u)
 	if err != nil {
 		return echo.NewHTTPError(400, err.Error())
 	}
