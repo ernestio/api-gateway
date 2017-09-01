@@ -29,15 +29,7 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 		return st, res
 	}
 
-	existing.Username = d.Username
-	existing.Password = d.Password
-	existing.AccessKeyID = d.AccessKeyID
-	existing.SecretAccessKey = d.SecretAccessKey
-	existing.SubscriptionID = d.SubscriptionID
-	existing.ClientID = d.ClientID
-	existing.ClientSecret = d.ClientSecret
-	existing.TenantID = d.TenantID
-	existing.Environment = d.Environment
+	existing.Credentials = d.Credentials
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())

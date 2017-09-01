@@ -85,11 +85,13 @@ func TestCreateProject(t *testing.T) {
 			createDatacenterSubscriber()
 
 			mockDC := models.Project{
-				Name:      "new_test",
-				Type:      "vcloud",
-				Username:  "test",
-				Password:  "test",
-				VCloudURL: "test",
+				Name: "new_test",
+				Type: "vcloud",
+				Credentials: map[string]interface{}{
+					"username":   "test",
+					"password":   "test",
+					"vcloud_url": "test",
+				},
 			}
 
 			data, _ := json.Marshal(mockDC)

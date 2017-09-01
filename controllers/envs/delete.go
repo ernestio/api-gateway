@@ -13,7 +13,10 @@ func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var def models.Definition
 	var s models.Env
-	var dt models.Project
+
+	dt := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
 
 	if s, err = s.FindLastByName(name); err != nil {
 		h.L.Error(err.Error())
@@ -39,12 +42,15 @@ func Delete(au models.User, name string) (int, []byte) {
 		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
-	credentials := models.Project{}
-	if s.ProjectInfo != nil {
-		var newDT models.Project
-		if err := json.Unmarshal(*s.ProjectInfo, &newDT); err == nil {
-			credentials.Override(newDT)
+	credentials := models.Project{
+		Credentials: make(map[string]interface{}),
+	}
+
+	if s.Credentials != nil {
+		newDT := models.Project{
+			Credentials: s.Credentials,
 		}
+		credentials.Override(newDT)
 	}
 
 	dt.Override(credentials)

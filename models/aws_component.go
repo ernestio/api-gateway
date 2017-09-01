@@ -19,9 +19,9 @@ func (g *AWSComponent) FindBy() (list []interface{}, err error) {
 
 	query := make(map[string]interface{})
 	query["expects_response"] = true
-	query["aws_access_key_id"] = d.AccessKeyID
-	query["aws_secret_access_key"] = d.SecretAccessKey
-	query["datacenter_region"] = d.Region
+	query["aws_access_key_id"] = d.Credentials["aws_access_key_id"]
+	query["aws_secret_access_key"] = d.Credentials["aws_secret_access_key"]
+	query["region"] = d.Credentials["region"]
 
 	if len(tags) > 0 {
 		query["tags"] = tags
