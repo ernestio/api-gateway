@@ -7,7 +7,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 	"strings"
 
@@ -117,24 +116,8 @@ func (d *Project) Delete() (err error) {
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (d *Project) Redact() {
-	for k, v := range d.Credentials {
-		if k == "region" || k == "external_network" || k == "username" || k == "vcloud_url" {
-			sv, ok := v.(string)
-			if !ok {
-				log.Println("could not assert credential value")
-				delete(d.Credentials, k)
-				continue
-			}
-
-			dv, err := decrypt(sv)
-			if err != nil {
-				log.Println("could not decrypt credentials value")
-				delete(d.Credentials, k)
-				continue
-			}
-
-			d.Credentials[k] = dv
-		} else {
+	for k := range d.Credentials {
+		if k != "region" && k != "external_network" && k != "username" && k != "vcloud_url" {
 			delete(d.Credentials, k)
 		}
 	}
