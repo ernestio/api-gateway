@@ -194,3 +194,8 @@ func crypt(s string) (string, error) {
 func (d *Project) getStore() string {
 	return "datacenter"
 }
+
+// IsAzure : check if the current project is of type azure
+func (d *Project) IsAzure() bool {
+	return (d.Type == "azure" || d.Type == "azure-fake")
+}
