@@ -114,6 +114,11 @@ func Create(au models.User, s models.ServiceInput, definition, body []byte, isAn
 	}
 	var def models.Definition
 	if isAnImport == true {
+		if dt.IsAzure() && len(s.Filters) == 0 {
+			errMsg := []byte("Azure imports require filters to be set")
+			h.L.Error(errMsg)
+			return 400, []byte(errMsg)
+		}
 		mapping, err = def.MapImport(body)
 	} else {
 		mapping, err = def.MapCreation(body)
