@@ -135,7 +135,7 @@ func TestDeletingEnvs(t *testing.T) {
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := envs.Delete(au, "foo-bar")
-				SkipConvey("Then I should get a 400 response", func() {
+				Convey("Then I should get a 400 response", func() {
 					So(st, ShouldEqual, 400)
 					So(string(resp), ShouldEqual, `"Environment is already applying some changes, please wait until they are done"`)
 				})
