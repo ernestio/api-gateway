@@ -1,11 +1,9 @@
 # API Gateway
 
+master:  [![CircleCI](https://circleci.com/gh/ernestio/api-gateway/tree/master.svg?style=shield)](https://circleci.com/gh/ernestio/api-gateway/tree/master)  
+develop: [![CircleCI](https://circleci.com/gh/ernestio/api-gateway/tree/develop.svg?style=shield)](https://circleci.com/gh/ernestio/api-gateway/tree/develop)
+
 This service expose REST endpoints to each of the datastores inside of ernest. Requests are translated from http calls to nats requests.
-
-## Build status
-
-* master:  [![CircleCI Master](https://circleci.com/gh/ernestio/api-gateway/tree/master.svg?style=svg)](https://circleci.com/gh/ernestio/api-gateway/tree/master)
-* develop: [![CircleCI Develop](https://circleci.com/gh/ernestio/api-gateway/tree/develop.svg?style=svg)](https://circleci.com/gh/ernestio/api-gateway/tree/develop)
 
 ## Installation
 
