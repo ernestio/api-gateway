@@ -259,9 +259,12 @@ func RenderLoadBalancers(g *graph.Graph) []map[string]string {
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["id"].(string)
 		configs, _ := (*gc)["frontend_ip_configurations"].([]interface{})
-		cfg, _ := configs[0].(map[string]interface{})
-		ipID, _ := cfg["public_ip_address_id"].(string)
-		ip, _ := ips[ipID]
+		ip := ""
+		if len(configs) > 0 {
+			cfg, _ := configs[0].(map[string]interface{})
+			ipID, _ := cfg["public_ip_address_id"].(string)
+			ip, _ = ips[ipID]
+		}
 
 		lbs = append(lbs, map[string]string{
 			"name":      name,
