@@ -6,29 +6,24 @@ package views
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
-	"log"
-
 	"github.com/ernestio/api-gateway/models"
-
-	graph "gopkg.in/r3labs/graph.v2"
+	"github.com/r3labs/graph"
 )
 
-// ServiceRender : Service representation to be rendered on the frontend
-type ServiceRender struct {
+// EnvRender : Env representation to be rendered on the frontend
+type BuildRender struct {
 	ID              string              `json:"id"`
-	DatacenterID    int                 `json:"datacenter_id"`
+	EnvironmentID   uint                `json:"environment_id"`
 	Project         string              `json:"project"`
 	Provider        string              `json:"provider"`
-	Name            string              `json:"name"`
-	Version         string              `json:"version"`
 	Status          string              `json:"status"`
-	UserID          int                 `json:"user_id"`
+	UserID          uint                `json:"user_id"`
 	UserName        string              `json:"user_name"`
-	LastKnownError  string              `json:"last_known_error"`
-	Options         string              `json:"options"`
-	Definition      string              `json:"definition"`
+	CreatedAt       string              `json:"created_at"`
+	UpdatedAt       string              `json:"updated_at"`
 	Vpcs            []map[string]string `json:"vpcs"`
 	Networks        []map[string]string `json:"networks"`
 	Instances       []map[string]string `json:"instances"`
@@ -41,27 +36,24 @@ type ServiceRender struct {
 	LoadBalancers   []map[string]string `json:"load_balancers"`
 	SQLDatabases    []map[string]string `json:"sql_databases"`
 	VirtualMachines []map[string]string `json:"virtual_machines"`
-	Roles           []string            `json:"roles"`
 }
 
-// Render : Map a Service to a ServiceRender
-func (o *ServiceRender) Render(s models.Env) (err error) {
-	o.Name = s.Name
-	parts := strings.Split(o.Name, models.EnvNameSeparator)
-	if len(parts) > 1 {
-		o.Name = parts[1]
-	}
-	o.ID = s.ID
-	o.DatacenterID = s.DatacenterID
-	o.Version = s.Version.String()
-	o.Status = s.Status
-	o.UserID = s.UserID
-	o.UserName = s.UserName
-	if def, ok := s.Definition.(string); ok == true {
-		o.Definition = def
-	}
+// Render : Map a Build to a BuildRender
+func (o *BuildRender) Render(b models.Build) (err error) {
+	o.ID = b.ID
+	o.EnvironmentID = b.EnvironmentID
+	o.CreatedAt = b.CreatedAt.String()
+	o.UpdatedAt = b.UpdatedAt.String()
+	o.Status = b.Status
+	o.UserID = b.UserID
 
-	g, err := s.Mapping()
+	/*
+		if def, ok := s.Definition.(string); ok == true {
+			o.Definition = def
+		}
+	*/
+
+	g, err := b.GetMapping()
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -79,9 +71,12 @@ func (o *ServiceRender) Render(s models.Env) (err error) {
 	o.LoadBalancers = RenderLoadBalancers(g)
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
-	o.Roles = s.Roles
-	o.Project = s.Project
-	o.Provider = s.Provider
+	o.Provider = b.Type
+
+	/*
+		o.Roles = s.Roles
+		o.Project = s.Project
+	*/
 
 	return err
 }
@@ -373,11 +368,11 @@ func renderResources(g *graph.Graph, resourceType string, f convert) (resources 
 	return
 }
 
-// RenderCollection : Maps a collection of Service on a collection of ServiceRender
-func (o *ServiceRender) RenderCollection(services []models.Env) (list []ServiceRender, err error) {
-	for _, s := range services {
-		var output ServiceRender
-		if err := output.Render(s); err == nil {
+// RenderCollection : Maps a collection of Builds on a collection of BuildRender
+func (o *BuildRender) RenderCollection(builds []models.Build) (list []BuildRender, err error) {
+	for _, b := range builds {
+		var output BuildRender
+		if err := output.Render(b); err == nil {
 			list = append(list, output)
 		}
 	}
@@ -386,16 +381,16 @@ func (o *ServiceRender) RenderCollection(services []models.Env) (list []ServiceR
 }
 
 // ToJSON : Converts a ServiceRender to json string
-func (o *ServiceRender) ToJSON() ([]byte, error) {
+func (o *BuildRender) ToJSON() ([]byte, error) {
 	return json.Marshal(o)
 }
 
-// RenderDefinition : renders service defiition steps
-func RenderDefinition(service map[string]interface{}) (result []byte, err error) {
+// RenderDefinition : renders build definition steps
+func RenderDefinition(mapping map[string]interface{}) (result []byte, err error) {
 	var lines []string
 	var actions = map[string]string{"create": "Create", "update": "Update", "delete": "Delete"}
 
-	for _, change := range service["changes"].([]interface{}) {
+	for _, change := range mapping["changes"].([]interface{}) {
 		component := change.(map[string]interface{})
 		c := component["_component"].(string)
 		c = strings.Replace(c, "_", " ", -1)

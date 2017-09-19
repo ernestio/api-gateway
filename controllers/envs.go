@@ -5,8 +5,6 @@
 package controllers
 
 import (
-	"strings"
-
 	"github.com/ernestio/api-gateway/controllers/envs"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -102,8 +100,9 @@ func CreateEnvHandler(c echo.Context) error {
 	if err != nil {
 		return h.Respond(c, 400, []byte(err.Error()))
 	}
+
 	input.Name = buildStringID(input.Datacenter, input.Name)
-	isAnImport := strings.Contains(c.Path(), "/import/")
+
 	dry := c.QueryParam("dry")
 	st, b = envs.Create(au, input, definition, jsonbody, isAnImport, dry)
 
@@ -148,6 +147,22 @@ func ForceEnvDeletionHandler(c echo.Context) error {
 	}
 
 	return h.Respond(c, st, b)
+}
+
+// CreateEnvBuildHandler : Creates a build on an environment
+func CreateEnvBuildHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/create")
+	if st == 200 {
+		st, b := envs.Apply()
+	}
+
+	return h.Respond(c, st, b)
+}
+
+// ImportEnvHandler : Creates an import build on an environment
+func ImportEnvHandler(c echo.Context) error {
+
 }
 
 // DelEnvBuildHandler : will delete the specified build from a service

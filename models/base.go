@@ -11,12 +11,12 @@ import (
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/nats-io/nats"
+	"github.com/r3labs/akira"
 	"github.com/sirupsen/logrus"
 )
 
 // N : Nats connection
-var N *nats.Conn
+var N akira.Connector
 
 // BaseModel : Abstraction layer to interact with data stores
 type BaseModel struct {

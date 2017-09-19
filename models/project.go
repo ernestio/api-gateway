@@ -55,10 +55,10 @@ func (d *Project) Map(data []byte) error {
 }
 
 // FindByName : Searches for all projects with a name equal to the specified
-func (d *Project) FindByName(name string, project *Project) (err error) {
+func (d *Project) FindByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel(d.getStore()).GetBy(query, project); err != nil {
+	if err := NewBaseModel(d.getStore()).GetBy(query, d); err != nil {
 		return err
 	}
 	return nil

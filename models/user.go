@@ -223,7 +223,7 @@ func (u *User) GetProjects() (ds []Project, err error) {
 
 // ProjectByName : Gets the related user projects if any
 func (u *User) ProjectByName(name string) (d Project, err error) {
-	if err = d.FindByName(name, &d); err != nil {
+	if err = d.FindByName(name); err != nil {
 		err = errors.New("Project not found")
 	}
 
