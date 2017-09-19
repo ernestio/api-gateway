@@ -5,43 +5,34 @@
 package notifications
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
-// AddService : ...
-func AddService(au models.User, id, service string) (int, []byte) {
+// RmEnv : ...
+func RmEnv(au models.User, name, env string) (int, []byte) {
 	var err error
-	var d models.Notification
 	var existing models.Notification
 	var body []byte
 
-	if err = existing.FindByID(id, &existing); err != nil {
-		return 500, []byte("Internal server error")
-	}
-
-	if body, err = json.Marshal(d); err != nil {
+	if err = existing.FindByName(name, &existing); err != nil {
 		return 500, []byte("Internal server error")
 	}
 
 	members := strings.Split(existing.Members, ",")
 	newMembers := make([]string, 0)
 	for _, m := range members {
-		if m == service {
-			return http.StatusOK, body
-		}
-		if m != "" {
+		if m != env {
 			newMembers = append(newMembers, m)
 		}
 	}
-
-	members = append(newMembers, service)
-	existing.Members = strings.Join(members, ",")
+	existing.Members = strings.Join(newMembers, ",")
 
 	if err = existing.Save(); err != nil {
+		h.L.Error(err.Error())
 		return 500, []byte("Internal server error")
 	}
 
