@@ -26,6 +26,12 @@
   revision = "aea8a2de96eebc5a0e34cac5aa1d16ac42c9fc56"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/ernestio/mapping"
+  packages = [".","build","definition","environment","project","query"]
+  revision = "a76cf9c9e8d657175f37d4c083abd6c803dcbe76"
+
+[[projects]]
   name = "github.com/ghodss/yaml"
   packages = ["."]
   revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
@@ -110,6 +116,24 @@
   revision = "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/r3labs/akira"
+  packages = ["."]
+  revision = "3b9b806a55de1ce90d9ab71e11464865860857fe"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/r3labs/graph"
+  packages = ["."]
+  revision = "6a9eb8f11f78f9ea4783858d2ca395721d7e6dab"
+
+[[projects]]
+  name = "github.com/satori/uuid"
+  packages = ["."]
+  revision = "879c5887cd475cd7864858769793b2ceb0d44feb"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "a3f95b5c423586578a4e099b11a46c2479628cac"
@@ -158,12 +182,6 @@
   revision = "db14e161995a5177acef654cb0dd785e8ee8bc22"
 
 [[projects]]
-  branch = "v2"
-  name = "gopkg.in/r3labs/graph.v2"
-  packages = ["."]
-  revision = "86481155dfd4e1e18c901838e237f874831c3ff3"
-
-[[projects]]
   name = "gopkg.in/redis.v3"
   packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool"]
   revision = "b5e368500d0a508ef8f16e9c2d4025a8a46bcc29"
@@ -178,6 +196,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6b337703ff7727df86809e86fed07288d040c59181fa5469985df51add92c24f"
+  inputs-digest = "20c14717392545b73965b3cb16d016a1ff791ed8d217ce45fc2eee0dce25d425"
   solver-name = "gps-cdcl"
   solver-version = 1
