@@ -20,11 +20,13 @@ var EnvNameSeparator = "/"
 type Env struct {
 	ID          uint                   `json:"id"`
 	ProjectID   uint                   `json:"project_id"`
+	Project     string                 `json:"project,omitempty"`
+	Provider    string                 `json:"provider,omitempty"`
 	Name        string                 `json:"name"`
 	Type        string                 `json:"type"`
 	Status      string                 `json:"status"`
-	Options     map[string]interface{} `json:"option"`
-	Credentials map[string]interface{} `json:"credentials"`
+	Options     map[string]interface{} `json:"options,omitempty"`
+	Credentials map[string]interface{} `json:"credentials,omitempty"`
 	Roles       []string               `json:"roles,omitempty"`
 }
 

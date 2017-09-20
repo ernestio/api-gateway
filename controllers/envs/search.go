@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
 import (
@@ -6,24 +10,16 @@ import (
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
-	"github.com/ernestio/api-gateway/views"
 )
 
 // Search : Finds all services
 func Search(au models.User, query map[string]interface{}) (int, []byte) {
-	var o views.ServiceRender
-
 	envs, err := au.EnvsBy(query)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
 
-	list, err := o.RenderCollection(envs)
-	if err != nil {
-		return 500, []byte(err.Error())
-	}
-
-	b, err := json.Marshal(list)
+	b, err := json.Marshal(envs)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error")

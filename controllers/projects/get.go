@@ -25,7 +25,7 @@ func Get(au models.User, project string) (int, []byte) {
 
 	appended := make(map[string]string)
 
-	if err := d.FindByName(project, &d); err != nil {
+	if err := d.FindByName(project); err != nil {
 		return 404, []byte("Project not found")
 	}
 

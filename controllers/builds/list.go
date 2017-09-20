@@ -1,8 +1,4 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-package envs
+package builds
 
 import (
 	"encoding/json"
@@ -14,17 +10,18 @@ import (
 
 // List : responds to GET /services/ with a list of all
 // services for current user group
-func List(au models.User) (int, []byte) {
+func List(au models.User, env string) (int, []byte) {
+	var b models.Build
+	var list []models.Build
 	var body []byte
 
-	query := make(map[string]interface{}, 0)
-	envs, err := au.EnvsBy(query)
+	err := b.FindByEnvironmentName(env, &list)
 	if err != nil {
 		h.L.Warning(err.Error())
 		return 404, []byte("Environment not found")
 	}
 
-	body, err = json.Marshal(envs)
+	body, err = json.Marshal(list)
 	if err != nil {
 		return 500, []byte("Internal error")
 	}

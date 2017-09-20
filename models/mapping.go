@@ -5,6 +5,8 @@
 package models
 
 import (
+	"encoding/json"
+
 	"github.com/ernestio/mapping"
 	"github.com/ernestio/mapping/definition"
 )
@@ -55,4 +57,9 @@ func (m *Mapping) Import(env string, filters []string) error {
 	*m = mr.Result
 
 	return nil
+}
+
+// ToJSON : serializes the mapping to json
+func (m *Mapping) ToJSON() ([]byte, error) {
+	return json.Marshal(m)
 }

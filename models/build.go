@@ -19,6 +19,7 @@ type Build struct {
 	ID            string                 `json:"id"`
 	EnvironmentID uint                   `json:"environment_id"`
 	UserID        uint                   `json:"user_id"`
+	Username      string                 `json:"user_name"`
 	Type          string                 `json:"type"`
 	Status        string                 `json:"status"`
 	Definition    string                 `json:"definition"`
@@ -104,7 +105,7 @@ func (b *Build) FindByName(env string) (builds []Build, err error) {
 }
 
 // FindByID : Gets a model by its id
-func (b *Build) FindByID(id int) (err error) {
+func (b *Build) FindByID(id string) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
 	if err := NewBaseModel(b.getStore()).GetBy(query, b); err != nil {
@@ -194,13 +195,21 @@ func (b *Build) Reset() error {
 	return nil
 }
 
-// FindByEnvironmentID : find a builds for the given project id
-func (b *Build) FindByEnvironmentID(id int, envs *[]Env) (err error) {
-	query := make(map[string]interface{})
-	query["project_id"] = id
-	if err := NewBaseModel(b.getStore()).FindBy(query, envs); err != nil {
+// FindByEnvironmentName : find a builds for the given environment name
+func (b *Build) FindByEnvironmentName(name string, builds *[]Build) (err error) {
+	var e Env
+
+	err = e.FindByName(name)
+	if err != nil {
 		return err
 	}
+
+	query := make(map[string]interface{})
+	query["environment_id"] = e.ID
+	if err := NewBaseModel(b.getStore()).FindBy(query, builds); err != nil {
+		return err
+	}
+
 	return nil
 }
 

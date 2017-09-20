@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
 import (
@@ -11,44 +15,40 @@ import (
 // Get : responds to GET /services/:service with the
 // details of an existing service
 func Get(au models.User, name string) (int, []byte) {
-	var o views.ServiceRender
-	var body []byte
-	var s models.Env
+	var o views.BuildRender
 	var err error
+	var body []byte
+	var e models.Env
 	var r models.Role
-	var d models.Project
+	var p models.Project
 	var roles []models.Role
 
-	if s, err = s.FindLastByName(name); err != nil {
+	if err = e.FindByName(name); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error")
 	}
 
-	if s.ID == "" {
+	if e.ID == 0 {
 		return 404, []byte("Specified environment name does not exist")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, s.GetType(), name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), name); st != 200 {
 		return st, res
 	}
 
-	if err := r.FindAllByResource(s.GetID(), s.GetType(), &roles); err == nil {
+	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
 		for _, v := range roles {
-			s.Roles = append(s.Roles, v.UserID+" ("+v.Role+")")
+			e.Roles = append(e.Roles, v.UserID+" ("+v.Role+")")
 		}
 	}
 
-	if err := d.FindByID(s.DatacenterID); err != nil {
+	if err := p.FindByID(int(e.ProjectID)); err != nil {
 		return 404, []byte("Project not found")
 	}
 
-	s.Project = d.Name
-	s.Provider = d.Type
+	e.Project = p.Name
+	e.Provider = p.Type
 
-	if err := o.Render(s); err != nil {
-		h.L.Warning(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
-	}
 	if body, err = o.ToJSON(); err != nil {
 		return 500, []byte(err.Error())
 	}

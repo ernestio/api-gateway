@@ -25,7 +25,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	if err := existing.FindByName(d.Name, &existing); err == nil {
+	if err := existing.FindByName(d.Name); err == nil {
 		return 409, []byte("Specified project already exists")
 	}
 
