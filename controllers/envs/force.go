@@ -17,7 +17,7 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 
 	if err := s.DeleteByName(name); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(err.Error())
+		return 404, []byte("Environment not found")
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + s.ID + `"}`)
