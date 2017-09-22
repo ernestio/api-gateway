@@ -40,6 +40,9 @@ func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o int
 	if res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
 	}
+	if strings.Contains(string(res), "record not found") {
+		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
+	}
 	if err = json.Unmarshal(res, &o); err != nil {
 		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
