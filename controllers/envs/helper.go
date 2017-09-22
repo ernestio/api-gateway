@@ -7,6 +7,7 @@ package envs
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nu7hatch/gouuid"
@@ -38,4 +39,9 @@ func generateEnvID(salt string) string {
 	id, _ := uuid.NewV4()
 
 	return id.String()
+}
+
+func getProjectEnv(name string) (string, string) {
+	p := strings.Split(name, models.EnvNameSeparator)
+	return p[0], p[1]
 }

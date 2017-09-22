@@ -24,6 +24,10 @@ func List(au models.User) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
+	for i := range envs {
+		envs[i].Project, envs[i].Name = getProjectEnv(envs[i].Name)
+	}
+
 	body, err = json.Marshal(envs)
 	if err != nil {
 		return 500, []byte("Internal error")
