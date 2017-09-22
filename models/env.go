@@ -36,14 +36,6 @@ func (s *Env) Validate() error {
 		return errors.New("Environment name is empty")
 	}
 
-	if s.ProjectID == 0 {
-		return errors.New("Environment project is empty")
-	}
-
-	if s.Type == "" {
-		return errors.New("Environment type is empty")
-	}
-
 	return nil
 }
 
