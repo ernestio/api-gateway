@@ -14,9 +14,10 @@ import (
 
 // Create : responds to POST /projects/ by creating a
 // project on the data store
-func Create(au models.User, body []byte) (int, []byte) {
+func Create(au models.User, project string, body []byte) (int, []byte) {
 	var err error
 	var e models.Env
+	var p models.Project
 	var existing models.Env
 
 	if e.Map(body) != nil {
@@ -33,10 +34,20 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 409, []byte("Specified environment already exists")
 	}
 
+	err = p.FindByName(project)
+	if err != nil {
+		return 404, []byte("Specified project does not exist")
+	}
+
+	e.Name = project + models.EnvNameSeparator + e.Name
+	e.ProjectID = p.ID
+	e.Type = p.Type
+
 	if err = e.Save(); err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte("Internal server error")
 	}
+
 	if err := au.SetOwner(&e); err != nil {
 		return 500, []byte("Internal server error")
 	}

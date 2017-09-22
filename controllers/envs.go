@@ -48,7 +48,20 @@ func ResetEnvHandler(c echo.Context) error {
 
 // CreateEnvHandler : Will receive a env application
 func CreateEnvHandler(c echo.Context) error {
-	return genericCreate(c, "service", envs.Create)
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/create")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
+
+	st = 500
+	b = []byte("Invalid input")
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		st, b = envs.Create(au, c.Param("project"), body)
+	}
+
+	return h.Respond(c, st, b)
 }
 
 // UpdateEnvHandler : Not implemented

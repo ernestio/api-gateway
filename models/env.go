@@ -18,8 +18,8 @@ var EnvNameSeparator = "/"
 
 // Env holds the environment response from service-store
 type Env struct {
-	ID          uint                   `json:"id"`
-	ProjectID   uint                   `json:"project_id"`
+	ID          int                    `json:"id"`
+	ProjectID   int                    `json:"project_id"`
 	Project     string                 `json:"project,omitempty"`
 	Provider    string                 `json:"provider,omitempty"`
 	Name        string                 `json:"name"`

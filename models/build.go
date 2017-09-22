@@ -17,8 +17,8 @@ import (
 // Build : holds the build response from service store
 type Build struct {
 	ID            string                 `json:"id"`
-	EnvironmentID uint                   `json:"environment_id"`
-	UserID        uint                   `json:"user_id"`
+	EnvironmentID int                    `json:"environment_id"`
+	UserID        int                    `json:"user_id"`
 	Username      string                 `json:"user_name"`
 	Type          string                 `json:"type"`
 	Status        string                 `json:"status"`

@@ -26,7 +26,7 @@ func Delete(au models.User, name string) (int, []byte) {
 
 	b := models.Build{
 		EnvironmentID: e.ID,
-		UserID:        uint(au.ID),
+		UserID:        au.ID,
 		Username:      au.Username,
 		Type:          "destroy",
 		Mapping:       m,

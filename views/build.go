@@ -13,14 +13,14 @@ import (
 	"github.com/r3labs/graph"
 )
 
-// EnvRender : Env representation to be rendered on the frontend
+// BuildRender : Build representation to be rendered on the frontend
 type BuildRender struct {
 	ID              string              `json:"id"`
-	EnvironmentID   uint                `json:"environment_id"`
+	EnvironmentID   int                 `json:"environment_id"`
 	Project         string              `json:"project"`
 	Provider        string              `json:"provider"`
 	Status          string              `json:"status"`
-	UserID          uint                `json:"user_id"`
+	UserID          int                 `json:"user_id"`
 	UserName        string              `json:"user_name"`
 	CreatedAt       string              `json:"created_at"`
 	UpdatedAt       string              `json:"updated_at"`

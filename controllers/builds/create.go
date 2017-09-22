@@ -37,7 +37,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 
 	b := models.Build{
 		EnvironmentID: e.ID,
-		UserID:        uint(au.ID),
+		UserID:        au.ID,
 		Username:      au.Username,
 		Type:          "apply",
 		Mapping:       m,
