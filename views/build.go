@@ -17,6 +17,7 @@ import (
 type BuildRender struct {
 	ID              string              `json:"id"`
 	EnvironmentID   int                 `json:"environment_id"`
+	Name            string              `json:"name"`
 	Project         string              `json:"project"`
 	Provider        string              `json:"provider"`
 	Status          string              `json:"status"`
@@ -71,7 +72,6 @@ func (o *BuildRender) Render(b models.Build) (err error) {
 	o.LoadBalancers = RenderLoadBalancers(g)
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
-	o.Provider = b.Type
 
 	/*
 		o.Roles = s.Roles
@@ -89,7 +89,7 @@ func RenderVpcs(g *graph.Graph) []map[string]string {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["vpc_aws_id"].(string)
-		subnet, _ := (*gc)["vpc_subnet"].(string)
+		subnet, _ := (*gc)["subnet"].(string)
 		vpcs = append(vpcs, map[string]string{
 			"name":       name,
 			"vpc_id":     id,

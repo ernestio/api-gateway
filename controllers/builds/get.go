@@ -39,6 +39,7 @@ func Get(au models.User, id string) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
+	o.Name = e.Name
 	o.Project = p.Name
 	o.Provider = e.Type
 
