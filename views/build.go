@@ -37,6 +37,7 @@ type BuildRender struct {
 	LoadBalancers   []map[string]string `json:"load_balancers"`
 	SQLDatabases    []map[string]string `json:"sql_databases"`
 	VirtualMachines []map[string]string `json:"virtual_machines"`
+	Roles           []string            `json:"roles"`
 }
 
 // Render : Map a Build to a BuildRender

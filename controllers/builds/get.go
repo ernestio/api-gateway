@@ -2,6 +2,7 @@ package builds
 
 import (
 	"net/http"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -17,6 +18,8 @@ func Get(au models.User, id string) (int, []byte) {
 	var e models.Env
 	var b models.Build
 	var p models.Project
+	var r models.Role
+	var roles []models.Role
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
@@ -39,7 +42,13 @@ func Get(au models.User, id string) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
-	o.Name = e.Name
+	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
+		for _, v := range roles {
+			o.Roles = append(o.Roles, v.UserID+" ("+v.Role+")")
+		}
+	}
+
+	o.Name = strings.Split(e.Name, "/")[1]
 	o.Project = p.Name
 	o.Provider = e.Type
 
