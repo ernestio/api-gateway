@@ -52,7 +52,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 
 	if err := b.RequestCreation(&m); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call service.create"`)
+		return 500, []byte(`"Couldn't call build.create"`)
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)

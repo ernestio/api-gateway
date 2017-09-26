@@ -25,18 +25,19 @@ type BuildRender struct {
 	UserName        string              `json:"user_name"`
 	CreatedAt       string              `json:"created_at"`
 	UpdatedAt       string              `json:"updated_at"`
-	Vpcs            []map[string]string `json:"vpcs"`
-	Networks        []map[string]string `json:"networks"`
-	Instances       []map[string]string `json:"instances"`
-	Nats            []map[string]string `json:"nats"`
-	SecurityGroups  []map[string]string `json:"security_groups"`
-	Elbs            []map[string]string `json:"elbs"`
-	RDSClusters     []map[string]string `json:"rds_clusters"`
-	RDSInstances    []map[string]string `json:"rds_instances"`
-	EBSVolumes      []map[string]string `json:"ebs_volumes"`
-	LoadBalancers   []map[string]string `json:"load_balancers"`
-	SQLDatabases    []map[string]string `json:"sql_databases"`
-	VirtualMachines []map[string]string `json:"virtual_machines"`
+	Definition      string              `json:"definition"`
+	Vpcs            []map[string]string `json:"vpcs,omitempty"`
+	Networks        []map[string]string `json:"networks,omitempty"`
+	Instances       []map[string]string `json:"instances,omitempty"`
+	Nats            []map[string]string `json:"nats,omitempty"`
+	SecurityGroups  []map[string]string `json:"security_groups,omitempty"`
+	Elbs            []map[string]string `json:"elbs,omitempty"`
+	RDSClusters     []map[string]string `json:"rds_clusters,omitempty"`
+	RDSInstances    []map[string]string `json:"rds_instances,omitempty"`
+	EBSVolumes      []map[string]string `json:"ebs_volumes,omitempty"`
+	LoadBalancers   []map[string]string `json:"load_balancers,omitempty"`
+	SQLDatabases    []map[string]string `json:"sql_databases,omitempty"`
+	VirtualMachines []map[string]string `json:"virtual_machines,omitempty"`
 	Roles           []string            `json:"roles"`
 }
 
@@ -48,12 +49,8 @@ func (o *BuildRender) Render(b models.Build) (err error) {
 	o.UpdatedAt = b.UpdatedAt.String()
 	o.Status = b.Status
 	o.UserID = b.UserID
-
-	/*
-		if def, ok := s.Definition.(string); ok == true {
-			o.Definition = def
-		}
-	*/
+	o.UserName = b.Username
+	o.Definition = b.Definition
 
 	g, err := b.GetMapping()
 	if err != nil {
@@ -74,15 +71,10 @@ func (o *BuildRender) Render(b models.Build) (err error) {
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
 
-	/*
-		o.Roles = s.Roles
-		o.Project = s.Project
-	*/
-
 	return err
 }
 
-// RenderVpcs : renders a services vpcs
+// RenderVpcs : renders a builds vpcs
 func RenderVpcs(g *graph.Graph) []map[string]string {
 	var vpcs []map[string]string
 
@@ -101,7 +93,7 @@ func RenderVpcs(g *graph.Graph) []map[string]string {
 	return vpcs
 }
 
-// RenderNetworks : renders a services networks
+// RenderNetworks : renders a builds networks
 func RenderNetworks(g *graph.Graph) []map[string]string {
 	var networks []map[string]string
 
@@ -120,7 +112,7 @@ func RenderNetworks(g *graph.Graph) []map[string]string {
 	return networks
 }
 
-// RenderSecurityGroups : renders a services security groups
+// RenderSecurityGroups : renders a builds security groups
 func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 	var sgs []map[string]string
 
@@ -137,7 +129,7 @@ func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 	return sgs
 }
 
-// RenderNats : renders a services nat gateways
+// RenderNats : renders a builds nat gateways
 func RenderNats(g *graph.Graph) []map[string]string {
 	var nats []map[string]string
 
@@ -156,7 +148,7 @@ func RenderNats(g *graph.Graph) []map[string]string {
 	return nats
 }
 
-// RenderELBs : renders a services elbs
+// RenderELBs : renders a builds elbs
 func RenderELBs(g *graph.Graph) []map[string]string {
 	var elbs []map[string]string
 
@@ -173,7 +165,7 @@ func RenderELBs(g *graph.Graph) []map[string]string {
 	return elbs
 }
 
-// RenderInstances : renders a services instances
+// RenderInstances : renders a builds instances
 func RenderInstances(g *graph.Graph) []map[string]string {
 	var instances []map[string]string
 
@@ -194,7 +186,7 @@ func RenderInstances(g *graph.Graph) []map[string]string {
 	return instances
 }
 
-// RenderRDSClusters : renders a services rds clusters
+// RenderRDSClusters : renders a builds rds clusters
 func RenderRDSClusters(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 
@@ -211,7 +203,7 @@ func RenderRDSClusters(g *graph.Graph) []map[string]string {
 	return rdss
 }
 
-// RenderRDSInstances : renders a services rds instances
+// RenderRDSInstances : renders a builds rds instances
 func RenderRDSInstances(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 
@@ -228,7 +220,7 @@ func RenderRDSInstances(g *graph.Graph) []map[string]string {
 	return rdss
 }
 
-// RenderEBSVolumes : renders a services ebs volumes
+// RenderEBSVolumes : renders a builds ebs volumes
 func RenderEBSVolumes(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 

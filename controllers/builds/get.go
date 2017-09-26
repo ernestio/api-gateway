@@ -9,8 +9,8 @@ import (
 	"github.com/ernestio/api-gateway/views"
 )
 
-// Get : responds to GET /services/:service with the
-// details of an existing service
+// Get : responds to GET /builds/:build with the
+// details of an existing build
 func Get(au models.User, id string) (int, []byte) {
 	var o views.BuildRender
 	var err error

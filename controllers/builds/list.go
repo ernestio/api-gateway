@@ -8,8 +8,8 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// List : responds to GET /services/ with a list of all
-// services for current user group
+// List : responds to GET /builds/ with a list of all
+// builds for current user group
 func List(au models.User, env string) (int, []byte) {
 	var b models.Build
 	var list []models.Build

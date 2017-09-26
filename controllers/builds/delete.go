@@ -40,7 +40,7 @@ func Delete(au models.User, name string) (int, []byte) {
 
 	if err := b.RequestDeletion(&m); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call service.delete"`)
+		return 500, []byte(`"Couldn't call build.delete"`)
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)
