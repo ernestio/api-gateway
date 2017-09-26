@@ -13,9 +13,9 @@ import (
 	"github.com/ernestio/api-gateway/views"
 )
 
-// Get : responds to GET /builds/:build with the
+// Mapping : responds to GET /builds/:/mapping with the
 // details of an existing build
-func Get(au models.User, id string) (int, []byte) {
+func Mapping(au models.User, id string) (int, []byte) {
 	var o views.BuildRender
 	var err error
 	var body []byte

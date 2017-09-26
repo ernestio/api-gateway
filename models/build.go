@@ -159,6 +159,20 @@ func (b *Build) GetMapping() (*graph.Graph, error) {
 	return g, err
 }
 
+// GetDefinition : will get a builds mapping
+func (b *Build) GetDefinition() ([]byte, error) {
+	var def []byte
+	query := make(map[string]interface{})
+	query["id"] = b.ID
+
+	err := NewBaseModel(b.getStore()).CallStoreBy("get.definition", query, &def)
+	if err != nil {
+		return nil, err
+	}
+
+	return def, err
+}
+
 // Reset : will reset the builds status to errored
 func (b *Build) Reset() error {
 	var r map[string]interface{}

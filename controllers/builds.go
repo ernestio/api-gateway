@@ -34,6 +34,28 @@ func GetBuildsHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
+// GetBuildMappingHandler : gets the mapping of a build
+func GetBuildMappingHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/builds")
+	if st == 200 {
+		st, b = builds.Mapping(au, buildID(c))
+	}
+
+	return h.Respond(c, st, b)
+}
+
+// GetBuildDefinitionHandler : gets the mapping of a build
+func GetBuildDefinitionHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/builds")
+	if st == 200 {
+		st, b = builds.Mapping(au, buildID(c))
+	}
+
+	return h.Respond(c, st, b)
+}
+
 // CreateBuildHandler : Will receive a env application
 func CreateBuildHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
