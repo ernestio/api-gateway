@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/mapping/definition"
 	"github.com/ghodss/yaml"
 	"github.com/labstack/echo"
@@ -44,4 +45,15 @@ func mapInputBuild(c echo.Context) (definition definition.Definition, raw []byte
 	}
 
 	return definition, raw, nil
+}
+
+func mapAction(c echo.Context) (*models.Action, error) {
+	var action models.Action
+
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &action, json.Unmarshal(data, &action)
 }

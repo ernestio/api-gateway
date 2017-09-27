@@ -79,6 +79,7 @@ func setupAPI(e *echo.Echo) {
 	d.GET("/:project/envs/:env/builds/:build", controllers.GetBuildHandler)
 	d.GET("/:project/envs/:env/builds/:build/mapping/", controllers.GetBuildMappingHandler)
 	d.GET("/:project/envs/:env/builds/:build/definition/", controllers.GetBuildDefinitionHandler)
+	d.POST("/:project/envs/:env/actions/", controllers.ActionHandler)
 	//d.POST("/:project/envs/:env/actions/import/", controllers.ImportEnvHandler)
 	//d.DELETE("/:project/envs/:env/builds/:build/", controllers.DelEnvBuildHandler)
 

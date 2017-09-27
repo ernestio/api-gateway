@@ -5,6 +5,8 @@
 package controllers
 
 import (
+	"strings"
+
 	"github.com/ernestio/api-gateway/controllers/builds"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -75,12 +77,21 @@ func CreateBuildHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-/*
-
 // ImportEnvHandler : Creates an import build on an environment
 func ImportEnvHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "services/create")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
 
+	filters := strings.Split(c.QueryParams().Get("filters"), ",")
+	st, b = builds.Import(au, buildID(c), filters)
+
+	return h.Respond(c, st, b)
 }
+
+/*
 
 // DelEnvBuildHandler : will delete the specified build from a service
 func DelEnvBuildHandler(c echo.Context) (err error) {
