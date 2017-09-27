@@ -17,6 +17,7 @@ func Definition(au models.User, id string) (int, []byte) {
 	var err error
 	var body []byte
 	var b models.Build
+	var e models.Env
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
@@ -24,10 +25,16 @@ func Definition(au models.User, id string) (int, []byte) {
 	}
 
 	if b.ID == "" {
-		return 404, []byte("Specified environment name does not exist")
+		return 404, []byte("Specified environment build does not exist")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, b.GetType(), id); st != 200 {
+	err = e.FindByID(b.EnvironmentID)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 

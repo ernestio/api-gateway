@@ -31,15 +31,15 @@ func Get(au models.User, id string) (int, []byte) {
 	}
 
 	if b.ID == "" {
-		return 404, []byte("Specified environment name does not exist")
-	}
-
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, b.GetType(), id); st != 200 {
-		return st, res
+		return 404, []byte("Specified environment build does not exist")
 	}
 
 	if err := e.FindByID(int(b.EnvironmentID)); err != nil {
 		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+		return st, res
 	}
 
 	if err := p.FindByID(int(e.ProjectID)); err != nil {

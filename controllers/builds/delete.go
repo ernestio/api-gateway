@@ -19,7 +19,11 @@ func Delete(au models.User, name string) (int, []byte) {
 	err := e.FindByName(name)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the environment"`)
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+		return st, res
 	}
 
 	err = m.Delete(name)

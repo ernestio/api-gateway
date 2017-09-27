@@ -20,7 +20,11 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't get the environment"`)
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+		return st, res
 	}
 
 	err = m.Import(env, action.Options.Filters)

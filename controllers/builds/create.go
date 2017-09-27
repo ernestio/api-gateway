@@ -21,7 +21,11 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	err := e.FindByName(definition.FullName())
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the environment"`)
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+		return st, res
 	}
 
 	err = m.Apply(definition)

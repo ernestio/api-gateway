@@ -16,13 +16,24 @@ import (
 // builds for current user group
 func List(au models.User, env string) (int, []byte) {
 	var b models.Build
+	var e models.Env
 	var list []models.Build
 	var body []byte
 
-	err := b.FindByEnvironmentName(env, &list)
+	err := e.FindByName(env)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+		return st, res
+	}
+
+	err = b.FindByEnvironmentName(env, &list)
 	if err != nil {
 		h.L.Warning(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, []byte("Build not found")
 	}
 
 	body, err = json.Marshal(list)
