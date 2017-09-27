@@ -30,6 +30,7 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
+	e.Name = project + models.EnvNameSeparator + e.Name
 	if err := existing.FindByName(e.Name); err == nil {
 		return 409, []byte("Specified environment already exists")
 	}
@@ -39,7 +40,6 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 		return 404, []byte("Specified project does not exist")
 	}
 
-	e.Name = project + models.EnvNameSeparator + e.Name
 	e.ProjectID = p.ID
 	e.Type = p.Type
 
