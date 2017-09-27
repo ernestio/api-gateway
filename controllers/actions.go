@@ -5,8 +5,6 @@
 package controllers
 
 import (
-	"strings"
-
 	"github.com/ernestio/api-gateway/controllers/builds"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
@@ -27,8 +25,7 @@ func ActionHandler(c echo.Context) error {
 
 	switch action.Type {
 	case "import":
-		filters := strings.Split(c.QueryParams().Get("filters"), ",")
-		st, b = builds.Import(au, buildID(c), filters)
+		st, b = builds.Import(au, buildID(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}

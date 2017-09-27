@@ -13,7 +13,7 @@ import (
 )
 
 // Import : Imports an environment
-func Import(au models.User, env string, action models.Action) (int, []byte) {
+func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
