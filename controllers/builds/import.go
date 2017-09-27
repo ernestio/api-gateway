@@ -5,14 +5,16 @@
 package builds
 
 import (
+	"encoding/json"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
+	"github.com/ernestio/ernest-cli/model"
 )
 
 // Import : Imports an environment
-func Import(au models.User, env string, filters []string) (int, []byte) {
+func Import(au models.User, env string, action model.Action) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
@@ -22,7 +24,7 @@ func Import(au models.User, env string, filters []string) (int, []byte) {
 		return 500, []byte(`"Couldn't get the environment"`)
 	}
 
-	err = m.Import(env, filters)
+	err = m.Import(env, action.Options.Filters)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the import build"`)
@@ -48,5 +50,15 @@ func Import(au models.User, env string, filters []string) (int, []byte) {
 		return 500, []byte(`"Couldn't call build.import"`)
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)
+	action.ResourceID = b.ID
+	action.ResourceType = "build"
+	action.Status = "in_progress"
+
+	data, err := json.Marshal(action)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, []byte(`"Couldn't marshal response"`)
+	}
+
+	return http.StatusOK, data
 }
