@@ -13,7 +13,7 @@ import (
 // ActionHandler : handles different actions that can be triggered on an env
 func ActionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "services/create")
+	st, b := h.IsAuthorized(&au, "envs/create")
 	if st != 200 {
 		return h.Respond(c, st, b)
 	}
@@ -25,7 +25,7 @@ func ActionHandler(c echo.Context) error {
 
 	switch action.Type {
 	case "import":
-		st, b = builds.Import(au, buildID(c), action)
+		st, b = builds.Import(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}
