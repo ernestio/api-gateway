@@ -10,11 +10,10 @@ import (
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
-	"github.com/ernestio/ernest-cli/model"
 )
 
 // Import : Imports an environment
-func Import(au models.User, env string, action model.Action) (int, []byte) {
+func Import(au models.User, env string, action models.Action) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
