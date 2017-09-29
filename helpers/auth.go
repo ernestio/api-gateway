@@ -43,7 +43,8 @@ var (
 // IsAuthorized : Validates if the given user has access to the given resource
 func IsAuthorized(au User, resource string) (int, []byte) {
 	licensedResources := map[string]int{
-		"notifications/add_service": 405,
+		"notifications/add_env":     405,
+		"notifications/add_project": 405,
 		"notifications/create":      405,
 		"notifications/delete":      405,
 		"notifications/list":        405,
@@ -65,7 +66,8 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 		"loggers/create":            403,
 		"loggers/delete":            403,
 		"loggers/list":              403,
-		"notifications/add_service": 403,
+		"notifications/add_env":     403,
+		"notifications/add_project": 403,
 		"notifications/create":      403,
 		"notifications/delete":      403,
 		"notifications/list":        403,

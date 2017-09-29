@@ -7,6 +7,7 @@ package controllers
 import (
 	"github.com/ernestio/api-gateway/controllers/notifications"
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
 )
 
@@ -33,34 +34,42 @@ func UpdateNotificationHandler(c echo.Context) (err error) {
 	return genericUpdate(c, "notification", notifications.Update)
 }
 
-// AddServiceToNotificationHandler : ...
-func AddServiceToNotificationHandler(c echo.Context) (err error) {
+// AddEnvToNotificationHandler : ...
+func AddEnvToNotificationHandler(c echo.Context) (err error) {
+	return entityToNotification(c, notifications.AddEnv, "notifications/add_env")
+}
+
+// RmEnvToNotificationHandler : ...
+func RmEnvToNotificationHandler(c echo.Context) (err error) {
+	return entityToNotification(c, notifications.RmEnv, "notifications/rm_env")
+}
+
+// AddProjectToNotificationHandler : ...
+func AddProjectToNotificationHandler(c echo.Context) (err error) {
+	return entityToNotification(c, notifications.AddEnv, "notifications/add_project")
+}
+
+// RmProjectToNotificationHandler : ...
+func RmProjectToNotificationHandler(c echo.Context) (err error) {
+	return entityToNotification(c, notifications.RmEnv, "notifications/rm_project")
+}
+
+type attachEntity func(models.User, string, string) (int, []byte)
+
+func entityToNotification(c echo.Context, fn attachEntity, path string) (err error) {
 	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "notifications/add_service")
+	st, b := h.IsAuthorized(&au, path)
 	if st != 200 {
 		return c.JSONBlob(st, b)
 	}
 
-	id := c.Param("notification")
-	service := c.Param("service")
-
-	st, b = notifications.AddService(au, id, service)
-
-	return c.JSONBlob(st, b)
-}
-
-// RmServiceToNotificationHandler : ...
-func RmServiceToNotificationHandler(c echo.Context) (err error) {
-	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "notifications/rm_service")
-	if st == 200 {
-		return c.JSONBlob(st, b)
+	name := c.Param("notification")
+	entity := c.Param("project")
+	if env := c.Param("env"); env != "" {
+		entity = entity + models.EnvNameSeparator + env
 	}
 
-	id := c.Param("notification")
-	service := c.Param("service")
-
-	st, b = notifications.RmService(au, id, service)
+	st, b = fn(au, name, entity)
 
 	return c.JSONBlob(st, b)
 }

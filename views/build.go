@@ -381,14 +381,16 @@ func RenderDefinition(mapping map[string]interface{}) (result []byte, err error)
 	var lines []string
 	var actions = map[string]string{"create": "Create", "update": "Update", "delete": "Delete"}
 
-	for _, change := range mapping["changes"].([]interface{}) {
-		component := change.(map[string]interface{})
-		c := component["_component"].(string)
-		c = strings.Replace(c, "_", " ", -1)
-		n := component["name"].(string)
-		a := component["_action"].(string)
-		line := actions[a] + " a " + c + " named " + n
-		lines = append(lines, line)
+	if mapping["changes"] != nil {
+		for _, change := range mapping["changes"].([]interface{}) {
+			component := change.(map[string]interface{})
+			c := component["_component"].(string)
+			c = strings.Replace(c, "_", " ", -1)
+			n := component["name"].(string)
+			a := component["_action"].(string)
+			line := actions[a] + " a " + c + " named " + n
+			lines = append(lines, line)
+		}
 	}
 
 	result, err = json.Marshal(lines)
