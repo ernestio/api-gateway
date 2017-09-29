@@ -50,7 +50,7 @@ func GetBuildDefinitionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
 	st, b := h.IsAuthorized(&au, "builds/definition")
 	if st == 200 {
-		st, b = builds.Mapping(au, envName(c))
+		st, b = builds.Definition(au, c.Param("build"))
 	}
 
 	return h.Respond(c, st, b)
