@@ -50,6 +50,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		Username:      au.Username,
 		Type:          "apply",
 		Mapping:       m,
+		Definition:    string(raw),
 	}
 
 	err = b.Save()
