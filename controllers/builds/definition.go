@@ -24,10 +24,6 @@ func Definition(au models.User, id string) (int, []byte) {
 		return 500, []byte("Internal error")
 	}
 
-	if b.ID == "" {
-		return 404, []byte("Specified environment build does not exist")
-	}
-
 	err = e.FindByID(b.EnvironmentID)
 	if err != nil {
 		h.L.Error(err.Error())

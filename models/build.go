@@ -165,12 +165,12 @@ func (b *Build) GetDefinition() ([]byte, error) {
 	query := make(map[string]interface{})
 	query["id"] = b.ID
 
-	err := NewBaseModel(b.getStore()).CallStoreBy("get.definition", query, &def)
+	err := NewBaseModel(b.getStore()).CallStoreByRaw("get.definition", query, &def)
 	if err != nil {
 		return nil, err
 	}
 
-	return def, err
+	return def, nil
 }
 
 // Reset : will reset the builds status to errored

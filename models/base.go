@@ -31,22 +31,33 @@ func NewBaseModel(t string) *BaseModel {
 // CallStoreBy : ...
 func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o interface{}) (err error) {
 	var res []byte
+
+	err = b.CallStoreByRaw(verb, query, &res)
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(res, &o); err != nil {
+		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
+	}
+
+	return nil
+}
+
+// CallStoreByRaw : ...
+func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, res *[]byte) (err error) {
 	var req []byte
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
 			return err
 		}
 	}
-	if res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
+	if *res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
 	}
-	if strings.Contains(string(res), "record not found") {
+	if strings.Contains(string(*res), "record not found") {
 		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
-	if err = json.Unmarshal(res, &o); err != nil {
-		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
-	}
-
 	return nil
 }
 
