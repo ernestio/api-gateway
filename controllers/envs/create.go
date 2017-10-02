@@ -30,14 +30,18 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	e.Name = project + models.EnvNameSeparator + e.Name
-	if err := existing.FindByName(e.Name); err == nil {
-		return 409, []byte("Specified environment already exists")
-	}
-
 	err = p.FindByName(project)
 	if err != nil {
 		return 404, []byte("Specified project does not exist")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, p.GetType(), p.Name); st != 200 {
+		return st, res
+	}
+
+	e.Name = project + models.EnvNameSeparator + e.Name
+	if err := existing.FindByName(e.Name); err == nil {
+		return 409, []byte("Specified environment already exists")
 	}
 
 	e.ProjectID = p.ID
