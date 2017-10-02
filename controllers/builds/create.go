@@ -18,7 +18,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	var e models.Env
 	var m models.Mapping
 
-	err = e.FindByName(definition.FullName())
+	err := e.FindByName(definition.FullName())
 	if err != nil {
 		h.L.Error(err.Error())
 		return 404, []byte("Environment not found")
