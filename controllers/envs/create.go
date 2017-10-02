@@ -35,7 +35,7 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 		return 404, []byte("Specified project does not exist")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, p.GetType(), p.Name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, p.GetType(), p.Name); st != 200 {
 		return st, res
 	}
 
