@@ -6,6 +6,7 @@ package controllers
 
 import (
 	"github.com/ernestio/api-gateway/controllers/builds"
+	"github.com/ernestio/api-gateway/controllers/envs"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
@@ -26,6 +27,8 @@ func ActionHandler(c echo.Context) error {
 	switch action.Type {
 	case "import":
 		st, b = builds.Import(au, envName(c), action)
+	case "reset":
+		st, b = envs.Reset(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}

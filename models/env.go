@@ -7,7 +7,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/sirupsen/logrus"
@@ -121,42 +120,6 @@ func (s *Env) DeleteByName(name string) (err error) {
 	if err := NewBaseModel(s.getStore()).Delete(query); err != nil {
 		return err
 	}
-	return nil
-}
-
-// Reset : will reset the env status to errored
-func (s *Env) Reset() error {
-	var r map[string]interface{}
-
-	s.Status = "errored"
-	query := make(map[string]interface{})
-	query["id"] = s.ID
-	query["status"] = "errored"
-
-	data, err := json.Marshal(query)
-	if err != nil {
-		h.L.Error(err.Error())
-		return err
-	}
-
-	resp, err := N.Request("build.set.status", data, time.Second*5)
-	if err != nil {
-		h.L.Error(err.Error())
-		return err
-	}
-
-	err = json.Unmarshal(resp.Data, &r)
-	if err != nil {
-		h.L.Error(err.Error())
-		return err
-	}
-
-	if r["error"] != nil {
-		err = errors.New(r["error"].(string))
-		h.L.Error(err.Error())
-		return err
-	}
-
 	return nil
 }
 

@@ -46,18 +46,6 @@ func SearchEnvsHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
-// ResetEnvHandler : Respons to POST /envs/:env/reset/ and updates the
-// env status to errored from in_progress
-func ResetEnvHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "envs/reset")
-	if st == 200 {
-		st, b = envs.Reset(au, envName(c))
-	}
-
-	return h.Respond(c, st, b)
-}
-
 // CreateEnvHandler : Will receive a env application
 func CreateEnvHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
