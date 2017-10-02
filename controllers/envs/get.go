@@ -5,23 +5,19 @@
 package envs
 
 import (
+	"encoding/json"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
-	"github.com/ernestio/api-gateway/views"
 )
 
 // Get : responds to GET /services/:service with the
 // details of an existing service
 func Get(au models.User, name string) (int, []byte) {
-	var o views.BuildRender
 	var err error
 	var body []byte
 	var e models.Env
-	var r models.Role
-	var p models.Project
-	var roles []models.Role
 
 	if err = e.FindByName(name); err != nil {
 		h.L.Error(err.Error())
@@ -36,20 +32,7 @@ func Get(au models.User, name string) (int, []byte) {
 		return st, res
 	}
 
-	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
-		for _, v := range roles {
-			e.Roles = append(e.Roles, v.UserID+" ("+v.Role+")")
-		}
-	}
-
-	if err := p.FindByID(int(e.ProjectID)); err != nil {
-		return 404, []byte("Project not found")
-	}
-
-	e.Project = p.Name
-	e.Provider = p.Type
-
-	if body, err = o.ToJSON(); err != nil {
+	if body, err = json.Marshal(e); err != nil {
 		return 500, []byte(err.Error())
 	}
 
