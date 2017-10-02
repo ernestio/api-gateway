@@ -21,18 +21,11 @@ func mapInputBuild(c echo.Context) (definition definition.Definition, raw []byte
 	// Normalize input body to json
 	ctype := req.Header.Get("Content-Type")
 
-	if ctype != "application/json" && ctype != "application/yaml" {
+	if ctype != "application/yaml" {
 		return definition, raw, errors.New(`"Invalid input format"`)
 	}
 
-	if ctype == "application/yaml" {
-		raw, err = yaml.YAMLToJSON(raw)
-		if err != nil {
-			return definition, raw, errors.New(`"Invalid yaml input"`)
-		}
-	}
-
-	if err = json.Unmarshal(raw, &definition); err != nil {
+	if err = yaml.Unmarshal(raw, &definition); err != nil {
 		return definition, raw, errors.New(`"Invalid input"`)
 	}
 

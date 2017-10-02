@@ -16,9 +16,20 @@ import (
 // Create : Creates an environment build
 func Create(au models.User, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var e models.Env
+	var p models.Project
 	var m models.Mapping
 
-	err := e.FindByName(definition.FullName())
+	err := p.FindByName(definition.Project())
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, p.GetType(), p.Name); st != 200 {
+		return st, res
+	}
+
+	err = e.FindByName(definition.FullName())
 	if err != nil {
 		h.L.Error(err.Error())
 		return 404, []byte("Environment not found")
