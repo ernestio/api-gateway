@@ -76,7 +76,7 @@ func UpdateEnvHandler(c echo.Context) error {
 	b = []byte("Invalid input")
 	body, err := h.GetRequestBody(c)
 	if err == nil {
-		st, b = envs.Create(au, envName(c), body)
+		st, b = envs.Update(au, envName(c), body)
 	}
 
 	return h.Respond(c, st, b)
