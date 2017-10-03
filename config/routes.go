@@ -69,7 +69,7 @@ func setupAPI(e *echo.Echo) {
 
 	// Setup env routes
 	d.POST("/:project/envs/", controllers.CreateEnvHandler)
-	d.PUT("/:project/envs/:env/", controllers.UpdateEnvHandler)
+	d.PUT("/:project/envs/:env", controllers.UpdateEnvHandler)
 	d.GET("/:project/envs/:env", controllers.GetEnvHandler)
 	d.DELETE("/:project/envs/:env", controllers.DeleteEnvHandler)
 
