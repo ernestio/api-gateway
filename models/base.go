@@ -80,6 +80,7 @@ func (b *BaseModel) FindBy(query map[string]interface{}, o interface{}) (err err
 // Save : interface to call component.set on the specific store
 func (b *BaseModel) Save(o interface{}) (err error) {
 	var res []byte
+	var rm map[string]interface{}
 
 	data, err := json.Marshal(o)
 	if err != nil {
@@ -89,6 +90,12 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
 		return err
 	}
+
+	json.Unmarshal(res, rm)
+	if rm["error"] != nil {
+		return errors.New(rm["error"].(string))
+	}
+
 	if err := json.Unmarshal(res, &o); err != nil {
 		msg := "An internal error occurred saving component " + b.Type
 		h.L.WithFields(logrus.Fields{
