@@ -7,6 +7,7 @@ package envs
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -20,12 +21,11 @@ func Get(au models.User, name string) (int, []byte) {
 	var e models.Env
 
 	if err = e.FindByName(name); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return 404, []byte("Specified environment name does not exist")
+		}
 		h.L.Error(err.Error())
 		return 500, []byte("Internal error")
-	}
-
-	if e.ID == 0 {
-		return 404, []byte("Specified environment name does not exist")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), name); st != 200 {

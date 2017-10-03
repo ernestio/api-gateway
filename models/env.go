@@ -59,78 +59,54 @@ func (s *Env) Map(data []byte) error {
 
 // Find : Searches for all envs with filters
 func (s *Env) Find(query map[string]interface{}, envs *[]Env) (err error) {
-	if err := NewBaseModel(s.getStore()).FindBy(query, envs); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).FindBy(query, envs)
 }
 
 // FindByName : Searches for all envs with a name equal to the specified
 func (s *Env) FindByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel(s.getStore()).GetBy(query, s); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).GetBy(query, s)
 }
 
 // FindByID : Gets a model by its id
 func (s *Env) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	if err := NewBaseModel(s.getStore()).GetBy(query, s); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).GetBy(query, s)
 }
 
 // FindAll : Searches for all envs s on the store current user
 // has access to
 func (s *Env) FindAll(au User, envs *[]Env) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel(s.getStore()).FindBy(query, envs); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).FindBy(query, envs)
 }
 
 // Save : calls env.set with the marshalled
 func (s *Env) Save() (err error) {
-	if err := NewBaseModel(s.getStore()).Save(s); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).Save(s)
 }
 
 // Delete : will delete a env by its id
 func (s *Env) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = s.ID
-	if err := NewBaseModel(s.getStore()).Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).Delete(query)
 }
 
 // DeleteByName : will delete a env by its name
 func (s *Env) DeleteByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel(s.getStore()).Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).Delete(query)
 }
 
 // FindByProjectID : find a envs for the given project id
 func (s *Env) FindByProjectID(id int, envs *[]Env) (err error) {
 	query := make(map[string]interface{})
 	query["project_id"] = id
-	if err := NewBaseModel(s.getStore()).FindBy(query, envs); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(s.getStore()).FindBy(query, envs)
 }
 
 /*
