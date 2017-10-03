@@ -47,17 +47,23 @@ func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o int
 // CallStoreByRaw : ...
 func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, res *[]byte) (err error) {
 	var req []byte
+	var rm map[string]interface{}
+
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
 			return err
 		}
 	}
+
 	if *res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
 	}
-	if strings.Contains(string(*res), "record not found") {
-		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
+
+	json.Unmarshal(*res, rm)
+	if rm["error"] != nil {
+		return errors.New(rm["error"].(string))
 	}
+
 	return nil
 }
 
