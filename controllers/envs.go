@@ -66,12 +66,33 @@ func CreateEnvHandler(c echo.Context) error {
 
 // UpdateEnvHandler : Not implemented
 func UpdateEnvHandler(c echo.Context) error {
-	return genericUpdate(c, "envs", envs.Update)
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "envs/update")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
+
+	st = 500
+	b = []byte("Invalid input")
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		st, b = envs.Create(au, envName(c), body)
+	}
+
+	return h.Respond(c, st, b)
 }
 
 // DeleteEnvHandler : Deletes a env by name
 func DeleteEnvHandler(c echo.Context) error {
-	return genericDelete(c, "envs", builds.Delete)
+	au := AuthenticatedUser(c)
+	st, b := h.IsAuthorized(&au, "envs/delete")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
+
+	st, b = builds.Delete(au, envName(c))
+
+	return h.Respond(c, st, b)
 }
 
 // ForceEnvDeletionHandler : Deletes an env by name forcing it
