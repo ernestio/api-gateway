@@ -7,7 +7,6 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -47,7 +46,6 @@ func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o int
 // CallStoreByRaw : ...
 func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, res *[]byte) (err error) {
 	var req []byte
-	var rm map[string]interface{}
 
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
@@ -57,11 +55,6 @@ func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, re
 
 	if *res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
-	}
-
-	json.Unmarshal(*res, rm)
-	if rm["error"] != nil {
-		return errors.New(rm["error"].(string))
 	}
 
 	return nil
@@ -80,7 +73,6 @@ func (b *BaseModel) FindBy(query map[string]interface{}, o interface{}) (err err
 // Save : interface to call component.set on the specific store
 func (b *BaseModel) Save(o interface{}) (err error) {
 	var res []byte
-	var rm map[string]interface{}
 
 	data, err := json.Marshal(o)
 	if err != nil {
@@ -89,11 +81,6 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
 		return err
-	}
-
-	json.Unmarshal(res, rm)
-	if rm["error"] != nil {
-		return errors.New(rm["error"].(string))
 	}
 
 	if err := json.Unmarshal(res, &o); err != nil {
@@ -110,18 +97,14 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 
 // Delete : interface to call component.del on the specific store
 func (b *BaseModel) Delete(query map[string]interface{}) (err error) {
-	var res []byte
 	var req []byte
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
 			return err
 		}
 	}
-	if res, err = b.Query(b.Type+".del", string(req)); err != nil {
+	if _, err = b.Query(b.Type+".del", string(req)); err != nil {
 		return err
-	}
-	if strings.Contains(string(res), `"error"`) {
-		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
 
 	return nil

@@ -62,10 +62,7 @@ func (b *Build) Map(data []byte) error {
 
 // Find : Searches for all builds with filters
 func (b *Build) Find(query map[string]interface{}, builds *[]Build) (err error) {
-	if err := NewBaseModel(b.getStore()).FindBy(query, builds); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(b.getStore()).FindBy(query, builds)
 }
 
 // FindLastByName : Searches for all environments with a name equal to the specified
@@ -79,11 +76,7 @@ func (b *Build) FindLastByName(env string) (err error) {
 
 	query := make(map[string]interface{})
 	query["environment_id"] = e.ID
-	if err = NewBaseModel(b.getStore()).GetBy(query, b); err != nil {
-		return
-	}
-
-	return
+	return NewBaseModel(b.getStore()).GetBy(query, b)
 }
 
 // FindByName : Searches for all builds with by env name
@@ -97,49 +90,34 @@ func (b *Build) FindByName(env string) (builds []Build, err error) {
 
 	query := make(map[string]interface{})
 	query["environment_id"] = e.ID
-	if err = NewBaseModel(b.getStore()).FindBy(query, &builds); err != nil {
-		return
-	}
 
-	return
+	return builds, NewBaseModel(b.getStore()).FindBy(query, &builds)
 }
 
 // FindByID : Gets a model by its id
 func (b *Build) FindByID(id string) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	if err := NewBaseModel(b.getStore()).GetBy(query, b); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(b.getStore()).GetBy(query, b)
 }
 
 // FindAll : Searches for all builds on the store current user
 // has access to
 func (b *Build) FindAll(au User, builds *[]Build) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel(b.getStore()).FindBy(query, builds); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(b.getStore()).FindBy(query, builds)
 }
 
 // Save : calls build.set with the marshalled
 func (b *Build) Save() (err error) {
-	if err := NewBaseModel(b.getStore()).Save(b); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(b.getStore()).Save(b)
 }
 
 // Delete : will delete a builds by its id
 func (b *Build) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = b.ID
-	if err := NewBaseModel(b.getStore()).Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(b.getStore()).Delete(query)
 }
 
 // GetMapping : will get a builds mapping
@@ -165,12 +143,7 @@ func (b *Build) GetDefinition() ([]byte, error) {
 	query := make(map[string]interface{})
 	query["id"] = b.ID
 
-	err := NewBaseModel(b.getStore()).CallStoreByRaw("get.definition", query, &def)
-	if err != nil {
-		return nil, err
-	}
-
-	return def, nil
+	return def, NewBaseModel(b.getStore()).CallStoreByRaw("get.definition", query, &def)
 }
 
 // Reset : will reset the builds status to errored
@@ -220,11 +193,8 @@ func (b *Build) FindByEnvironmentName(name string, builds *[]Build) (err error) 
 
 	query := make(map[string]interface{})
 	query["environment_id"] = e.ID
-	if err := NewBaseModel(b.getStore()).FindBy(query, builds); err != nil {
-		return err
-	}
 
-	return nil
+	return NewBaseModel(b.getStore()).FindBy(query, builds)
 }
 
 // RequestCreation : calls env.create with the given raw message
