@@ -6,62 +6,51 @@ package views
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
-	"log"
-
 	"github.com/ernestio/api-gateway/models"
-
-	graph "gopkg.in/r3labs/graph.v2"
+	"github.com/r3labs/graph"
 )
 
-// ServiceRender : Service representation to be rendered on the frontend
-type ServiceRender struct {
+// BuildRender : Build representation to be rendered on the frontend
+type BuildRender struct {
 	ID              string              `json:"id"`
-	DatacenterID    int                 `json:"datacenter_id"`
+	EnvironmentID   int                 `json:"environment_id"`
+	Name            string              `json:"name"`
 	Project         string              `json:"project"`
 	Provider        string              `json:"provider"`
-	Name            string              `json:"name"`
-	Version         string              `json:"version"`
 	Status          string              `json:"status"`
 	UserID          int                 `json:"user_id"`
 	UserName        string              `json:"user_name"`
-	LastKnownError  string              `json:"last_known_error"`
-	Options         string              `json:"options"`
-	Definition      string              `json:"definition"`
-	Vpcs            []map[string]string `json:"vpcs"`
-	Networks        []map[string]string `json:"networks"`
-	Instances       []map[string]string `json:"instances"`
-	Nats            []map[string]string `json:"nats"`
-	SecurityGroups  []map[string]string `json:"security_groups"`
-	Elbs            []map[string]string `json:"elbs"`
-	RDSClusters     []map[string]string `json:"rds_clusters"`
-	RDSInstances    []map[string]string `json:"rds_instances"`
-	EBSVolumes      []map[string]string `json:"ebs_volumes"`
-	LoadBalancers   []map[string]string `json:"load_balancers"`
-	SQLDatabases    []map[string]string `json:"sql_databases"`
-	VirtualMachines []map[string]string `json:"virtual_machines"`
+	CreatedAt       string              `json:"created_at"`
+	UpdatedAt       string              `json:"updated_at"`
+	Vpcs            []map[string]string `json:"vpcs,omitempty"`
+	Networks        []map[string]string `json:"networks,omitempty"`
+	Instances       []map[string]string `json:"instances,omitempty"`
+	Nats            []map[string]string `json:"nats,omitempty"`
+	SecurityGroups  []map[string]string `json:"security_groups,omitempty"`
+	Elbs            []map[string]string `json:"elbs,omitempty"`
+	RDSClusters     []map[string]string `json:"rds_clusters,omitempty"`
+	RDSInstances    []map[string]string `json:"rds_instances,omitempty"`
+	EBSVolumes      []map[string]string `json:"ebs_volumes,omitempty"`
+	LoadBalancers   []map[string]string `json:"load_balancers,omitempty"`
+	SQLDatabases    []map[string]string `json:"sql_databases,omitempty"`
+	VirtualMachines []map[string]string `json:"virtual_machines,omitempty"`
 	Roles           []string            `json:"roles"`
 }
 
-// Render : Map a Service to a ServiceRender
-func (o *ServiceRender) Render(s models.Env) (err error) {
-	o.Name = s.Name
-	parts := strings.Split(o.Name, models.EnvNameSeparator)
-	if len(parts) > 1 {
-		o.Name = parts[1]
-	}
-	o.ID = s.ID
-	o.DatacenterID = s.DatacenterID
-	o.Version = s.Version.String()
-	o.Status = s.Status
-	o.UserID = s.UserID
-	o.UserName = s.UserName
-	if def, ok := s.Definition.(string); ok == true {
-		o.Definition = def
-	}
+// Render : Map a Build to a BuildRender
+func (o *BuildRender) Render(b models.Build) (err error) {
+	o.ID = b.ID
+	o.EnvironmentID = b.EnvironmentID
+	o.CreatedAt = b.CreatedAt.String()
+	o.UpdatedAt = b.UpdatedAt.String()
+	o.Status = b.Status
+	o.UserID = b.UserID
+	o.UserName = b.Username
 
-	g, err := s.Mapping()
+	g, err := b.GetMapping()
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -79,14 +68,11 @@ func (o *ServiceRender) Render(s models.Env) (err error) {
 	o.LoadBalancers = RenderLoadBalancers(g)
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
-	o.Roles = s.Roles
-	o.Project = s.Project
-	o.Provider = s.Provider
 
 	return err
 }
 
-// RenderVpcs : renders a services vpcs
+// RenderVpcs : renders a builds vpcs
 func RenderVpcs(g *graph.Graph) []map[string]string {
 	var vpcs []map[string]string
 
@@ -94,7 +80,7 @@ func RenderVpcs(g *graph.Graph) []map[string]string {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["vpc_aws_id"].(string)
-		subnet, _ := (*gc)["vpc_subnet"].(string)
+		subnet, _ := (*gc)["subnet"].(string)
 		vpcs = append(vpcs, map[string]string{
 			"name":       name,
 			"vpc_id":     id,
@@ -105,7 +91,7 @@ func RenderVpcs(g *graph.Graph) []map[string]string {
 	return vpcs
 }
 
-// RenderNetworks : renders a services networks
+// RenderNetworks : renders a builds networks
 func RenderNetworks(g *graph.Graph) []map[string]string {
 	var networks []map[string]string
 
@@ -124,7 +110,7 @@ func RenderNetworks(g *graph.Graph) []map[string]string {
 	return networks
 }
 
-// RenderSecurityGroups : renders a services security groups
+// RenderSecurityGroups : renders a builds security groups
 func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 	var sgs []map[string]string
 
@@ -141,7 +127,7 @@ func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 	return sgs
 }
 
-// RenderNats : renders a services nat gateways
+// RenderNats : renders a builds nat gateways
 func RenderNats(g *graph.Graph) []map[string]string {
 	var nats []map[string]string
 
@@ -160,7 +146,7 @@ func RenderNats(g *graph.Graph) []map[string]string {
 	return nats
 }
 
-// RenderELBs : renders a services elbs
+// RenderELBs : renders a builds elbs
 func RenderELBs(g *graph.Graph) []map[string]string {
 	var elbs []map[string]string
 
@@ -177,7 +163,7 @@ func RenderELBs(g *graph.Graph) []map[string]string {
 	return elbs
 }
 
-// RenderInstances : renders a services instances
+// RenderInstances : renders a builds instances
 func RenderInstances(g *graph.Graph) []map[string]string {
 	var instances []map[string]string
 
@@ -198,7 +184,7 @@ func RenderInstances(g *graph.Graph) []map[string]string {
 	return instances
 }
 
-// RenderRDSClusters : renders a services rds clusters
+// RenderRDSClusters : renders a builds rds clusters
 func RenderRDSClusters(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 
@@ -215,7 +201,7 @@ func RenderRDSClusters(g *graph.Graph) []map[string]string {
 	return rdss
 }
 
-// RenderRDSInstances : renders a services rds instances
+// RenderRDSInstances : renders a builds rds instances
 func RenderRDSInstances(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 
@@ -232,7 +218,7 @@ func RenderRDSInstances(g *graph.Graph) []map[string]string {
 	return rdss
 }
 
-// RenderEBSVolumes : renders a services ebs volumes
+// RenderEBSVolumes : renders a builds ebs volumes
 func RenderEBSVolumes(g *graph.Graph) []map[string]string {
 	var rdss []map[string]string
 
@@ -373,11 +359,11 @@ func renderResources(g *graph.Graph, resourceType string, f convert) (resources 
 	return
 }
 
-// RenderCollection : Maps a collection of Service on a collection of ServiceRender
-func (o *ServiceRender) RenderCollection(services []models.Env) (list []ServiceRender, err error) {
-	for _, s := range services {
-		var output ServiceRender
-		if err := output.Render(s); err == nil {
+// RenderCollection : Maps a collection of Builds on a collection of BuildRender
+func (o *BuildRender) RenderCollection(builds []models.Build) (list []BuildRender, err error) {
+	for _, b := range builds {
+		var output BuildRender
+		if err := output.Render(b); err == nil {
 			list = append(list, output)
 		}
 	}
@@ -386,17 +372,17 @@ func (o *ServiceRender) RenderCollection(services []models.Env) (list []ServiceR
 }
 
 // ToJSON : Converts a ServiceRender to json string
-func (o *ServiceRender) ToJSON() ([]byte, error) {
+func (o *BuildRender) ToJSON() ([]byte, error) {
 	return json.Marshal(o)
 }
 
-// RenderDefinition : renders service defiition steps
-func RenderDefinition(service map[string]interface{}) (result []byte, err error) {
+// RenderDefinition : renders build definition steps
+func RenderDefinition(mapping map[string]interface{}) (result []byte, err error) {
 	var lines []string
 	var actions = map[string]string{"create": "Create", "update": "Update", "delete": "Delete"}
 
-	if service["changes"] != nil {
-		for _, change := range service["changes"].([]interface{}) {
+	if mapping["changes"] != nil {
+		for _, change := range mapping["changes"].([]interface{}) {
 			component := change.(map[string]interface{})
 			c := component["_component"].(string)
 			c = strings.Replace(c, "_", " ", -1)

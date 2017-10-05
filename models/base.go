@@ -7,16 +7,15 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/nats-io/nats"
+	"github.com/r3labs/akira"
 	"github.com/sirupsen/logrus"
 )
 
 // N : Nats connection
-var N *nats.Conn
+var N akira.Connector
 
 // BaseModel : Abstraction layer to interact with data stores
 type BaseModel struct {
@@ -31,17 +30,31 @@ func NewBaseModel(t string) *BaseModel {
 // CallStoreBy : ...
 func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o interface{}) (err error) {
 	var res []byte
+
+	err = b.CallStoreByRaw(verb, query, &res)
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(res, &o); err != nil {
+		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
+	}
+
+	return nil
+}
+
+// CallStoreByRaw : ...
+func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, res *[]byte) (err error) {
 	var req []byte
+
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
 			return err
 		}
 	}
-	if res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
+
+	if *res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
-	}
-	if err = json.Unmarshal(res, &o); err != nil {
-		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
 
 	return nil
@@ -69,6 +82,7 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 	if res, err = b.Query(b.Type+".set", string(data)); err != nil {
 		return err
 	}
+
 	if err := json.Unmarshal(res, &o); err != nil {
 		msg := "An internal error occurred saving component " + b.Type
 		h.L.WithFields(logrus.Fields{
@@ -83,18 +97,14 @@ func (b *BaseModel) Save(o interface{}) (err error) {
 
 // Delete : interface to call component.del on the specific store
 func (b *BaseModel) Delete(query map[string]interface{}) (err error) {
-	var res []byte
 	var req []byte
 	if len(query) > 0 {
 		if req, err = json.Marshal(query); err != nil {
 			return err
 		}
 	}
-	if res, err = b.Query(b.Type+".del", string(req)); err != nil {
+	if _, err = b.Query(b.Type+".del", string(req)); err != nil {
 		return err
-	}
-	if strings.Contains(string(res), `"error"`) {
-		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
 
 	return nil

@@ -8,11 +8,11 @@ import (
 )
 
 // List : ...
-func List(datacenter, service, component string) (int, []byte) {
+func List(project, service, component string) (int, []byte) {
 	var body []byte
-	var d models.Project
+	var p models.Project
 
-	if err := d.FindByName(datacenter, &d); err != nil {
+	if err := p.FindByName(project); err != nil {
 		return 404, []byte("Datacenter not found")
 	}
 
@@ -21,7 +21,7 @@ func List(datacenter, service, component string) (int, []byte) {
 		tags["ernest.service"] = service
 	}
 	aws := models.AWSComponent{
-		Datacenter: &d,
+		Datacenter: &p,
 		Name:       component,
 		Tags:       tags,
 	}

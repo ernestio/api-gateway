@@ -1,12 +1,10 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
-import (
-	"encoding/json"
-	"net/http"
-
-	h "github.com/ernestio/api-gateway/helpers"
-	"github.com/ernestio/api-gateway/models"
-)
+/*
 
 // Sync : Respons to POST /services/:service/sync/ and synchronizes a service with
 // its provider representation
@@ -41,3 +39,4 @@ func Sync(au models.User, name string) (int, []byte) {
 
 	return http.StatusOK, []byte("....")
 }
+*/

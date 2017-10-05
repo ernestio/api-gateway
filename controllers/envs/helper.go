@@ -1,8 +1,13 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nu7hatch/gouuid"
@@ -34,4 +39,9 @@ func generateEnvID(salt string) string {
 	id, _ := uuid.NewV4()
 
 	return id.String()
+}
+
+func getProjectEnv(name string) (string, string) {
+	p := strings.Split(name, models.EnvNameSeparator)
+	return p[0], p[1]
 }

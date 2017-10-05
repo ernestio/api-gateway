@@ -66,17 +66,24 @@ func setupAPI(e *echo.Echo) {
 	d.POST("/", controllers.CreateDatacenterHandler)
 	d.PUT("/:project", controllers.UpdateDatacenterHandler)
 	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
+
+	// Setup env routes
 	d.POST("/:project/envs/", controllers.CreateEnvHandler)
-	d.PUT("/:project/envs/:env/", controllers.UpdateEnvHandler)
+	d.PUT("/:project/envs/:env", controllers.UpdateEnvHandler)
 	d.GET("/:project/envs/:env", controllers.GetEnvHandler)
 	d.DELETE("/:project/envs/:env", controllers.DeleteEnvHandler)
-	d.GET("/:project/envs/:env/builds/", controllers.GetEnvBuildsHandler)
-	d.POST("/:project/envs/:env/builds/", controllers.CreateEnvHandler)
-	d.GET("/:project/envs/:env/builds/:build", controllers.GetEnvBuildHandler)
-	d.POST("/:project/envs/:env/actions/import/", controllers.CreateEnvHandler)
-	d.DELETE("/:project/envs/:env/builds/:build/", controllers.DelEnvBuildHandler)
-	d.POST("/:project/envs/:env/actions/sync/", controllers.SyncEnvHandler)
-	d.POST("/:project/envs/:env/actions/reset/", controllers.ResetEnvHandler)
+
+	// Setup build routes
+	d.GET("/:project/envs/:env/builds/", controllers.GetBuildsHandler)
+	d.POST("/:project/envs/:env/builds/", controllers.CreateBuildHandler)
+	d.GET("/:project/envs/:env/builds/:build", controllers.GetBuildHandler)
+	d.GET("/:project/envs/:env/builds/:build/mapping/", controllers.GetBuildMappingHandler)
+	d.GET("/:project/envs/:env/builds/:build/definition/", controllers.GetBuildDefinitionHandler)
+	d.POST("/:project/envs/:env/actions/", controllers.ActionHandler)
+
+	// Setup env action routes
+	//d.POST("/:project/envs/:env/actions/sync/", controllers.SyncEnvHandler)
+	//d.POST("/:project/envs/:env/actions/reset/", controllers.ResetEnvHandler)
 	d.DELETE("/:project/envs/:env/actions/force/", controllers.ForceEnvDeletionHandler)
 
 	// Setup service routes

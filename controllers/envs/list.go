@@ -1,9 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -12,9 +15,7 @@ import (
 // List : responds to GET /services/ with a list of all
 // services for current user group
 func List(au models.User) (int, []byte) {
-	var list []models.Env
 	var body []byte
-	var user models.User
 
 	query := make(map[string]interface{}, 0)
 	envs, err := au.EnvsBy(query)
@@ -23,33 +24,11 @@ func List(au models.User) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
-	for _, s := range envs {
-		exists := false
-		for i, e := range list {
-			if e.Name == s.Name {
-				if e.Version.Before(s.Version) {
-					list[i] = s
-				}
-				exists = true
-			}
-		}
-		if exists == false {
-			for id, name := range user.FindAllKeyValue() {
-				if id == s.UserID {
-					s.UserName = name
-				}
-			}
-			list = append(list, s)
-		}
+	for i := range envs {
+		envs[i].Project, envs[i].Name = getProjectEnv(envs[i].Name)
 	}
 
-	for i := range list {
-		nameParts := strings.Split(list[i].Name, models.EnvNameSeparator)
-		list[i].Name = nameParts[1]
-		list[i].Project = nameParts[0]
-	}
-
-	body, err = json.Marshal(list)
+	body, err = json.Marshal(envs)
 	if err != nil {
 		return 500, []byte("Internal error")
 	}

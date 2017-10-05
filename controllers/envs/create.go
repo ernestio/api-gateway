@@ -1,187 +1,65 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 package envs
 
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
-	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
-	"github.com/ernestio/api-gateway/views"
 )
 
-// ServicePayload : payload to be sent to workflow manager
-type ServicePayload struct {
-	ID         string           `json:"id"`
-	PrevID     string           `json:"previous_id"`
-	Datacenter *json.RawMessage `json:"datacenter"`
-	Group      *json.RawMessage `json:"client"`
-	Service    *json.RawMessage `json:"service"`
-}
-
-// Create : Will receive a service application
-func Create(au models.User, s models.ServiceInput, definition, body []byte, isAnImport bool, dry string) (int, []byte) {
+// Create : responds to POST /projects/ by creating a
+// project on the data store
+func Create(au models.User, project string, body []byte) (int, []byte) {
 	var err error
-	var group []byte
-	var previous models.Env
-	var mapping map[string]interface{}
-	var prevID string
+	var e models.Env
+	var p models.Project
+	var existing models.Env
 
-	dt := models.Project{
-		Credentials: make(map[string]interface{}),
+	if e.Map(body) != nil {
+		return 400, []byte("Input is not valid")
 	}
 
-	// *********** VALIDATIONS *********** //
-
-	if parts := strings.Split(s.Name, models.EnvNameSeparator); len(parts) > 2 {
-		return 400, []byte("Environment name does not support char '" + models.EnvNameSeparator + "' as part of its name")
-	}
-
-	// Get datacenter
-	if err = dt.FindByName(s.Datacenter, &dt); err != nil {
-		h.L.Error(err.Error())
-		return 400, []byte("Specified project does not exist")
-	}
-
-	var currentUser models.User
-	if err := currentUser.FindByUserName(au.Username, &currentUser); err != nil {
+	err = e.Validate()
+	if err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
 
-	// Get previous env if exists
-	previous, _ = previous.FindLastByName(s.Name)
-	if &previous != nil {
-		prevID = previous.ID
-		if previous.Status == "in_progress" {
-			h.L.Error("Environment is still in progress")
-			return http.StatusNotFound, []byte(`"Your environment process is 'in progress' if your're sure you want to fix it please reset it first"`)
-		}
-	}
-	if prevID == "" {
-		if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, dt.GetType(), s.Datacenter); st != 200 {
-			return st, res
-		}
-	} else {
-		if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, previous.GetType(), s.Name); st != 200 {
-			return st, res
-		}
-	}
-
-	// *********** OVERRIDE PROJECT CREDENTIALS ************ //
-	pcredentials := models.Project{
-		Credentials: make(map[string]interface{}),
-	}
-
-	if &previous != nil {
-		if previous.Credentials != nil {
-			prevDT := models.Project{
-				Credentials: previous.Credentials,
-			}
-			pcredentials.Override(prevDT)
-		}
-	}
-
-	if s.Credentials != nil {
-		newDT := models.Project{
-			Credentials: s.Credentials,
-		}
-
-		newDT.Encrypt()
-		pcredentials.Override(newDT)
-	}
-
-	dt.Override(pcredentials)
-	rawDatacenter, err := json.Marshal(dt)
+	err = p.FindByName(project)
 	if err != nil {
+		return 404, []byte("Specified project does not exist")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, p.GetType(), p.Name); st != 200 {
+		return st, res
+	}
+
+	e.Name = project + models.EnvNameSeparator + e.Name
+	if err := existing.FindByName(e.Name); err == nil {
+		return 409, []byte("Specified environment already exists")
+	}
+
+	e.ProjectID = p.ID
+	e.Type = p.Type
+
+	if err = e.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error trying to get the project")
-	}
-
-	// *********** REQUESTING DEFINITION ************ //
-
-	payload := ServicePayload{
-		ID:         generateEnvID(s.Name + "-" + s.Datacenter),
-		PrevID:     prevID,
-		Service:    (*json.RawMessage)(&body),
-		Datacenter: (*json.RawMessage)(&rawDatacenter),
-		Group:      (*json.RawMessage)(&group),
-	}
-
-	if body, err = json.Marshal(payload); err != nil {
 		return 500, []byte("Internal server error")
 	}
-	var def models.Definition
-	if isAnImport == true {
-		if dt.IsAzure() && len(s.Filters) == 0 {
-			errMsg := []byte("Azure imports require filters to be set")
-			h.L.Error(errMsg)
-			return 400, []byte(errMsg)
-		}
-		mapping, err = def.MapImport(body)
-	} else {
-		mapping, err = def.MapCreation(body)
+
+	if err := au.SetOwner(&e); err != nil {
+		return 500, []byte("Internal server error")
 	}
 
-	if err != nil {
+	if body, err = json.Marshal(e); err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte(err.Error())
+		return 500, []byte("Internal server error")
 	}
 
-	// *********** BUILD REQUEST IF IS DRY *********** //
-
-	if dry == "true" {
-		res, err := views.RenderDefinition(mapping)
-		if err != nil {
-			h.L.Error(err.Error())
-			return 400, []byte("Internal error")
-		}
-		return http.StatusOK, res
-	}
-
-	d := string(definition)
-	if defParts := strings.Split(d, "credentials:"); len(defParts) > 0 {
-		d = defParts[0]
-	}
-
-	// *********** SAVE NEW ENV AND PROCESS CREATION / IMPORT *********** //
-	ss := models.Env{
-		ID:           payload.ID,
-		Name:         s.Name,
-		Type:         dt.Type,
-		UserID:       currentUser.ID,
-		DatacenterID: dt.ID,
-		Version:      time.Now(),
-		Status:       "in_progress",
-		Definition:   d,
-		Mapped:       mapping,
-		Credentials:  pcredentials.Credentials,
-	}
-
-	if err := ss.Save(); err != nil {
-		return 500, []byte(err.Error())
-	}
-
-	if prevID == "" {
-		if err := au.SetOwner(&ss); err != nil {
-			return 500, []byte("Internal server error")
-		}
-	}
-
-	// Apply changes
-	if isAnImport == true {
-		err = ss.RequestImport(mapping)
-	} else {
-		err = ss.RequestCreation(mapping)
-	}
-
-	if err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte(err.Error())
-	}
-
-	parts := strings.Split(s.Name, "/")
-
-	return http.StatusOK, []byte(`{"id":"` + payload.ID + `", "project": "` + parts[0] + `",  "name":"` + parts[1] + `"}`)
+	return http.StatusOK, body
 }
