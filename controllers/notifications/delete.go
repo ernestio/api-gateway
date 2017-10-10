@@ -10,14 +10,14 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Delete : responds to DELETE /notifications/:id: by deleting an
+// Delete : responds to DELETE /notifications/:name: by deleting an
 // existing notification
-func Delete(au models.User, id string) (int, []byte) {
+func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var existing models.Notification
 
-	if err = existing.FindByID(id, &existing); err != nil {
-		return 500, []byte("Internal server error")
+	if err = existing.FindByName(name, &existing); err != nil {
+		return 404, []byte("Not found")
 	}
 
 	if err := existing.Delete(); err != nil {

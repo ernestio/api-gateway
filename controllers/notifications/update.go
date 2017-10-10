@@ -13,7 +13,7 @@ import (
 )
 
 // Update : ...
-func Update(au models.User, id string, body []byte) (int, []byte) {
+func Update(au models.User, name string, body []byte) (int, []byte) {
 	var err error
 	var d models.Notification
 	var existing models.Notification
@@ -22,8 +22,8 @@ func Update(au models.User, id string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte("Invalid input")
 	}
 
-	if err = existing.FindByID(id, &existing); err != nil {
-		return 500, []byte("Internal server error")
+	if err = existing.FindByName(name, &existing); err != nil {
+		return 404, []byte("Not found")
 	}
 
 	existing.Config = d.Config
