@@ -28,7 +28,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return st, res
 	}
 
-	err = m.Apply(definition)
+	err = m.Apply(definition, au)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the environment"`)

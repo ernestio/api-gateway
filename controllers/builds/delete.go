@@ -26,7 +26,7 @@ func Delete(au models.User, name string) (int, []byte) {
 		return st, res
 	}
 
-	err = m.Delete(name)
+	err = m.Delete(name, au)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the environment"`)

@@ -15,10 +15,13 @@ import (
 type Mapping map[string]interface{}
 
 // Apply : apply a definition
-func (m *Mapping) Apply(d *definition.Definition) error {
+func (m *Mapping) Apply(d *definition.Definition, au User) error {
 	var err error
 
 	mr := mapping.New(N, d.FullName())
+	mr.UserID = au.ID
+	mr.Username = au.Username
+
 	err = mr.Apply(d)
 	if err != nil {
 		return err
@@ -30,10 +33,13 @@ func (m *Mapping) Apply(d *definition.Definition) error {
 }
 
 // Delete : get mapping for deleting an environment
-func (m *Mapping) Delete(env string) error {
+func (m *Mapping) Delete(env string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
+	mr.UserID = au.ID
+	mr.Username = au.Username
+
 	err = mr.Delete()
 	if err != nil {
 		return err
@@ -45,10 +51,13 @@ func (m *Mapping) Delete(env string) error {
 }
 
 // Import : get mapping for importing an environment
-func (m *Mapping) Import(env string, filters []string) error {
+func (m *Mapping) Import(env string, filters []string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
+	mr.UserID = au.ID
+	mr.Username = au.Username
+
 	err = mr.Import(filters)
 	if err != nil {
 		return err

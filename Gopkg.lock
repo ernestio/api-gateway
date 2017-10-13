@@ -29,7 +29,7 @@
   branch = "master"
   name = "github.com/ernestio/mapping"
   packages = [".","build","definition","environment","project","query"]
-  revision = "4b9ca387b980889ce810fc68fa1c1cfc3ff6ee23"
+  revision = "0529598610692d316d8d6d1e60537899aa2536d3"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
