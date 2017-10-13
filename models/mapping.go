@@ -19,13 +19,13 @@ func (m *Mapping) Apply(d *definition.Definition, au User) error {
 	var err error
 
 	mr := mapping.New(N, d.FullName())
-	mr.UserID = au.ID
-	mr.Username = au.Username
-
 	err = mr.Apply(d)
 	if err != nil {
 		return err
 	}
+
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
 
 	*m = mr.Result
 
@@ -37,13 +37,13 @@ func (m *Mapping) Delete(env string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
-	mr.UserID = au.ID
-	mr.Username = au.Username
-
 	err = mr.Delete()
 	if err != nil {
 		return err
 	}
+
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
 
 	*m = mr.Result
 
@@ -55,13 +55,13 @@ func (m *Mapping) Import(env string, filters []string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
-	mr.UserID = au.ID
-	mr.Username = au.Username
-
 	err = mr.Import(filters)
 	if err != nil {
 		return err
 	}
+
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
 
 	*m = mr.Result
 
