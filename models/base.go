@@ -37,6 +37,7 @@ func (b *BaseModel) CallStoreBy(verb string, query map[string]interface{}, o int
 	}
 
 	if err = json.Unmarshal(res, &o); err != nil {
+		h.L.Error(err.Error())
 		return errors.New(`"Specified ` + b.Type + ` does not exist"`)
 	}
 

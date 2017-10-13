@@ -96,7 +96,7 @@ func getDatacenterSubscriber(max int) {
 		log.Println(err)
 	}
 
-	foundSubscriber("service.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
+	foundSubscriber("environment.find", `[{"id":"1","name":"fake/test","datacenter_id":1},{"id":"2","name":"fake/test","datacenter_id":2}]`, 1)
 
 	time.Sleep(2 * time.Second)
 }
