@@ -44,7 +44,7 @@ func Delete(au models.User, name string) (int, []byte) {
 	err = b.Save()
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't create the deletion build"`)
+		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
 	}
 
 	if err := b.RequestDeletion(&m); err != nil {
