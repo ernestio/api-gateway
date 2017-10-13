@@ -15,7 +15,7 @@ import (
 type Mapping map[string]interface{}
 
 // Apply : apply a definition
-func (m *Mapping) Apply(d *definition.Definition) error {
+func (m *Mapping) Apply(d *definition.Definition, au User) error {
 	var err error
 
 	mr := mapping.New(N, d.FullName())
@@ -24,13 +24,16 @@ func (m *Mapping) Apply(d *definition.Definition) error {
 		return err
 	}
 
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
+
 	*m = mr.Result
 
 	return nil
 }
 
 // Delete : get mapping for deleting an environment
-func (m *Mapping) Delete(env string) error {
+func (m *Mapping) Delete(env string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
@@ -39,13 +42,16 @@ func (m *Mapping) Delete(env string) error {
 		return err
 	}
 
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
+
 	*m = mr.Result
 
 	return nil
 }
 
 // Import : get mapping for importing an environment
-func (m *Mapping) Import(env string, filters []string) error {
+func (m *Mapping) Import(env string, filters []string, au User) error {
 	var err error
 
 	mr := mapping.New(N, env)
@@ -53,6 +59,9 @@ func (m *Mapping) Import(env string, filters []string) error {
 	if err != nil {
 		return err
 	}
+
+	mr.Result["user_id"] = au.ID
+	mr.Result["username"] = au.Username
 
 	*m = mr.Result
 

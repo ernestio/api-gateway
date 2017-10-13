@@ -27,7 +27,7 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 		return st, res
 	}
 
-	err = m.Import(env, action.Options.Filters)
+	err = m.Import(env, action.Options.Filters, au)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the import build"`)
