@@ -7,7 +7,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"time"
 
 	"github.com/ernestio/api-gateway/models"
 	"github.com/nats-io/nats"
@@ -16,35 +15,29 @@ import (
 var (
 	mockServices = []models.Env{
 		models.Env{
-			ID:           "1",
-			Name:         "fake-test",
-			DatacenterID: 1,
-			Version:      time.Now(),
+			ID:   1,
+			Name: "fake-test",
 		},
 		models.Env{
-			ID:           "3",
-			Name:         "fake-test",
-			DatacenterID: 1,
-			Version:      time.Now(),
+			ID:   3,
+			Name: "fake-test",
 		},
 		models.Env{
-			ID:           "2",
-			Name:         "fake-test2",
-			DatacenterID: 3,
-			Version:      time.Now(),
+			ID:   2,
+			Name: "fake-test2",
 		},
 	}
 )
 
 func findServiceSolo() {
-	sub, _ := models.N.Subscribe("service.find", func(msg *nats.Msg) {
+	sub, _ := models.N.Subscribe("environment.find", func(msg *nats.Msg) {
 		var s []models.Env
 		var qs models.Env
 		if err := json.Unmarshal(msg.Data, &qs); err != nil {
 			log.Println(err)
 		}
 
-		if qs.Name == "" && qs.ID == "" {
+		if qs.Name == "" && qs.ID == 0 {
 			data, _ := json.Marshal(mockServices)
 			if err := models.N.Publish(msg.Reply, data); err != nil {
 				log.Println(err)
@@ -53,8 +46,7 @@ func findServiceSolo() {
 		}
 
 		for _, service := range mockServices {
-			if service.Name == qs.Name ||
-				service.Name == qs.Name && service.Version == qs.Version {
+			if service.Name == qs.Name {
 				s = append(s, service)
 			}
 		}
@@ -82,13 +74,13 @@ func findService() {
 }
 
 func createServiceSubscriber() {
-	_, _ = models.N.Subscribe("service.set", func(msg *nats.Msg) {
+	_, _ = models.N.Subscribe("environment.set", func(msg *nats.Msg) {
 		var s models.Env
 
 		if err := json.Unmarshal(msg.Data, &s); err != nil {
 			log.Println(err)
 		}
-		s.ID = "3"
+		s.ID = 3
 		data, _ := json.Marshal(s)
 
 		if err := models.N.Publish(msg.Reply, data); err != nil {

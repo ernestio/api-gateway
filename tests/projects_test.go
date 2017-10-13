@@ -135,8 +135,7 @@ func TestDeleteProject(t *testing.T) {
 			findServiceSolo()
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
-				res := `[{"resource_id":"1","role":"owner"}]`
-				foundSubscriber("authorization.find", res, 1)
+				foundSubscriber("authorization.find", `[{"resource_id":"1","role":"owner"}]`, 1)
 				ft := models.User{ID: 1, Username: "test", Admin: false}
 				st, resp := projects.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {

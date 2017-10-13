@@ -22,7 +22,7 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 
 	if err := b.FindByEnvironmentName(name, &builds); err != nil {
 		h.L.Warning(err.Error())
-		return 500, []byte("Internal Error")
+		return 500, []byte("Internal Error (A)")
 	}
 
 	if len(builds) == 0 {
@@ -30,12 +30,13 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 	}
 
 	if builds[0].Status != "in_progress" {
-		return 200, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + e.Status)
+		println("IN")
+		return 200, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + builds[0].Status)
 	}
 
 	if err := builds[0].Reset(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error")
+		return 500, []byte("Internal error (B)")
 	}
 
 	return 200, []byte("success")

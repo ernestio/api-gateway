@@ -30,6 +30,13 @@ func TestGetUsers(t *testing.T) {
 				Convey("It should show all users", func() {
 					var u []models.User
 					err = json.Unmarshal(resp, &u)
+					println("------")
+					println("------")
+					println("------")
+					println(string(resp))
+					println("------")
+					println("------")
+					println("------")
 					So(err, ShouldBeNil)
 					So(st, ShouldEqual, 200)
 					So(len(u), ShouldEqual, 2)
