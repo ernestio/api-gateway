@@ -7,6 +7,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/sirupsen/logrus"
@@ -30,8 +31,8 @@ type Env struct {
 }
 
 // Validate the env
-func (s *Env) Validate() error {
-	if s.Name == "" {
+func (e *Env) Validate() error {
+	if e.Name == "" {
 		return errors.New("Environment name is empty")
 	}
 
@@ -39,15 +40,15 @@ func (s *Env) Validate() error {
 }
 
 // Map : maps a env from a request's body and validates the input
-func (s *Env) Map(data []byte) error {
-	if err := json.Unmarshal(data, &s); err != nil {
+func (e *Env) Map(data []byte) error {
+	if err := json.Unmarshal(data, &e); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
 		}).Error("Couldn't unmarshal given input")
 		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	if err := s.Validate(); err != nil {
+	if err := e.Validate(); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
 		}).Warning("Input is not valid")
@@ -58,81 +59,88 @@ func (s *Env) Map(data []byte) error {
 }
 
 // Find : Searches for all envs with filters
-func (s *Env) Find(query map[string]interface{}, envs *[]Env) (err error) {
-	return NewBaseModel(s.getStore()).FindBy(query, envs)
+func (e *Env) Find(query map[string]interface{}, envs *[]Env) (err error) {
+	return NewBaseModel(e.getStore()).FindBy(query, envs)
 }
 
 // FindByName : Searches for all envs with a name equal to the specified
-func (s *Env) FindByName(name string) (err error) {
+func (e *Env) FindByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	return NewBaseModel(s.getStore()).GetBy(query, s)
+	return NewBaseModel(e.getStore()).GetBy(query, e)
 }
 
 // FindByID : Gets a model by its id
-func (s *Env) FindByID(id int) (err error) {
+func (e *Env) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	return NewBaseModel(s.getStore()).GetBy(query, s)
+	return NewBaseModel(e.getStore()).GetBy(query, e)
 }
 
 // FindAll : Searches for all envs s on the store current user
 // has access to
-func (s *Env) FindAll(au User, envs *[]Env) (err error) {
+func (e *Env) FindAll(au User, envs *[]Env) (err error) {
 	query := make(map[string]interface{})
-	return NewBaseModel(s.getStore()).FindBy(query, envs)
+	return NewBaseModel(e.getStore()).FindBy(query, envs)
 }
 
 // Save : calls env.set with the marshalled
-func (s *Env) Save() (err error) {
-	return NewBaseModel(s.getStore()).Save(s)
+func (e *Env) Save() (err error) {
+	return NewBaseModel(e.getStore()).Save(e)
 }
 
 // Delete : will delete a env by its id
-func (s *Env) Delete() (err error) {
+func (e *Env) Delete() (err error) {
 	query := make(map[string]interface{})
-	query["id"] = s.ID
-	return NewBaseModel(s.getStore()).Delete(query)
+	query["id"] = e.ID
+	return NewBaseModel(e.getStore()).Delete(query)
 }
 
 // DeleteByName : will delete a env by its name
-func (s *Env) DeleteByName(name string) (err error) {
+func (e *Env) DeleteByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	return NewBaseModel(s.getStore()).Delete(query)
+	return NewBaseModel(e.getStore()).Delete(query)
 }
 
 // FindByProjectID : find a envs for the given project id
-func (s *Env) FindByProjectID(id int, envs *[]Env) (err error) {
+func (e *Env) FindByProjectID(id int, envs *[]Env) (err error) {
 	query := make(map[string]interface{})
 	query["project_id"] = id
-	return NewBaseModel(s.getStore()).FindBy(query, envs)
+	return NewBaseModel(e.getStore()).FindBy(query, envs)
 }
-
-/*
 
 // RequestSync : calls service.sync with the given raw message
-func (s *Env) RequestSync() error {
-	if err := N.Publish(s.getStore()+".sync", []byte(`{"id":"`+s.ID+`"}`)); err != nil {
+func (e *Env) RequestSync() (string, error) {
+	resp, err := N.Request(e.getStore()+".sync", []byte(`{"name":"`+e.Name+`"}`), time.Second*5)
+	if err != nil {
 		h.L.Error(err.Error())
-		return err
+		return "", err
 	}
-	return nil
+
+	var r struct {
+		ID string `json:"id"`
+	}
+
+	err = json.Unmarshal(resp.Data, &r)
+	if err != nil {
+		return "", err
+	}
+
+	return r.ID, nil
 }
 
-*/
-
 // GetID : ID getter
-func (s *Env) GetID() string {
-	return s.Name
+func (e *Env) GetID() string {
+	return e.Name
 }
 
 // GetType : Gets the resource type
-func (s *Env) GetType() string {
+func (e *Env) GetType() string {
 	return "environment"
 }
 
 // getStore : Gets the store name
-func (s *Env) getStore() string {
+func (e *Env) getStore() string {
 	return "environment"
 }

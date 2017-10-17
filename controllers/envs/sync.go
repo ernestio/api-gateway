@@ -4,39 +4,41 @@
 
 package envs
 
-/*
+import (
+	"encoding/json"
+	"net/http"
 
-// Sync : Respons to POST /services/:service/sync/ and synchronizes a service with
-// its provider representation
-func Sync(au models.User, name string) (int, []byte) {
-	var raw []byte
-	var err error
-	var s models.Env
+	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/api-gateway/models"
+)
 
-	if st, res := h.IsAuthorizedToResource(&au, h.SyncEnv, s.GetType(), name); st != 200 {
+// Sync : Syncs an environment
+func Sync(au models.User, env string, action *models.Action) (int, []byte) {
+	var e models.Env
+
+	err := e.FindByName(env)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, []byte("Environment not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 
-	// Get existing env
-	if raw, err = getEnvRaw(au, name); err != nil {
-		return 404, []byte(err.Error())
+	id, err := e.RequestSync()
+	if err != nil {
+		return 500, []byte(err.Error())
 	}
 
-	if err := json.Unmarshal(raw, &s); err != nil {
-		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+	action.ResourceType = "build"
+	action.ResourceID = id
+	action.Status = "syncing"
+
+	data, err := json.Marshal(action)
+	if err != nil {
+		return 500, []byte("could not process sync request")
 	}
 
-	if s.Status == "in_progress" {
-		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
-	}
-
-	if err = s.RequestSync(); err != nil {
-		return 500, []byte("An error ocurred while ernest was trying to sync your environment")
-	}
-
-	// TODO : This probably needs to use the monit tool instead of this.
-
-	return http.StatusOK, []byte("....")
+	return http.StatusOK, data
 }
-*/
