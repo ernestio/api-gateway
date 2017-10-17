@@ -111,8 +111,19 @@ func (e *Env) FindByProjectID(id int, envs *[]Env) (err error) {
 }
 
 // RequestSync : calls service.sync with the given raw message
-func (e *Env) RequestSync() (string, error) {
-	resp, err := N.Request(e.getStore()+".sync", []byte(`{"name":"`+e.Name+`"}`), time.Second*5)
+func (e *Env) RequestSync(au User) (string, error) {
+	req := map[string]interface{}{
+		"name":     e.Name,
+		"user_id":  au.ID,
+		"username": au.Username,
+	}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := N.Request(e.getStore()+".sync", data, time.Second*5)
 	if err != nil {
 		h.L.Error(err.Error())
 		return "", err

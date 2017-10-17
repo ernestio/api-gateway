@@ -26,7 +26,7 @@ func Sync(au models.User, env string, action *models.Action) (int, []byte) {
 		return st, res
 	}
 
-	id, err := e.RequestSync()
+	id, err := e.RequestSync(au)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
