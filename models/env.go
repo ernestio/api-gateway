@@ -110,7 +110,7 @@ func (e *Env) FindByProjectID(id int, envs *[]Env) (err error) {
 	return NewBaseModel(e.getStore()).FindBy(query, envs)
 }
 
-// RequestSync : calls service.sync with the given raw message
+// RequestSync : calls environment.sync with the given raw message
 func (e *Env) RequestSync(au User) (string, error) {
 	req := map[string]interface{}{
 		"name":     e.Name,
@@ -131,6 +131,39 @@ func (e *Env) RequestSync(au User) (string, error) {
 
 	var r struct {
 		ID string `json:"id"`
+	}
+
+	err = json.Unmarshal(resp.Data, &r)
+	if err != nil {
+		return "", err
+	}
+
+	return r.ID, nil
+}
+
+// RequestResolve : calls environment.resolve with the given raw message
+func (e *Env) RequestResolve(au User, resolution string) (string, error) {
+	req := map[string]interface{}{
+		"name":       e.Name,
+		"user_id":    au.ID,
+		"username":   au.Username,
+		"resolution": resolution,
+	}
+
+	data, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := N.Request(e.getStore()+".resolve", data, time.Second*5)
+	if err != nil {
+		h.L.Error(err.Error())
+		return "", err
+	}
+
+	var r struct {
+		ID     string `json:"id"`
+		Status string `json:"ok"`
 	}
 
 	err = json.Unmarshal(resp.Data, &r)
