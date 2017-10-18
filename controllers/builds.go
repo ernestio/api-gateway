@@ -41,7 +41,7 @@ func GetBuildMappingHandler(c echo.Context) error {
 
 	st, b := h.IsAuthorized(&au, "builds/mapping")
 	if st == 200 {
-		st, b = builds.Mapping(au, envName(c), changes)
+		st, b = builds.Mapping(au, c.Param("build"), changes)
 	}
 
 	return h.Respond(c, st, b)
