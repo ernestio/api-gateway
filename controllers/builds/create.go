@@ -35,7 +35,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	}
 
 	if dry == "true" {
-		res, err := views.RenderDefinition(m)
+		res, err := views.RenderChanges(m)
 		if err != nil {
 			h.L.Error(err.Error())
 			return 400, []byte("Internal error")

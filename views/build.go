@@ -376,8 +376,8 @@ func (o *BuildRender) ToJSON() ([]byte, error) {
 	return json.Marshal(o)
 }
 
-// RenderDefinition : renders build definition steps
-func RenderDefinition(mapping map[string]interface{}) (result []byte, err error) {
+// RenderChanges : renders build definition steps
+func RenderChanges(mapping map[string]interface{}) (result []byte, err error) {
 	var lines []string
 	var actions = map[string]string{"create": "Create", "update": "Update", "delete": "Delete"}
 

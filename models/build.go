@@ -137,6 +137,20 @@ func (b *Build) GetMapping() (*graph.Graph, error) {
 	return g, err
 }
 
+// GetRawMapping : will get a builds mapping
+func (b *Build) GetRawMapping() (map[string]interface{}, error) {
+	var m Mapping
+	query := make(map[string]interface{})
+	query["id"] = b.ID
+
+	err := NewBaseModel(b.getStore()).CallStoreBy("get.mapping", query, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	return m, err
+}
+
 // GetDefinition : will get a builds mapping
 func (b *Build) GetDefinition() ([]byte, error) {
 	var def []byte

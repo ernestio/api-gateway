@@ -15,7 +15,7 @@ import (
 
 // Mapping : responds to GET /builds/:/mapping with the
 // details of an existing build
-func Mapping(au models.User, id string) (int, []byte) {
+func Mapping(au models.User, id string, changes string) (int, []byte) {
 	var o views.BuildRender
 	var err error
 	var body []byte
@@ -50,6 +50,21 @@ func Mapping(au models.User, id string) (int, []byte) {
 		for _, v := range roles {
 			o.Roles = append(o.Roles, v.UserID+" ("+v.Role+")")
 		}
+	}
+
+	if changes == "true" {
+		m, err := b.GetRawMapping()
+		if err != nil {
+			h.L.Error(err.Error())
+			return 400, []byte("Internal error")
+		}
+
+		res, err := views.RenderChanges(m)
+		if err != nil {
+			h.L.Error(err.Error())
+			return 400, []byte("Internal error")
+		}
+		return http.StatusOK, res
 	}
 
 	o.Name = strings.Split(e.Name, "/")[1]
