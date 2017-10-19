@@ -12,8 +12,8 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Sync : Syncs an environment
-func Sync(au models.User, env string, action *models.Action) (int, []byte) {
+// Resolve : Resolves an environment sync
+func Resolve(au models.User, env string, action *models.Action) (int, []byte) {
 	var e models.Env
 
 	err := e.FindByName(env)
@@ -26,14 +26,18 @@ func Sync(au models.User, env string, action *models.Action) (int, []byte) {
 		return st, res
 	}
 
-	id, err := e.RequestSync(au)
+	id, err := e.RequestResolve(au, action.Options.Resolution)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
 
-	action.ResourceType = "build"
-	action.ResourceID = id
-	action.Status = "syncing"
+	action.Status = "done"
+
+	if id != "" {
+		action.ResourceType = "build"
+		action.ResourceID = id
+		action.Status = "in_progress"
+	}
 
 	data, err := json.Marshal(action)
 	if err != nil {
