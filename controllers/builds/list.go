@@ -36,6 +36,12 @@ func List(au models.User, env string) (int, []byte) {
 		return 404, []byte("Build not found")
 	}
 
+	for i := len(list) - 1; i >= 0; i-- {
+		if list[i].Type == "sync" && list[i].Status == "done" {
+			list = append(list[:i], list[i+1:]...)
+		}
+	}
+
 	body, err = json.Marshal(list)
 	if err != nil {
 		return 500, []byte("Internal error")
