@@ -14,9 +14,14 @@ import (
 // GetEnvsHandler : responds to GET /envs/envs/ with a list ahorized envs
 func GetEnvsHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
+	project := c.Param("project")
 	st, b := h.IsAuthorized(&au, "envs/get")
 	if st == 200 {
-		st, b = envs.List(au)
+		if project != "" {
+			st, b = envs.List(au, &project)
+		} else {
+			st, b = envs.List(au, nil)
+		}
 	}
 
 	return c.JSONBlob(st, b)

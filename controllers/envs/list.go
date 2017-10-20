@@ -14,10 +14,21 @@ import (
 
 // List : responds to GET /services/ with a list of all
 // services for current user group
-func List(au models.User) (int, []byte) {
+func List(au models.User, project *string) (int, []byte) {
 	var body []byte
 
 	query := make(map[string]interface{}, 0)
+
+	if project != nil {
+		p, err := au.ProjectByName(*project)
+		if err != nil {
+			h.L.Warning(err.Error())
+			return 404, []byte("Project not found")
+		}
+
+		query["project_id"] = p.ID
+	}
+
 	envs, err := au.EnvsBy(query)
 	if err != nil {
 		h.L.Warning(err.Error())
