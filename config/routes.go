@@ -68,6 +68,7 @@ func setupAPI(e *echo.Echo) {
 	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
 
 	// Setup env routes
+	d.GET("/:project/envs/", controllers.GetEnvsHandler)
 	d.POST("/:project/envs/", controllers.CreateEnvHandler)
 	d.PUT("/:project/envs/:env", controllers.UpdateEnvHandler)
 	d.GET("/:project/envs/:env", controllers.GetEnvHandler)
