@@ -12,10 +12,13 @@ import (
 // existing project
 func Delete(au models.User, project string) (int, []byte) {
 	var d models.Project
+	var err error
 
-	id, err := strconv.Atoi(project)
-	if err = d.FindByID(id); err != nil {
-		return 404, []byte("Project not found")
+	if err = d.FindByName(project); err != nil {
+		id, err := strconv.Atoi(project)
+		if err = d.FindByID(id); err != nil {
+			return 404, []byte("Project not found")
+		}
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteProject, d.GetType(), d.Name); st != 200 {

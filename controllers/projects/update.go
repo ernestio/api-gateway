@@ -20,9 +20,11 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 		return 400, []byte("Invalid input")
 	}
 
-	id, err := strconv.Atoi(project)
-	if err = existing.FindByID(id); err != nil {
-		return 404, []byte("Project not found")
+	if err = existing.FindByName(project); err != nil {
+		id, err := strconv.Atoi(project)
+		if err = existing.FindByID(id); err != nil {
+			return 404, []byte("Project not found")
+		}
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, d.GetType(), d.Name); st != 200 {
