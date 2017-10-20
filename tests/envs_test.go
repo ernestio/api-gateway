@@ -67,7 +67,7 @@ func TestListingEnvs(t *testing.T) {
 			Convey("When I call GET /services/", func() {
 				foundSubscriber("environment.find", `[{"id":1,"name":"fake/test"},{"id":2,"name":"fake/test"}]`, 1)
 				au.Admin = true
-				s, b := envs.List(au)
+				s, b := envs.List(au, nil)
 				Convey("It should return the correct set of data", func() {
 					var sr []models.Env
 					So(s, ShouldEqual, 200)
