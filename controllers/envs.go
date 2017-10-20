@@ -19,8 +19,9 @@ func GetEnvsHandler(c echo.Context) (err error) {
 	if st == 200 {
 		if project != "" {
 			st, b = envs.List(au, &project)
+		} else {
+			st, b = envs.List(au, nil)
 		}
-		st, b = envs.List(au, nil)
 	}
 
 	return c.JSONBlob(st, b)
