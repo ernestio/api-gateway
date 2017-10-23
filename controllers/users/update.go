@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -15,10 +16,12 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	var u models.User
 	var existing models.User
 
+	fmt.Printf("u before = %+v\n", u)
 	if err := u.Map(body); err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(err.Error())
 	}
+	fmt.Printf("u after = %+v\n", u)
 
 	if len(u.Password) < 8 {
 		err := errors.New("Minimum password length is 8 characters")

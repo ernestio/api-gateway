@@ -70,6 +70,9 @@ func (u *User) Validate() error {
 	if u.Password == "" {
 		return errors.New("Password cannot be empty")
 	}
+	if u.Password < 8 {
+		return errors.New("Minimum password length is 8 characters")
+	}
 
 	r := regexp.MustCompile(`^[a-zA-Z0-9@._\-]*$`)
 
@@ -91,12 +94,12 @@ func (u *User) Map(data []byte) error {
 		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	if err := u.Validate(); err != nil {
-		h.L.WithFields(logrus.Fields{
-			"input": string(data),
-		}).Error(err.Error())
-		return NewError(InvalidInputCode, err.Error())
-	}
+	// if err := u.Validate(); err != nil {
+	// 	h.L.WithFields(logrus.Fields{
+	// 		"input": string(data),
+	// 	}).Error(err.Error())
+	// 	return NewError(InvalidInputCode, err.Error())
+	// }
 	return nil
 }
 
