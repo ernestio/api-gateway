@@ -16,12 +16,10 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	var u models.User
 	var existing models.User
 
-	fmt.Printf("u before = %+v\n", u)
 	if err := u.Map(body); err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(err.Error())
 	}
-	fmt.Printf("u after = %+v\n", u)
 
 	if len(u.Password) < 8 {
 		err := errors.New("Minimum password length is 8 characters")
@@ -49,6 +47,13 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	if au.Admin == false && existing.Username != au.Username {
+		err := errors.New("You're not allowed to perform this action, please contact your admin")
+		h.L.Error(err.Error())
+		return 403, []byte(err.Error())
+	}
+
+	if au.Admin == false && existing.Admin != u.Admin {
+		fmt.Println("hit")
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())

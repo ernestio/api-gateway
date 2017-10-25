@@ -70,7 +70,7 @@ func (u *User) Validate() error {
 	if u.Password == "" {
 		return errors.New("Password cannot be empty")
 	}
-	if u.Password < 8 {
+	if len(u.Password) < 8 {
 		return errors.New("Minimum password length is 8 characters")
 	}
 

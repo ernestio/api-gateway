@@ -21,7 +21,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	err := u.Validate()
 	if err != nil {
-		return 400, []byte(err)
+		return 400, []byte(err.Error())
 	}
 
 	//u.Type = "local"
@@ -43,7 +43,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	u.Redact()
 
-	body, err := json.Marshal(u)
+	body, err = json.Marshal(u)
 	if err != nil {
 		return 500, []byte("Internal server error")
 	}
