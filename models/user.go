@@ -93,13 +93,6 @@ func (u *User) Map(data []byte) error {
 		}).Error("Couldn't unmarshal given input")
 		return NewError(InvalidInputCode, "Invalid input")
 	}
-
-	// if err := u.Validate(); err != nil {
-	// 	h.L.WithFields(logrus.Fields{
-	// 		"input": string(data),
-	// 	}).Error(err.Error())
-	// 	return NewError(InvalidInputCode, err.Error())
-	// }
 	return nil
 }
 
