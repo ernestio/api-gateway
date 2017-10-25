@@ -3,7 +3,6 @@ package users
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -53,7 +52,6 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	if au.Admin == false && existing.Admin != u.Admin {
-		fmt.Println("hit")
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())
