@@ -20,9 +20,8 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
-	if len(u.Password) < 8 {
-		err := errors.New("Minimum password length is 8 characters")
-		h.L.Error(err.Error())
+	err := u.Validate()
+	if err != nil {
 		return 400, []byte(err.Error())
 	}
 
@@ -71,7 +70,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 
 	u.Redact()
 
-	body, err := json.Marshal(u)
+	body, err = json.Marshal(u)
 	if err != nil {
 		return 500, []byte("Internal server error")
 	}
