@@ -1,10 +1,8 @@
-# this is an example of the Uber API
-# as a demonstration of an API spec in YAML
 swagger: '2.0'
 info:
   title: Ernest API
   description: Developer driven orchestration tool
-  version: "1.0.0"
+  version: 1.0.0
 host: api.ernest.io
 schemes:
   - https
@@ -12,8 +10,8 @@ basePath: /
 produces:
   - application/json
 paths:
-  /auth:
-    get:
+  '/auth':
+    post:
       summary: Authentication endpoint
       description: |
         Manages user authentication based on jwt tokens
@@ -33,18 +31,1068 @@ paths:
       tags:
         - Authentication
       responses:
-        200:
+        '200':
           description: A json string containing the token to be used to log in
           schema:
-            $ref: '#/definitions/Error'
-        403:
-          description: You're not authorized to proceed with the login
+            $ref: '#/definitions/Token'
+        '403':
+          description: You're not authorized
+  '/api/users/':
+    get:
+      summary: List all users
+      description: |
+        returns all users viewable by a logged in user
+      produces:
+        - application/json
+      tags:
+        - Users
+      responses:
+        '200':
+          description: A json array containing all available users
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a user
+      description: |
+        accepts a valid user model
+        return a user model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: The user to be created
+          schema:
+            $ref: '#/definitions/UserCreate'
+      tags:
+        - Users
+      responses:
+        '201':
+          description: Returns the created user
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/users/{user}':
+    get:
+      summary: Get a user
+      description: |
+        returns a user by id
+      produces:
+        - application/json
+      parameters:
+        - name: user
+          in: path
+          description: id of user to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Users
+      responses:
+        '200':
+          description: A valid user object
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    put:
+      summary: Update a user
+      description: |
+        accepts a valid user model
+        return a project model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: user
+          in: path
+          description: id of user to update
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The user to be created
+          schema:
+            $ref: '#/definitions/UserUpdate'
+      tags:
+        - Users
+      responses:
+        '201':
+          description: Returns the created user
+          schema:
+            $ref: '#/definitions/User'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a user
+      description: |
+        deletes a user
+      produces:
+        - application/json
+      parameters:
+        - name: user
+          in: path
+          description: name of user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Users
+      responses:
+        '202':
+          description: Indicates the user has been successfully deleted
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/':
+    get:
+      summary: List all projects
+      description: |
+        returns all projects viewable by a logged in user
+      produces:
+        - application/json
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: A json array containing all available projects
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a project
+      description: |
+        accepts a valid project model
+        return a project model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          description: The project to be created
+          schema:
+            $ref: '#/definitions/Project'
+      tags:
+        - Projects
+      responses:
+        '201':
+          description: Returns the created project
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}':
+    get:
+      summary: Get a project
+      description: |
+        Returns a project by name
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: A valid project object
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a project
+      description: |
+        accepts a valid project model
+        return a project model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to return
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The project to be created
+          schema:
+            $ref: '#/definitions/Project'
+      tags:
+        - Projects
+      responses:
+        '201':
+          description: Returns the created project
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a project
+      description: |
+        deletes a project if all related environments have been removed
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '202':
+          description: Indicates the project has been successfully deleted
+          schema:
+            $ref: '#/definitions/Project'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/members/':
+    get:
+      summary: List all members
+      description: |
+        returns all members viewable by a logged in user
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '200':
+          description: A json array containing all available members
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a member
+      description: |
+        accepts a valid member model
+        return a member model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The member to be created
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Projects
+      responses:
+        '201':
+          description: Returns the created member
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/members/{member}':
+    delete:
+      summary: Delete a project member
+      description: |
+        deletes a project member
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: name of member user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Projects
+      responses:
+        '202':
+          description: Indicates the project member has been successfully deleted
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/':
+    get:
+      summary: List all environments
+      description: |
+        returns all environments viewable by a logged in user
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a environment
+      description: |
+        accepts a valid environment model
+        return a environment model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The environment to be created
+          schema:
+            $ref: '#/definitions/Environment'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created environment
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}':
+    get:
+      summary: Get a environment
+      description: |
+        Returns a environment by name
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A valid environment object
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a environment
+      description: |
+        accepts a valid environment model
+        return a environment model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The environment to be updated
+          schema:
+            $ref: '#/definitions/Environment'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created environment
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a environment
+      description: |
+        return a build model populated with an ID
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '202':
+          description: Returns the build used to delete a environment
+          schema:
+            $ref: '#/definitions/Build'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/members/':
+    get:
+      summary: List all members
+      description: |
+        returns all environment members
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '200':
+          description: A json array containing all available members
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a member
+      description: |
+        accepts a valid member model
+        return a member model
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The member to be created
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Environments
+      responses:
+        '201':
+          description: Returns the created member
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/members/{member}':
+    delete:
+      summary: Delete a environment member
+      description: |
+        deletes a environment member
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: member
+          in: path
+          description: name of member user to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Environments
+      responses:
+        '202':
+          description: Indicates the environment member has been successfully deleted
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
 
+  '/api/projects/{project}/environments/{environment}/builds/':
+    get:
+      summary: List all builds
+      description: |
+        returns all builds associated with a environment
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Builds
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Build'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Create a build
+      description: |
+        accepts a environment's yaml
+        return a build model populated with an ID and status
+      consumes:
+        - application/yaml
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Builds
+      responses:
+        '201':
+          description: Returns the created build
+          schema:
+            $ref: '#/definitions/Build'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/builds/{build}':
+    get:
+      summary: Get a build
+      description: |
+        Returns a build by id
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: build
+          in: path
+          description: id of build
+          required: true
+          type: string
+          format: string
+      tags:
+        - Builds
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            $ref: '#/definitions/Environment'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+  '/api/projects/{project}/environments/{environment}/builds/{build}/definition/':
+    get:
+      summary: Get the definition used for a build
+      description: |
+        Returns a build defintion
+      produces:
+        - application/yaml
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: build
+          in: path
+          description: id of build
+          required: true
+          type: string
+          format: string
+      tags:
+        - Builds
+      responses:
+        '200':
+          description: A yaml definition
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+  '/api/projects/{project}/environments/{environment}/builds/{build}/mapping/':
+    get:
+      summary: Get the build graph/mapping
+      description: |
+        Returns a build graph
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: build
+          in: path
+          description: id of build
+          required: true
+          type: string
+          format: string
+      tags:
+        - Builds
+      responses:
+        '200':
+          description: A json build graph
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+  '/api/projects/{project}/environments/{environment}/actions/':
+    get:
+      summary: List all actions
+      description: |
+        returns all actions associated with a environment
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+      tags:
+        - Actions
+      responses:
+        '200':
+          description: |
+            A json array containing all available actions associated with an environment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Action'
+        '403':
+          description: You're not authorized to view this resource
+    post:
+      summary: Trigger an action
+      description: |
+        accepts an action with valid type
+        returns an action
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: body
+          in: body
+          description: The environment to be created
+          schema:
+            $ref: '#/definitions/Action'
+      tags:
+        - Actions
+      responses:
+        '201':
+          description: Returns the created build
+          schema:
+            $ref: '#/definitions/Action'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/projects/{project}/environments/{environment}/actions/{action}':
+    get:
+      summary: List all actions
+      description: returns an action by id
+      produces:
+        - application/json
+      parameters:
+        - name: project
+          in: path
+          description: name of project
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment
+          required: true
+          type: string
+          format: string
+        - name: action
+          in: path
+          description: id of the action
+          required: true
+          type: integer
+          format: integer
+      tags:
+        - Actions
+      responses:
+        '200':
+          description: A json array containing all available environments
+          schema:
+            $ref: '#/definitions/Action'
+        '403':
+          description: You're not authorized to view this resource
 definitions:
-  Error:
+  Token:
     type: object
     properties:
       token:
         type: string
         description: JWT Token to be used in future connections
-
+  Member:
+    type: object
+    required:
+      - user
+      - role
+    properties:
+      user:
+        type: string
+        description: name of user that the role applies to
+      role:
+        type: string
+        description: the type of role
+        enum:
+          - admin
+          - owner
+          - reader
+  User:
+    type: object
+    required:
+      - username
+    properties:
+      id:
+        type: integer
+        description: role id
+        readOnly: true
+      username:
+        type: string
+        description: unique username of user
+      admin:
+        type: boolean
+        default: false
+        description: indicates if user is a system wide admin
+  UserCreate:
+    allOf:
+      - $ref: '#/definitions/User'
+      - type: object
+        required:
+          - password
+        properties:
+          password:
+            type: string
+            description: valid user password
+  UserUpdate:
+    allOf:
+      - $ref: '#/definitions/UserCreate'
+      - type: object
+        required:
+          - old_password
+        properties:
+          old_password:
+            type: string
+            description: valid user password
+  Project:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      id:
+        type: integer
+        description: environment id
+        readOnly: true
+      name:
+        type: string
+        description: the name of the environment
+      type:
+        type: string
+        description: the type of environment
+      credentials:
+        $ref: '#/definitions/Credentials'
+      members:
+        type: array
+        readOnly: true
+        items:
+            $ref: '#/definitions/Member'
+  Environment:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      id:
+        type: integer
+        description: environment id
+        readOnly: true
+      name:
+        type: string
+        description: the name of the environment
+      type:
+        type: string
+        description: the type of environment
+      status:
+        type: string
+        description: the status of the environment
+        readOnly: true
+      options:
+        $ref: '#/definitions/EnvironmentOptions'
+      members:
+        type: array
+        readOnly: true
+        items:
+            $ref: '#/definitions/Member'
+  EnvironmentOptions:
+    type: object
+    properties:
+      sync:
+        type: boolean
+        description: sync enablement of the environment
+        default: false
+      sync_type:
+        type: string
+        enum:
+          - hard
+          - soft
+        description: the sync configuration of the environment
+        default: soft
+      sync_interval:
+        type: integer
+        description: the sync configuration of the environment
+        default: hard
+  Build:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        readOnly: true
+        description: the unique id of the build
+      environment_id:
+        type: integer
+        description: the environment id associated with the build
+      user_id:
+        type: integer
+        description: the user id of the user who created the build
+      type:
+        type: string
+        description: the type of build
+        enum:
+          - apply
+          - import
+          - sync
+      status:
+        type: string
+        description: the status of the build
+        enum:
+          - running
+          - errored
+          - waiting
+          - completed
+      started:
+        type: string
+        format: date-time
+        description: the start time of the build
+      finished:
+        type: string
+        format: date-time
+        description: the finish time of the build
+  Credentials:
+    type: object
+    properties:
+      provider_type:
+        type: string
+        description: type of credentials
+  Action:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: the unique id of the Action
+        readOnly: true
+      status:
+        type: string
+        description: status of the action
+        readOnly: true
+      type:
+        type: string
+        enum:
+          - import
+          - reapply
+          - clone
+      options:
+        $ref: '#/definitions/ActionOptions'
+      resource_id:
+        type: string
+        description: the id of the created/modified resource
+        readOnly: true
+      resource_type:
+        type: string
+        description: the type of resource created/modified
+        readOnly: true
+  ActionOptions:
+    type: object
+    properties:
+      filters:
+        type: array
+        description: |
+          For when action type is 'import' -  values that limit the scope of the
+          import
+      build_id:
+        type: string
+        description: |
+          For when action type is 'reapply' or 'clone' - the build id of the
+          state you wish to return a environment to
+      environment:
+        type: string
+        description: |
+          For when action type is 'clone' - the name of the environment you wish
+          to clone
