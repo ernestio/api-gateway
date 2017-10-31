@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/ernestio/api-gateway/helpers"
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/labstack/echo"
@@ -25,7 +26,7 @@ func AuthenticatedUser(c echo.Context) models.User {
 	claims, ok := user.Claims.(jwt.MapClaims)
 	if ok {
 		u.Username = claims["username"].(string)
-		*u.Admin = claims["admin"].(bool)
+		u.Admin = helpers.Bool(claims["admin"].(bool))
 	}
 
 	return u

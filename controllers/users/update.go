@@ -50,7 +50,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 403, []byte(err.Error())
 	}
 
-	if !au.IsAdmin() && existing.Admin != u.Admin {
+	if !au.IsAdmin() && existing.IsAdmin() != u.IsAdmin() {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
 		return 403, []byte(err.Error())

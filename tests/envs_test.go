@@ -67,8 +67,7 @@ func TestListingEnvs(t *testing.T) {
 		Convey("Given services exist on the store", func() {
 			Convey("When I call GET /services/", func() {
 				foundSubscriber("environment.find", `[{"id":1,"name":"fake/test"},{"id":2,"name":"fake/test"}]`, 1)
-				adminBool := helpers.Bool(true)
-				au.Admin = adminBool
+				au.Admin = helpers.Bool(true)
 				s, b := envs.List(au, nil)
 				Convey("It should return the correct set of data", func() {
 					var sr []models.Env

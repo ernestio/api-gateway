@@ -20,8 +20,7 @@ func TestGetUsers(t *testing.T) {
 	testsSetup()
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-	adminBool := helpers.Bool(true)
-	admin := models.User{ID: 2, Username: "admin", Admin: adminBool}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a list of users", t, func() {
 		findUserSubscriber()
@@ -56,8 +55,7 @@ func TestGetUser(t *testing.T) {
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	other := models.User{ID: 3, Username: "other", Password: "test1234"}
-	adminBool := helpers.Bool(true)
-	admin := models.User{ID: 2, Username: "admin", Admin: adminBool}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a single user", t, func() {
 		Convey("Given a user exists on the store", func() {
@@ -114,8 +112,7 @@ func TestCreateUser(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	adminBool := helpers.Bool(true)
-	admin := models.User{ID: 2, Username: "admin", Admin: adminBool}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
@@ -209,8 +206,7 @@ func TestUpdateUser(t *testing.T) {
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	other := models.User{ID: 3, Username: "other", Password: "test1234"}
-	adminBool := helpers.Bool(true)
-	admin := models.User{ID: 2, Username: "admin", Admin: adminBool}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 	data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
 	Convey("Scenario: updating a user", t, func() {
@@ -323,8 +319,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	adminBool := helpers.Bool(true)
-	admin := models.User{ID: 2, Username: "admin", Admin: adminBool}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: deleting a user", t, func() {
 		deleteUserSubscriber()
