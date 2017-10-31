@@ -16,7 +16,7 @@ func List(au models.User) (int, []byte) {
 	var users []models.User
 	var user models.User
 
-	if au.Admin {
+	if au.IsAdmin() {
 		if err := au.FindAll(&users); err != nil {
 			return 500, []byte("Internal server error")
 		}

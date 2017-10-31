@@ -25,7 +25,7 @@ func AuthenticatedUser(c echo.Context) models.User {
 	claims, ok := user.Claims.(jwt.MapClaims)
 	if ok {
 		u.Username = claims["username"].(string)
-		u.Admin = claims["admin"].(bool)
+		*u.Admin = claims["admin"].(bool)
 	}
 
 	return u

@@ -14,7 +14,7 @@ func Get(au models.User, u string) (int, []byte) {
 	var r models.Role
 	var roles []models.Role
 
-	if !au.Admin {
+	if !au.IsAdmin() {
 		if au.Username != u {
 			return 404, []byte("User not found")
 		}
