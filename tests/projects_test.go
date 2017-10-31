@@ -10,6 +10,7 @@ import (
 
 	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/projects"
+	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -110,7 +111,8 @@ func TestCreateProject(t *testing.T) {
 				})
 
 				Convey("And the datacenter group matches the authenticated users group", func() {
-					ft := models.User{ID: 1, Username: "test", Admin: false}
+					adminBool := helpers.Bool(false)
+					ft := models.User{ID: 1, Username: "test", Admin: adminBool}
 					st, resp := projects.Create(ft, data)
 					Convey("It should create the datacenter and return the correct set of data", func() {
 						var d models.Project
@@ -136,7 +138,8 @@ func TestDeleteProject(t *testing.T) {
 
 			Convey("When I call DELETE /datacenters/:datacenter", func() {
 				foundSubscriber("authorization.find", `[{"resource_id":"1","role":"owner"}]`, 1)
-				ft := models.User{ID: 1, Username: "test", Admin: false}
+				adminBool := helpers.Bool(false)
+				ft := models.User{ID: 1, Username: "test", Admin: adminBool}
 				st, resp := projects.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
 					So(st, ShouldEqual, 400)

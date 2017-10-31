@@ -11,6 +11,7 @@ import (
 	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/builds"
 	"github.com/ernestio/api-gateway/controllers/envs"
+	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/api-gateway/views"
 
@@ -66,7 +67,8 @@ func TestListingEnvs(t *testing.T) {
 		Convey("Given services exist on the store", func() {
 			Convey("When I call GET /services/", func() {
 				foundSubscriber("environment.find", `[{"id":1,"name":"fake/test"},{"id":2,"name":"fake/test"}]`, 1)
-				au.Admin = true
+				adminBool := helpers.Bool(true)
+				au.Admin = adminBool
 				s, b := envs.List(au, nil)
 				Convey("It should return the correct set of data", func() {
 					var sr []models.Env
