@@ -229,6 +229,22 @@ func TestUpdateUser(t *testing.T) {
 							So(u.Salt, ShouldEqual, "")
 						})
 					})
+					Convey("With a payload updating the admin field", func() {
+						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						getUserSubscriber(1)
+						st, resp := users.Update(admin, "1", data)
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(err, ShouldBeNil)
+							So(st, ShouldEqual, 200)
+							So(u.ID, ShouldEqual, 1)
+							So(u.Username, ShouldEqual, "test")
+							So(u.Password, ShouldEqual, "")
+							So(u.Salt, ShouldEqual, "")
+							So(*u.Admin, ShouldEqual, true)
+						})
+					})
 					Convey("With an invalid payload", func() {
 						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
 						st, _ := users.Update(admin, "1", invalidData)
@@ -287,6 +303,15 @@ func TestUpdateUser(t *testing.T) {
 							So(u.Username, ShouldEqual, "test")
 							So(u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
+						})
+					})
+					Convey("With a payload updating the admin field", func() {
+						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						getUserSubscriber(1)
+						st, resp := users.Update(au, "1", data)
+						Convey("It should return an error message with a 403 response", func() {
+							So(st, ShouldEqual, 403)
+							So(string(resp), ShouldContainSubstring, "You're not allowed to perform this action, please contact your admin")
 						})
 					})
 				})
