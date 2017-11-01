@@ -33,7 +33,7 @@ type User struct {
 	Password    string   `json:"password,omitempty"`
 	OldPassword string   `json:"oldpassword,omitempty"`
 	Salt        string   `json:"salt,omitempty"`
-	Admin       bool     `json:"admin"`
+	Admin       *bool    `json:"admin"`
 	Envs        []string `json:"envs"`
 	Projects    []string `json:"projects"`
 	Type        string   `json:"type"`
@@ -70,6 +70,9 @@ func (u *User) Validate() error {
 	if u.Password == "" {
 		return errors.New("Password cannot be empty")
 	}
+	if len(u.Password) < 8 {
+		return errors.New("Minimum password length is 8 characters")
+	}
 
 	r := regexp.MustCompile(`^[a-zA-Z0-9@._\-]*$`)
 
@@ -90,13 +93,6 @@ func (u *User) Map(data []byte) error {
 		}).Error("Couldn't unmarshal given input")
 		return NewError(InvalidInputCode, "Invalid input")
 	}
-
-	if err := u.Validate(); err != nil {
-		h.L.WithFields(logrus.Fields{
-			"input": string(data),
-		}).Error(err.Error())
-		return NewError(InvalidInputCode, err.Error())
-	}
 	return nil
 }
 
@@ -115,7 +111,7 @@ func (u *User) FindByUserName(name string, user *User) (err error) {
 // has access to
 func (u *User) FindAll(users *[]User) (err error) {
 	query := make(map[string]interface{})
-	if !u.Admin {
+	if !u.IsAdmin() {
 		// TODO add auth
 	}
 	if err := NewBaseModel("user").FindBy(query, users); err != nil {
@@ -131,7 +127,7 @@ func (u *User) FindByID(id string, user *User) (err error) {
 	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
 	}
-	if !u.Admin {
+	if !u.IsAdmin() {
 		// TODO add auth
 	}
 	if err := NewBaseModel("user").GetBy(query, user); err != nil {
@@ -201,7 +197,7 @@ func (u *User) ValidPassword(pw string) bool {
 func (u *User) GetProjects() (ds []Project, err error) {
 	var d Project
 
-	if u.Admin == true {
+	if u.IsAdmin() {
 		err = d.FindAll(*u, &ds)
 	} else {
 		var r Role
@@ -264,7 +260,7 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
 	var s Env
 
-	if u.Admin == false && filters["id"] == nil {
+	if !u.IsAdmin() && filters["id"] == nil {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
 			if ids == nil {
@@ -283,7 +279,7 @@ func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
 
 // CanBeChangedBy : Checks if an user has write permissions on another user
 func (u *User) CanBeChangedBy(user User) bool {
-	if user.Admin {
+	if user.IsAdmin() {
 		return true
 	}
 
@@ -296,7 +292,7 @@ func (u *User) CanBeChangedBy(user User) bool {
 
 // GetAdmin : admin getter
 func (u *User) GetAdmin() bool {
-	return u.Admin
+	return u.IsAdmin()
 }
 
 // GetID : ID getter
@@ -339,7 +335,7 @@ func (u *User) Owns(o resource) bool {
 
 // IsOwner : check if is the owner of a specific resource
 func (u *User) IsOwner(resourceType, resourceID string) bool {
-	if u.Admin {
+	if u.IsAdmin() {
 		return true
 	}
 
@@ -354,7 +350,7 @@ func (u *User) IsOwner(resourceType, resourceID string) bool {
 
 // IsReader : check if has reader permissions on a specific resource
 func (u *User) IsReader(resourceType, resourceID string) bool {
-	if u.Admin {
+	if u.IsAdmin() {
 		return true
 	}
 
@@ -376,4 +372,11 @@ func (u *User) getRole(resourceType, resourceID string) (string, error) {
 	}
 
 	return existing.Role, nil
+}
+
+func (u *User) IsAdmin() bool {
+	if u.Admin != nil {
+		return *u.Admin
+	}
+	return false
 }

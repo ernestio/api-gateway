@@ -10,6 +10,7 @@ import (
 
 	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/users"
+	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -19,7 +20,7 @@ func TestGetUsers(t *testing.T) {
 	testsSetup()
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a list of users", t, func() {
 		findUserSubscriber()
@@ -54,7 +55,7 @@ func TestGetUser(t *testing.T) {
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	other := models.User{ID: 3, Username: "other", Password: "test1234"}
-	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a single user", t, func() {
 		Convey("Given a user exists on the store", func() {
@@ -111,7 +112,7 @@ func TestCreateUser(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: creating a user", t, func() {
 		setUserSubscriber()
@@ -205,7 +206,7 @@ func TestUpdateUser(t *testing.T) {
 	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: "test1234"}
 	other := models.User{ID: 3, Username: "other", Password: "test1234"}
-	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 	data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
 	Convey("Scenario: updating a user", t, func() {
@@ -226,6 +227,22 @@ func TestUpdateUser(t *testing.T) {
 							So(u.Username, ShouldEqual, "test")
 							So(u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
+						})
+					})
+					Convey("With a payload updating the admin field", func() {
+						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						getUserSubscriber(1)
+						st, resp := users.Update(admin, "1", data)
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(err, ShouldBeNil)
+							So(st, ShouldEqual, 200)
+							So(u.ID, ShouldEqual, 1)
+							So(u.Username, ShouldEqual, "test")
+							So(u.Password, ShouldEqual, "")
+							So(u.Salt, ShouldEqual, "")
+							So(*u.Admin, ShouldEqual, true)
 						})
 					})
 					Convey("With an invalid payload", func() {
@@ -288,6 +305,15 @@ func TestUpdateUser(t *testing.T) {
 							So(u.Salt, ShouldEqual, "")
 						})
 					})
+					Convey("With a payload updating the admin field", func() {
+						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						getUserSubscriber(1)
+						st, resp := users.Update(au, "1", data)
+						Convey("It should return an error message with a 403 response", func() {
+							So(st, ShouldEqual, 403)
+							So(string(resp), ShouldContainSubstring, "You're not allowed to perform this action, please contact your admin")
+						})
+					})
 				})
 
 				Convey("And I'm not authenticated as the user being updated", func() {
@@ -318,7 +344,7 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	admin := models.User{ID: 2, Username: "admin", Admin: true}
+	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: deleting a user", t, func() {
 		deleteUserSubscriber()

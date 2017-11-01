@@ -77,3 +77,7 @@ func GetRequestBody(c echo.Context) ([]byte, error) {
 	data, err := ioutil.ReadAll(c.Request().Body)
 	return data, err
 }
+
+func Bool(b bool) *bool {
+	return &b
+}

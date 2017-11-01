@@ -21,7 +21,7 @@ func Delete(au models.User, body []byte) (int, []byte) {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
-	if !au.Admin {
+	if !au.IsAdmin() {
 		if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
 			return 403, []byte("You're not authorized to perform this action")
 		}

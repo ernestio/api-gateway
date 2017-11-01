@@ -32,7 +32,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 404, []byte("Specified user not found")
 	}
 
-	if !au.Admin {
+	if !au.IsAdmin() {
 		if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
 			return 403, []byte("You're not authorized to perform this action")
 		}

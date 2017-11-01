@@ -19,15 +19,16 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 400, []byte(`{"code":400, "message":"` + err.Error() + `"}`)
 	}
 
-	u.Type = "local"
-
-	if len(u.Password) < 8 {
-		return 400, []byte(`Minimum password length is 8 characters`)
+	err := u.Validate()
+	if err != nil {
+		return 400, []byte(err.Error())
 	}
 
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
 		return 409, []byte(`Specified user already exists`)
 	}
+
+	u.Type = "local"
 
 	if err := u.Save(); err != nil {
 		h.L.Error(err.Error())
@@ -36,7 +37,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	u.Redact()
 
-	body, err := json.Marshal(u)
+	body, err = json.Marshal(u)
 	if err != nil {
 		return 500, []byte("Internal server error")
 	}
