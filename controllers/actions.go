@@ -33,6 +33,8 @@ func ActionHandler(c echo.Context) error {
 		st, b = envs.Sync(au, envName(c), action)
 	case "resolve":
 		st, b = envs.Resolve(au, envName(c), action)
+	case "review-submission":
+		st, b = builds.Approval(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}

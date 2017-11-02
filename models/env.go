@@ -143,6 +143,15 @@ func (e *Env) RequestSync(au User) (string, error) {
 
 // RequestResolve : calls environment.resolve with the given raw message
 func (e *Env) RequestResolve(au User, resolution string) (string, error) {
+	return e.resolution(au, e.getStore()+".resolve", resolution)
+}
+
+// RequestApproval : calls build.approval with the given raw message
+func (e *Env) RequestApproval(au User, resolution string) (string, error) {
+	return e.resolution(au, "build.approval", resolution)
+}
+
+func (e *Env) resolution(au User, subject, resolution string) (string, error) {
 	req := map[string]interface{}{
 		"name":       e.Name,
 		"user_id":    au.ID,
@@ -155,7 +164,7 @@ func (e *Env) RequestResolve(au User, resolution string) (string, error) {
 		return "", err
 	}
 
-	resp, err := N.Request(e.getStore()+".resolve", data, time.Second*5)
+	resp, err := N.Request(subject, data, time.Second*5)
 	if err != nil {
 		h.L.Error(err.Error())
 		return "", err
