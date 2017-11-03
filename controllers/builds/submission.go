@@ -14,15 +14,8 @@ import (
 )
 
 // Submission : Submits an environment build for approval
-func Submission(au models.User, env *models.Env, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
-	var e models.Env
+func Submission(au models.User, e *models.Env, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var m models.Mapping
-
-	err := e.FindByName(definition.FullName())
-	if err != nil {
-		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
-	}
 
 	submissions, _ := e.Options["submissions"].(bool)
 	if !submissions {
@@ -37,7 +30,7 @@ func Submission(au models.User, env *models.Env, definition *definition.Definiti
 		return st, res
 	}
 
-	err = m.Apply(definition, au)
+	err := m.Apply(definition, au)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the environment"`)
