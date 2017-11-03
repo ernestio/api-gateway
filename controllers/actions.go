@@ -14,14 +14,15 @@ import (
 // ActionHandler : handles different actions that can be triggered on an env
 func ActionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
-	st, b := h.IsAuthorized(&au, "envs/create")
-	if st != 200 {
-		return h.Respond(c, st, b)
-	}
 
 	action, err := mapAction(c)
 	if err != nil {
 		return h.Respond(c, 400, []byte(err.Error()))
+	}
+
+	st, b := h.IsAuthorized(&au, "envs/"+action.Type)
+	if st != 200 {
+		return h.Respond(c, st, b)
 	}
 
 	switch action.Type {
@@ -33,7 +34,7 @@ func ActionHandler(c echo.Context) error {
 		st, b = envs.Sync(au, envName(c), action)
 	case "resolve":
 		st, b = envs.Resolve(au, envName(c), action)
-	case "review-submission":
+	case "review":
 		st, b = builds.Approval(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
