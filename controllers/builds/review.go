@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package envs
+package builds
 
 import (
 	"encoding/json"
@@ -12,8 +12,8 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Resolve : Resolves an environment sync
-func Resolve(au models.User, env string, action *models.Action) (int, []byte) {
+// Review : Resolves a build that is queued pending approval
+func Review(au models.User, env string, action *models.Action) (int, []byte) {
 	var e models.Env
 
 	err := e.FindByName(env)
@@ -26,7 +26,7 @@ func Resolve(au models.User, env string, action *models.Action) (int, []byte) {
 		return st, res
 	}
 
-	id, err := e.RequestResolve(au, action.Options.Resolution)
+	id, err := e.RequestReview(au, action.Options.Resolution)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}
