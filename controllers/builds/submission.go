@@ -13,8 +13,8 @@ import (
 	"github.com/ernestio/mapping/definition"
 )
 
-// Create : Creates an environment build
-func Create(au models.User, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
+// Submission : Submits an environment build for approval
+func Submission(au models.User, env *models.Env, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
@@ -24,9 +24,17 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return 404, []byte("Environment not found")
 	}
 
-	if st, _ := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
-		// Try submission
-		return Submission(au, &e, definition, raw, dry)
+	submissions, _ := e.Options["submissions"].(bool)
+	if !submissions {
+		return 403, h.AuthNonOwner
+	}
+
+	if st, res := h.IsLicensed(&au, h.SubmitBuild); st != 200 {
+		return st, res
+	}
+
+	if st, res := h.IsAuthorizedToReadResource(&au, h.SubmitBuild, e.GetType(), e.Name); st != 200 {
+		return st, res
 	}
 
 	err = m.Apply(definition, au)
@@ -49,7 +57,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		EnvironmentID: e.ID,
 		UserID:        au.ID,
 		Username:      au.Username,
-		Type:          "apply",
+		Type:          "submission",
 		Mapping:       m,
 		Definition:    string(raw),
 	}
@@ -60,10 +68,5 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return 500, []byte(`"Couldn't create the build"`)
 	}
 
-	if err := b.RequestCreation(&m); err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call build.create"`)
-	}
-
-	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)
+	return http.StatusOK, []byte(`{"id":"` + b.ID + `", "status":"submitted"}`)
 }
