@@ -34,6 +34,8 @@ type User struct {
 	OldPassword string   `json:"oldpassword,omitempty"`
 	Salt        string   `json:"salt,omitempty"`
 	Admin       *bool    `json:"admin"`
+	MFA         *bool    `json:"mfa"`
+	MFASecret   string   `json:"mfa_secret"`
 	Envs        []string `json:"envs"`
 	Projects    []string `json:"projects"`
 	Type        string   `json:"type"`

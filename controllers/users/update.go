@@ -20,9 +20,11 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
-	err := u.Validate()
-	if err != nil {
-		return 400, []byte(err.Error())
+	if u.Password != "" {
+		err := u.Validate()
+		if err != nil {
+			return 400, []byte(err.Error())
+		}
 	}
 
 	// Check if authenticated user is admin or updating itself
@@ -70,7 +72,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 
 	u.Redact()
 
-	body, err = json.Marshal(u)
+	body, err := json.Marshal(u)
 	if err != nil {
 		return 500, []byte("Internal server error")
 	}
