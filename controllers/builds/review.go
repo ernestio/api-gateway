@@ -12,8 +12,8 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Approval : Resolves a build that is queued pending approval
-func Approval(au models.User, env string, action *models.Action) (int, []byte) {
+// Review : Resolves a build that is queued pending approval
+func Review(au models.User, env string, action *models.Action) (int, []byte) {
 	var e models.Env
 
 	err := e.FindByName(env)
@@ -22,11 +22,11 @@ func Approval(au models.User, env string, action *models.Action) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 
-	id, err := e.RequestApproval(au, action.Options.Resolution)
+	id, err := e.RequestReview(au, action.Options.Resolution)
 	if err != nil {
 		return 500, []byte(err.Error())
 	}

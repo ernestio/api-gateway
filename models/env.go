@@ -146,9 +146,9 @@ func (e *Env) RequestResolve(au User, resolution string) (string, error) {
 	return e.resolution(au, e.getStore()+".resolve", resolution)
 }
 
-// RequestApproval : calls build.approval with the given raw message
-func (e *Env) RequestApproval(au User, resolution string) (string, error) {
-	return e.resolution(au, "build.approval", resolution)
+// RequestReview : calls build.review with the given raw message
+func (e *Env) RequestReview(au User, resolution string) (string, error) {
+	return e.resolution(au, "build.review", resolution)
 }
 
 func (e *Env) resolution(au User, subject, resolution string) (string, error) {

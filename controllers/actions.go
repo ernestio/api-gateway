@@ -5,6 +5,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/ernestio/api-gateway/controllers/builds"
 	"github.com/ernestio/api-gateway/controllers/envs"
 	h "github.com/ernestio/api-gateway/helpers"
@@ -25,6 +27,8 @@ func ActionHandler(c echo.Context) error {
 		return h.Respond(c, st, b)
 	}
 
+	fmt.Println(h.Licensed())
+
 	switch action.Type {
 	case "import":
 		st, b = builds.Import(au, envName(c), action)
@@ -35,7 +39,7 @@ func ActionHandler(c echo.Context) error {
 	case "resolve":
 		st, b = envs.Resolve(au, envName(c), action)
 	case "review":
-		st, b = builds.Approval(au, envName(c), action)
+		st, b = builds.Review(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}
