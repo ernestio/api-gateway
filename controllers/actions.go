@@ -5,8 +5,6 @@
 package controllers
 
 import (
-	"fmt"
-
 	"github.com/ernestio/api-gateway/controllers/builds"
 	"github.com/ernestio/api-gateway/controllers/envs"
 	h "github.com/ernestio/api-gateway/helpers"
@@ -26,8 +24,6 @@ func ActionHandler(c echo.Context) error {
 	if st != 200 {
 		return h.Respond(c, st, b)
 	}
-
-	fmt.Println(h.Licensed())
 
 	switch action.Type {
 	case "import":
