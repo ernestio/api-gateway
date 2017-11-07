@@ -57,7 +57,6 @@ func TestGetProject(t *testing.T) {
 						So(st, ShouldEqual, 200)
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, 1)
-						So(d.Name, ShouldEqual, "test")
 					})
 				})
 				Convey("When the datacenter group matches the authenticated users group", func() {

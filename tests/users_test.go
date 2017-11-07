@@ -217,7 +217,7 @@ func TestUpdateUser(t *testing.T) {
 					Convey("With a valid payload", func() {
 						var err error
 						getUserSubscriber(1)
-						st, resp := users.Update(admin, "1", data)
+						st, resp := users.Update(admin, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
 							err = json.Unmarshal(resp, &u)
@@ -232,7 +232,7 @@ func TestUpdateUser(t *testing.T) {
 					Convey("With a payload updating the admin field", func() {
 						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
 						getUserSubscriber(1)
-						st, resp := users.Update(admin, "1", data)
+						st, resp := users.Update(admin, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
 							err = json.Unmarshal(resp, &u)
@@ -293,7 +293,7 @@ func TestUpdateUser(t *testing.T) {
 				Convey("And I'm authenticated as the user being updated", func() {
 					Convey("With a valid payload", func() {
 						getUserSubscriber(1)
-						st, resp := users.Update(au, "1", data)
+						st, resp := users.Update(au, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							var u models.User
 							err = json.Unmarshal(resp, &u)
@@ -308,7 +308,7 @@ func TestUpdateUser(t *testing.T) {
 					Convey("With a payload updating the admin field", func() {
 						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
 						getUserSubscriber(1)
-						st, resp := users.Update(au, "1", data)
+						st, resp := users.Update(au, "test", data)
 						Convey("It should return an error message with a 403 response", func() {
 							So(st, ShouldEqual, 403)
 							So(string(resp), ShouldContainSubstring, "You're not allowed to perform this action, please contact your admin")

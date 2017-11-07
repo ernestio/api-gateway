@@ -33,9 +33,11 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	// Check user exists
-	if err := au.FindByID(user, &existing); err != nil {
-		h.L.Error(err.Error())
-		return 404, []byte("Specified user not found")
+	if err := au.FindByUserName(user, &existing); err != nil {
+		if err := au.FindByID(user, &existing); err != nil {
+			h.L.Error(err.Error())
+			return 404, []byte("Specified user not found")
+		}
 	}
 
 	if existing.ID == 0 {
