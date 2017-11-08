@@ -380,6 +380,7 @@ func (u *User) IsAdmin() bool {
 	return false
 }
 
+// IsMFA checks if a user has Multi-Factor authentication enabled
 func (u *User) IsMFA() (bool, error) {
 	msg, err := N.Request("user.get", []byte(`{"username": "`+u.Username+`"}`), time.Second)
 	if err != nil {
