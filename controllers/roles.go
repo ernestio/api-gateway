@@ -10,6 +10,13 @@ import (
 	"github.com/labstack/echo"
 )
 
+// GetRolesHandler : responds to GET /roles/ with a list of all
+// roles for admin, and all roles in your group for other
+// roles
+func GetRolesHandler(c echo.Context) error {
+	return genericList(c, "role", roles.List)
+}
+
 // CreateRoleHandler : responds to POST /roles/ by creating a
 // role on the data store
 func CreateRoleHandler(c echo.Context) (err error) {

@@ -15,6 +15,10 @@ import (
 // Route : set up router and starts the server
 func Route() *echo.Echo {
 	e := echo.New()
+	e.Pre(middleware.AddTrailingSlash())
+	//e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.CORS())
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -29,8 +33,8 @@ func Route() *echo.Echo {
 }
 
 func setupRoot(e *echo.Echo) {
-	e.POST("/auth", controllers.AuthenticateHandler)
-	e.GET("/status", controllers.GetStatusHandler)
+	e.POST("/auth/", controllers.AuthenticateHandler)
+	e.GET("/status/", controllers.GetStatusHandler)
 }
 
 func setupAPI(e *echo.Echo) {
@@ -43,13 +47,14 @@ func setupAPI(e *echo.Echo) {
 	// Setup user routes
 	u := api.Group("/users")
 	u.GET("/", controllers.GetUsersHandler)
-	u.GET("/:user", controllers.GetUserHandler)
+	u.GET("/:user/", controllers.GetUserHandler)
 	u.POST("/", controllers.CreateUserHandler)
-	u.PUT("/:user", controllers.UpdateUserHandler)
-	u.DELETE("/:user", controllers.DeleteUserHandler)
+	u.PUT("/:user/", controllers.UpdateUserHandler)
+	u.DELETE("/:user/", controllers.DeleteUserHandler)
 
 	// Setup roles routes
 	r := api.Group("/roles")
+	r.GET("/", controllers.GetRolesHandler)
 	r.POST("/", controllers.CreateRoleHandler)
 	r.DELETE("/", controllers.DeleteRoleHandler)
 
@@ -57,27 +62,27 @@ func setupAPI(e *echo.Echo) {
 	l := api.Group("/loggers")
 	l.GET("/", controllers.GetLoggersHandler)
 	l.POST("/", controllers.CreateLoggerHandler)
-	l.DELETE("/:logger", controllers.DeleteLoggerHandler)
+	l.DELETE("/:logger/", controllers.DeleteLoggerHandler)
 
 	// Setup project routes
 	d := api.Group("/projects")
 	d.GET("/", controllers.GetDatacentersHandler)
-	d.GET("/:project", controllers.GetDatacenterHandler)
+	d.GET("/:project/", controllers.GetDatacenterHandler)
 	d.POST("/", controllers.CreateDatacenterHandler)
-	d.PUT("/:project", controllers.UpdateDatacenterHandler)
-	d.DELETE("/:project", controllers.DeleteDatacenterHandler)
+	d.PUT("/:project/", controllers.UpdateDatacenterHandler)
+	d.DELETE("/:project/", controllers.DeleteDatacenterHandler)
 
 	// Setup env routes
 	d.GET("/:project/envs/", controllers.GetEnvsHandler)
 	d.POST("/:project/envs/", controllers.CreateEnvHandler)
-	d.PUT("/:project/envs/:env", controllers.UpdateEnvHandler)
-	d.GET("/:project/envs/:env", controllers.GetEnvHandler)
-	d.DELETE("/:project/envs/:env", controllers.DeleteEnvHandler)
+	d.PUT("/:project/envs/:env/", controllers.UpdateEnvHandler)
+	d.GET("/:project/envs/:env/", controllers.GetEnvHandler)
+	d.DELETE("/:project/envs/:env/", controllers.DeleteEnvHandler)
 
 	// Setup build routes
 	d.GET("/:project/envs/:env/builds/", controllers.GetBuildsHandler)
 	d.POST("/:project/envs/:env/builds/", controllers.CreateBuildHandler)
-	d.GET("/:project/envs/:env/builds/:build", controllers.GetBuildHandler)
+	d.GET("/:project/envs/:env/builds/:build/", controllers.GetBuildHandler)
 	d.GET("/:project/envs/:env/builds/:build/mapping/", controllers.GetBuildMappingHandler)
 	d.GET("/:project/envs/:env/builds/:build/definition/", controllers.GetBuildDefinitionHandler)
 	d.POST("/:project/envs/:env/actions/", controllers.ActionHandler)
@@ -114,12 +119,12 @@ func setupAPI(e *echo.Echo) {
 	not := api.Group("/notifications")
 	not.GET("/", controllers.GetNotificationsHandler)
 	not.POST("/", controllers.CreateNotificationHandler)
-	not.PUT("/:notification", controllers.UpdateNotificationHandler)
-	not.DELETE("/:notification", controllers.DeleteNotificationHandler)
-	not.POST("/:notification/projects/:project", controllers.AddProjectToNotificationHandler)
-	not.DELETE("/:notification/projects/:project", controllers.RmProjectToNotificationHandler)
-	not.POST("/:notification/projects/:project/envs/:env", controllers.AddEnvToNotificationHandler)
-	not.DELETE("/:notification/projects/:project/envs/:env", controllers.RmEnvToNotificationHandler)
+	not.PUT("/:notification/", controllers.UpdateNotificationHandler)
+	not.DELETE("/:notification/", controllers.DeleteNotificationHandler)
+	not.POST("/:notification/projects/:project/", controllers.AddProjectToNotificationHandler)
+	not.DELETE("/:notification/projects/:project/", controllers.RmProjectToNotificationHandler)
+	not.POST("/:notification/projects/:project/envs/:env/", controllers.AddEnvToNotificationHandler)
+	not.DELETE("/:notification/projects/:project/envs/:env/", controllers.RmEnvToNotificationHandler)
 }
 
 func start(e *echo.Echo) {
