@@ -30,8 +30,8 @@ const (
 type User struct {
 	ID               int      `json:"id"`
 	Username         string   `json:"username"`
-	Password         string   `json:"password,omitempty"`
-	OldPassword      string   `json:"oldpassword,omitempty"`
+	Password         *string  `json:"password,omitempty"`
+	OldPassword      *string  `json:"oldpassword,omitempty"`
 	Salt             string   `json:"salt,omitempty"`
 	Admin            *bool    `json:"admin"`
 	MFA              *bool    `json:"mfa"`
@@ -42,15 +42,15 @@ type User struct {
 	Type             string   `json:"type"`
 }
 
-// Describes an Authenticator service response
-type authResponse struct {
+// AuthResponse : Describes an Authenticator service response
+type AuthResponse struct {
 	OK      bool   `json:"ok"`
 	Token   string `json:"token,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
 // Authenticate verifies user credentials
-func (u *User) Authenticate() (*authResponse, error) {
+func (u *User) Authenticate() (*AuthResponse, error) {
 	mfa, err := u.IsMFA()
 	if err != nil {
 		return nil, err
@@ -60,12 +60,12 @@ func (u *User) Authenticate() (*authResponse, error) {
 		return nil, errors.New("mfa required")
 	}
 
-	msg, err := N.Request("authentication.get", []byte(`{"username": "`+u.Username+`", "password": "`+u.Password+`", "verification_code": "`+u.VerificationCode+`"}`), 10*time.Second)
+	msg, err := N.Request("authentication.get", []byte(`{"username": "`+u.Username+`", "password": "`+*u.Password+`", "verification_code": "`+u.VerificationCode+`"}`), 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
-	res := authResponse{}
+	res := AuthResponse{}
 	err = json.Unmarshal(msg.Data, &res)
 	if err != nil {
 		return nil, err
@@ -76,23 +76,23 @@ func (u *User) Authenticate() (*authResponse, error) {
 
 // Validate checks user input details for missing values and invalid characters
 func (u *User) Validate() error {
+	r := regexp.MustCompile(`^[a-zA-Z0-9@._\-]*$`)
 	if u.Username == "" {
 		return errors.New("Username cannot be empty")
 	}
-	if u.Password == "" {
-		return errors.New("Password cannot be empty")
-	}
-	if len(u.Password) < 8 {
-		return errors.New("Minimum password length is 8 characters")
-	}
-
-	r := regexp.MustCompile(`^[a-zA-Z0-9@._\-]*$`)
-
 	if !r.MatchString(u.Username) {
 		return errors.New(`Username can only contain the following characters: a-z 0-9 @._-`)
 	}
-	if !r.MatchString(u.Password) {
-		return errors.New(`Password can only contain the following characters: a-z 0-9 @._-`)
+	if u.Password != nil {
+		if *u.Password == "" {
+			return errors.New("Password cannot be empty")
+		}
+		if len(*u.Password) < 8 {
+			return errors.New("Minimum password length is 8 characters")
+		}
+		if !r.MatchString(*u.Password) {
+			return errors.New(`Password can only contain the following characters: a-z 0-9 @._-`)
+		}
 	}
 	return nil
 }
@@ -113,10 +113,7 @@ func (u *User) Map(data []byte) error {
 func (u *User) FindByUserName(name string, user *User) (err error) {
 	query := make(map[string]interface{})
 	query["username"] = name
-	if err := NewBaseModel("user").GetBy(query, user); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("user").GetBy(query, user)
 }
 
 // FindAll : Searches for all users on the store current user
@@ -126,10 +123,7 @@ func (u *User) FindAll(users *[]User) (err error) {
 	if !u.IsAdmin() {
 		// TODO add auth
 	}
-	if err := NewBaseModel("user").FindBy(query, users); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("user").FindBy(query, users)
 }
 
 // FindByID : Searches a user by ID on the store current user
@@ -142,18 +136,12 @@ func (u *User) FindByID(id string, user *User) (err error) {
 	if !u.IsAdmin() {
 		// TODO add auth
 	}
-	if err := NewBaseModel("user").GetBy(query, user); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("user").GetBy(query, user)
 }
 
 // Save : calls user.set with the marshalled current user
 func (u *User) Save() (err error) {
-	if err := NewBaseModel("user").Save(u); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("user").Save(u)
 }
 
 // Delete : will delete a user by its id
@@ -162,16 +150,14 @@ func (u *User) Delete(id string) (err error) {
 	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
 	}
-	if err := NewBaseModel("user").Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("user").Delete(query)
 }
 
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
 func (u *User) Redact() {
-	u.Password = ""
+	empty := ""
+	u.Password = &empty
 	u.Salt = ""
 }
 
@@ -182,7 +168,7 @@ func (u *User) Improve() {
 // ValidPassword : checks if a submitted password matches
 // the users password hash
 func (u *User) ValidPassword(pw string) bool {
-	userpass, err := base64.StdEncoding.DecodeString(u.Password)
+	userpass, err := base64.StdEncoding.DecodeString(*u.Password)
 	if err != nil {
 		return false
 	}
@@ -386,6 +372,7 @@ func (u *User) getRole(resourceType, resourceID string) (string, error) {
 	return existing.Role, nil
 }
 
+// IsAdmin : Check if a user is admin or not
 func (u *User) IsAdmin() bool {
 	if u.Admin != nil {
 		return *u.Admin

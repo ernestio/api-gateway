@@ -46,10 +46,7 @@ func (l *Usage) Map(data []byte) error {
 // FindAll : Searches for all usaages on the system
 func (l *Usage) FindAll(usages *[]Usage) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel("usage").FindBy(query, usages); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("usage").FindBy(query, usages)
 }
 
 // FindAllInRange : Searches for all usaages on a date range
@@ -57,8 +54,5 @@ func (l *Usage) FindAllInRange(from, to int64, usages *[]Usage) (err error) {
 	query := make(map[string]interface{})
 	query["from"] = from
 	query["to"] = to
-	if err := NewBaseModel("usage").FindBy(query, usages); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("usage").FindBy(query, usages)
 }

@@ -38,24 +38,15 @@ var (
 	GetBuild = "get_build"
 	// ResetBuild : ...
 	ResetBuild = "reset_build"
+	// SubmitBuild : ...
+	SubmitBuild = "submit_build"
 )
 
 // IsAuthorized : Validates if the given user has access to the given resource
 func IsAuthorized(au User, resource string) (int, []byte) {
-	licensedResources := map[string]int{
-		"notifications/add_env":     405,
-		"notifications/add_project": 405,
-		"notifications/create":      405,
-		"notifications/delete":      405,
-		"notifications/list":        405,
-		"notifications/rm_service":  405,
-		"notifications/update":      405,
-		"services/update":           405,
-	}
-	if st, ok := licensedResources[resource]; ok {
-		if err := Licensed(); err != nil {
-			return st, []byte(err.Error())
-		}
+	st, res := IsLicensed(au, resource)
+	if st != 200 {
+		return st, res
 	}
 
 	if au.GetAdmin() == true {
@@ -102,11 +93,41 @@ func IsAuthorizedToResource(au User, endpoint, resource, resourceID string) (int
 		}
 	}
 
+	return IsAuthorizedToReadResource(au, endpoint, resource, resourceID)
+}
+
+// IsLicensed : checks if the action being performed is licensed
+func IsLicensed(au User, resource string) (int, []byte) {
+	licensedResources := map[string]int{
+		"notifications/add_env":     405,
+		"notifications/add_project": 405,
+		"notifications/create":      405,
+		"notifications/delete":      405,
+		"notifications/list":        405,
+		"notifications/rm_service":  405,
+		"notifications/update":      405,
+		"envs/sync":                 405,
+		"envs/resolve":              405,
+		"envs/submission":           405,
+		"envs/review":               405,
+	}
+	if st, ok := licensedResources[resource]; ok {
+		if err := Licensed(); err != nil {
+			return st, []byte(err.Error())
+		}
+	}
+
+	return 200, []byte("")
+}
+
+// IsAuthorizedToReadResource : check  if the user is authorized to read only access a specific resource
+func IsAuthorizedToReadResource(au User, endpoint, resource, resourceID string) (int, []byte) {
 	readableResources := map[string]int{
-		GetProject: 403,
-		GetEnv:     403,
-		ListBuilds: 403,
-		GetBuild:   403,
+		GetProject:  403,
+		GetEnv:      403,
+		ListBuilds:  403,
+		GetBuild:    403,
+		SubmitBuild: 403,
 	}
 	if st, ok := readableResources[endpoint]; ok {
 		if !au.IsReader(resource, resourceID) {

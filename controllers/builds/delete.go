@@ -22,7 +22,7 @@ func Delete(au models.User, name string) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 

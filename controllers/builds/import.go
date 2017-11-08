@@ -23,7 +23,7 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 		return 404, []byte("Environment not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 

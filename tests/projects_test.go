@@ -18,7 +18,7 @@ import (
 func TestListProjects(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
 			findDatacenterSubscriber()
@@ -41,7 +41,7 @@ func TestListProjects(t *testing.T) {
 func TestGetProject(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
 			getDatacenterSubscriber(1)
@@ -57,7 +57,6 @@ func TestGetProject(t *testing.T) {
 						So(st, ShouldEqual, 200)
 						So(err, ShouldBeNil)
 						So(d.ID, ShouldEqual, 1)
-						So(d.Name, ShouldEqual, "test")
 					})
 				})
 				Convey("When the datacenter group matches the authenticated users group", func() {
@@ -78,7 +77,7 @@ func TestGetProject(t *testing.T) {
 func TestCreateProject(t *testing.T) {
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
 
 	Convey("Scenario: creating a datacenter", t, func() {
 		Convey("Given the datacenter does not exist on the store ", func() {

@@ -58,59 +58,40 @@ func (d *Project) Map(data []byte) error {
 func (d *Project) FindByName(name string) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel(d.getStore()).GetBy(query, d); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(d.getStore()).GetBy(query, d)
 }
 
 // FindByID : Gets a model by its id
 func (d *Project) FindByID(id int) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	if err := NewBaseModel(d.getStore()).GetBy(query, d); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(d.getStore()).GetBy(query, d)
 }
 
 // FindByIDs : Gets a model by its id
 func (d *Project) FindByIDs(ids []string, ds *[]Project) (err error) {
 	query := make(map[string]interface{})
 	query["names"] = ids
-	if err := NewBaseModel(d.getStore()).FindBy(query, ds); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(d.getStore()).FindBy(query, ds)
 }
 
 // FindAll : Searches for all entities on the store current user
 // has access to
 func (d *Project) FindAll(au User, projects *[]Project) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel(d.getStore()).FindBy(query, projects); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(d.getStore()).FindBy(query, projects)
 }
 
 // Save : calls datacenter.set with the marshalled current entity
 func (d *Project) Save() (err error) {
-	if err := NewBaseModel(d.getStore()).Save(d); err != nil {
-		return err
-	}
-
-	return nil
+	return NewBaseModel(d.getStore()).Save(d)
 }
 
 // Delete : will delete a project by its id
 func (d *Project) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = d.ID
-	if err := NewBaseModel(d.getStore()).Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel(d.getStore()).Delete(query)
 }
 
 // Redact : removes all sensitive fields from the return

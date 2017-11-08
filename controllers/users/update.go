@@ -20,13 +20,6 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
-	if u.Password != "" {
-		err := u.Validate()
-		if err != nil {
-			return 400, []byte(err.Error())
-		}
-	}
-
 	// Check if authenticated user is admin or updating itself
 	if !u.CanBeChangedBy(au) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
@@ -35,9 +28,11 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	// Check user exists
-	if err := au.FindByID(user, &existing); err != nil {
-		h.L.Error(err.Error())
-		return 404, []byte("Specified user not found")
+	if err := au.FindByUserName(user, &existing); err != nil {
+		if err := au.FindByID(user, &existing); err != nil {
+			h.L.Error(err.Error())
+			return 404, []byte("Specified user not found")
+		}
 	}
 
 	if existing.ID == 0 {
@@ -58,11 +53,19 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 403, []byte(err.Error())
 	}
 
-	// Check the old password if it is present
-	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return 403, []byte(err.Error())
+	if u.Password != nil {
+		u.Username = user
+		err := u.Validate()
+		if err != nil {
+			return 400, []byte(err.Error())
+		}
+
+		// Check the old password if it is present
+		if u.OldPassword != nil && !existing.ValidPassword(*u.OldPassword) {
+			err := errors.New("You're not allowed to perform this action, please contact your admin")
+			h.L.Error(err.Error())
+			return 403, []byte(err.Error())
+		}
 	}
 
 	if err := u.Save(); err != nil {

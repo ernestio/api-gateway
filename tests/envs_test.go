@@ -135,13 +135,13 @@ func TestDeletingEnvs(t *testing.T) {
 
 	Convey("Scenario: deleting a service", t, func() {
 		Convey("Given a service exists with in progress status", func() {
-			foundSubscriber("environment.get", `{"id":1,"status":"in_progress"}`, 3)
+			foundSubscriber("environment.get", `{"id":1,"name":"test","status":"in_progress"}`, 3)
 			foundSubscriber("build.find", `[{"id":"test","status":"in_progress"}]`, 1)
 			foundSubscriber("build.get.mapping", `{}`, 1)
 			foundSubscriber("build.set", `{"_error": "environment build is in progress"}`, 1)
 			foundSubscriber("mapping.get.delete", `{"id":"test-uuid-1"}`, 1)
 			foundSubscriber("datacenter.get", `{"id":1, "credentials": {"username":" test"}}`, 1)
-			res := `[{"resource_id":"1","role":"reader"}]`
+			res := `[{"resource_id":"test","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := builds.Delete(au, "foo-bar")
@@ -158,7 +158,7 @@ func TestDeletingEnvs(t *testing.T) {
 			foundSubscriber("build.set", `{}`, 1)
 			foundSubscriber("mapping.get.delete", `{"id":"foo-bar"}`, 1)
 			foundSubscriber("datacenter.get", `{"id":1, "credentials": {"username":" test"}}`, 1)
-			res := `[{"resource_id":"1","role":"reader"}]`
+			res := `[{"resource_id":"1","role":"owner"}]`
 			foundSubscriber("authorization.find", res, 1)
 			Convey("When I call DELETE /services/:service", func() {
 				st, resp := builds.Delete(au, "foo-bar")

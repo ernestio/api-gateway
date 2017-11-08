@@ -48,26 +48,17 @@ func (l *Logger) Map(data []byte) error {
 // FindAll : Searches for all loggers on the system
 func (l *Logger) FindAll(loggers *[]Logger) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel("logger").FindBy(query, loggers); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("logger").FindBy(query, loggers)
 }
 
 // Save : calls logger.set with the marshalled current logger
 func (l *Logger) Save() (err error) {
-	if err := NewBaseModel("logger").Save(l); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("logger").Save(l)
 }
 
 // Delete : will delete a logger by its type
 func (l *Logger) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["type"] = l.Type
-	if err := NewBaseModel("logger").Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("logger").Delete(query)
 }
