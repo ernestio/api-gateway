@@ -8,17 +8,20 @@ import (
 	"github.com/nats-io/nats"
 )
 
+var pw1 = "test1234"
+var pw2 = "7bxJZHmyYoEZ9EcjJA85+XXUnZpTcV1Dk4ELpNCfTBeAYougTOcX2+0c/L+jGWuYOLr/UxnmzktpbpQLrBrcaQ=="
+
 var (
 	mockUsers = []models.User{
 		models.User{
 			ID:       1,
 			Username: "test",
-			Password: "test1234",
+			Password: &pw1,
 		},
 		models.User{
 			ID:       2,
 			Username: "test2",
-			Password: "7bxJZHmyYoEZ9EcjJA85+XXUnZpTcV1Dk4ELpNCfTBeAYougTOcX2+0c/L+jGWuYOLr/UxnmzktpbpQLrBrcaQ==",
+			Password: &pw2,
 			Salt:     "yk5c0e8MDkehRv6K83x/5zdo4Jrj/EGBzqTimzJStOo=",
 		},
 	}

@@ -20,6 +20,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
+	u.Username = user
 	err := u.Validate()
 	if err != nil {
 		return 400, []byte(err.Error())
@@ -59,10 +60,12 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	// Check the old password if it is present
-	if u.OldPassword != "" && !existing.ValidPassword(u.OldPassword) {
-		err := errors.New("You're not allowed to perform this action, please contact your admin")
-		h.L.Error(err.Error())
-		return 403, []byte(err.Error())
+	if u.Password != nil {
+		if u.OldPassword != nil && !existing.ValidPassword(*u.OldPassword) {
+			err := errors.New("You're not allowed to perform this action, please contact your admin")
+			h.L.Error(err.Error())
+			return 403, []byte(err.Error())
+		}
 	}
 
 	if err := u.Save(); err != nil {
