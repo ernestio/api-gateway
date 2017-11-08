@@ -57,10 +57,7 @@ func (l *Role) Map(data []byte) error {
 // FindAll : Searches for all roles on the system
 func (l *Role) FindAll(roles *[]Role) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel("authorization").FindBy(query, roles); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("authorization").FindBy(query, roles)
 }
 
 // FindAllByUserAndResource : Searches for all roles on the system by user and resource type
@@ -69,11 +66,7 @@ func (l *Role) FindAllByUserAndResource(u, r string, roles *[]Role) (err error) 
 	query["user_id"] = u
 	query["resource_type"] = r
 
-	if err := NewBaseModel("authorization").FindBy(query, roles); err != nil {
-		return err
-	}
-
-	return nil
+	return NewBaseModel("authorization").FindBy(query, roles)
 }
 
 // FindAllIDsByUserAndType : Searches for all resource_ids by user and resource type
@@ -97,19 +90,12 @@ func (l *Role) FindAllByResource(id, r string, roles *[]Role) (err error) {
 	query["resource_id"] = id
 	query["resource_type"] = r
 
-	if err := NewBaseModel("authorization").FindBy(query, roles); err != nil {
-		return err
-	}
-
-	return nil
+	return NewBaseModel("authorization").FindBy(query, roles)
 }
 
 // Save : calls role.set with the marshalled current role
 func (l *Role) Save() (err error) {
-	if err := NewBaseModel("authorization").Save(l); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("authorization").Save(l)
 }
 
 // Get : will delete a role by its type
@@ -132,10 +118,7 @@ func (l *Role) Get(userID, resourceID, resourceType string) (role *Role, err err
 func (l *Role) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = l.ID
-	if err := NewBaseModel("authorization").Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("authorization").Delete(query)
 }
 
 // ResourceExists : check if related resource exists

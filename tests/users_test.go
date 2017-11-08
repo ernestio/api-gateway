@@ -19,7 +19,7 @@ func TestGetUsers(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a list of users", t, func() {
@@ -53,8 +53,8 @@ func TestGetUser(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-	other := models.User{ID: 3, Username: "other", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
+	other := models.User{ID: 3, Username: "other", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: getting a single user", t, func() {
@@ -71,7 +71,7 @@ func TestGetUser(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
-						So(u.Password, ShouldEqual, "")
+						So(*u.Password, ShouldEqual, "")
 						So(u.Salt, ShouldEqual, "")
 					})
 				})
@@ -84,7 +84,7 @@ func TestGetUser(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
-						So(u.Password, ShouldEqual, "")
+						So(*u.Password, ShouldEqual, "")
 						So(u.Salt, ShouldEqual, "")
 					})
 				})
@@ -130,15 +130,8 @@ func TestCreateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 3)
 							So(u.Username, ShouldEqual, "new-test")
-							So(u.Password, ShouldEqual, "")
+							So(*u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
-						})
-					})
-					Convey("With an invalid payload", func() {
-						invalidData := []byte(`{"group_id": 1, "username": "fail"}`)
-						st, _ := users.Create(admin, invalidData)
-						Convey("It should error with 400 bad request", func() {
-							So(st, ShouldEqual, 400)
 						})
 					})
 					Convey("With a password less than the minimum length", func() {
@@ -204,8 +197,8 @@ func TestUpdateUser(t *testing.T) {
 	var err error
 	testsSetup()
 	config.Setup()
-	au := models.User{ID: 1, Username: "test", Password: "test1234"}
-	other := models.User{ID: 3, Username: "other", Password: "test1234"}
+	au := models.User{ID: 1, Username: "test", Password: &pw1}
+	other := models.User{ID: 3, Username: "other", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 	data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
 
@@ -225,7 +218,7 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(u.Password, ShouldEqual, "")
+							So(*u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
 						})
 					})
@@ -240,22 +233,23 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(u.Password, ShouldEqual, "")
+							So(*u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
 							So(*u.Admin, ShouldEqual, true)
 						})
 					})
 					Convey("With an invalid payload", func() {
+						getUserSubscriber(1)
 						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
-						st, _ := users.Update(admin, "1", invalidData)
+						st, _ := users.Update(admin, "test", invalidData)
 						Convey("It should update the user and return the correct set of data", func() {
-							So(st, ShouldEqual, 400)
+							So(st, ShouldEqual, 200)
 						})
 					})
 					Convey("With a username using invalid characters", func() {
 						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
 						getUserSubscriber(1)
-						st, resp := users.Update(admin, "1", invalidData)
+						st, resp := users.Update(admin, "new^test", invalidData)
 
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
@@ -274,7 +268,7 @@ func TestUpdateUser(t *testing.T) {
 					Convey("With no username", func() {
 						getUserSubscriber(1)
 						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
-						st, resp := users.Update(admin, "1", invalidData)
+						st, resp := users.Update(admin, "", invalidData)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
 							So(string(resp), ShouldContainSubstring, "Username cannot be empty")
@@ -301,7 +295,7 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(u.Password, ShouldEqual, "")
+							So(*u.Password, ShouldEqual, "")
 							So(u.Salt, ShouldEqual, "")
 						})
 					})

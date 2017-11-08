@@ -46,10 +46,7 @@ func (l *Notification) Map(data []byte) error {
 // FindAll : Searches for all notifications on the system
 func (l *Notification) FindAll(notifications *[]Notification) (err error) {
 	query := make(map[string]interface{})
-	if err := NewBaseModel("notification").FindBy(query, notifications); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("notification").FindBy(query, notifications)
 }
 
 // FindByID : Gets a notification by ID
@@ -58,37 +55,24 @@ func (l *Notification) FindByID(id string, notification *Notification) (err erro
 	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
 	}
-	if err := NewBaseModel("notification").GetBy(query, notification); err != nil {
-		return err
-	}
-	return nil
-
+	return NewBaseModel("notification").GetBy(query, notification)
 }
 
 // FindByName : Searches for all notifications with a name equal to the specified
 func (l *Notification) FindByName(name string, notification *Notification) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
-	if err := NewBaseModel("notification").GetBy(query, notification); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("notification").GetBy(query, notification)
 }
 
 // Save : calls notification.set with the marshalled current notification
 func (l *Notification) Save() (err error) {
-	if err := NewBaseModel("notification").Save(l); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("notification").Save(l)
 }
 
 // Delete : will delete a notification by its type
 func (l *Notification) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = l.ID
-	if err := NewBaseModel("notification").Delete(query); err != nil {
-		return err
-	}
-	return nil
+	return NewBaseModel("notification").Delete(query)
 }
