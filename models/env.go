@@ -173,11 +173,16 @@ func (e *Env) resolution(au User, subject, resolution string) (string, error) {
 	var r struct {
 		ID     string `json:"id"`
 		Status string `json:"ok"`
+		Error  string `json:"_error"`
 	}
 
 	err = json.Unmarshal(resp.Data, &r)
 	if err != nil {
 		return "", err
+	}
+
+	if r.Error != "" {
+		return r.ID, errors.New(r.Error)
 	}
 
 	return r.ID, nil
