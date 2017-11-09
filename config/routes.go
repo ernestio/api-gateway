@@ -55,8 +55,10 @@ func setupAPI(e *echo.Echo) {
 	// Setup roles routes
 	r := api.Group("/roles")
 	r.GET("/", controllers.GetRolesHandler)
+	r.GET("/:role/", controllers.GetRoleHandler)
 	r.POST("/", controllers.CreateRoleHandler)
 	r.DELETE("/", controllers.DeleteRoleHandler)
+	r.DELETE("/:role/", controllers.DeleteRoleByIDHandler)
 
 	// Setup logger routes
 	l := api.Group("/loggers")

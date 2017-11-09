@@ -7,6 +7,7 @@ package controllers
 import (
 	"github.com/ernestio/api-gateway/controllers/roles"
 	h "github.com/ernestio/api-gateway/helpers"
+
 	"github.com/labstack/echo"
 )
 
@@ -17,10 +18,22 @@ func GetRolesHandler(c echo.Context) error {
 	return genericList(c, "role", roles.List)
 }
 
+// GetRoleHandler : responds to GET /roles/:role/ with the role
+// details
+func GetRoleHandler(c echo.Context) error {
+	return genericGet(c, "role", roles.Get)
+}
+
 // CreateRoleHandler : responds to POST /roles/ by creating a
 // role on the data store
 func CreateRoleHandler(c echo.Context) (err error) {
 	return genericCreate(c, "role", roles.Create)
+}
+
+// DeleteRoleByIDHandler : responds to DELETE /roles/:id: by deleting an
+// existing role
+func DeleteRoleByIDHandler(c echo.Context) error {
+	return genericDelete(c, "role", roles.DeleteByID)
 }
 
 // DeleteRoleHandler : responds to DELETE /roles/:id: by deleting an
