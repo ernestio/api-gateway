@@ -17,6 +17,12 @@ func GetNotificationsHandler(c echo.Context) (err error) {
 	return genericList(c, "notification", notifications.List)
 }
 
+// GetNotificationHandler : responds to GET /notifications/:id:/ with the specified
+// user details
+func GetNotificationHandler(c echo.Context) error {
+	return genericGet(c, "notification", notifications.Get)
+}
+
 // CreateNotificationHandler : responds to POST /notifications/ by creating a notification
 // on the data store
 func CreateNotificationHandler(c echo.Context) (err error) {

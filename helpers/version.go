@@ -9,6 +9,7 @@ import (
 	"github.com/blang/semver"
 )
 
+// RequiredCliVersion : ..
 const RequiredCliVersion string = "2.2.0"
 
 // ValidCliVersion checks to see if the client version meets minimum

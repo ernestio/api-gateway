@@ -67,6 +67,7 @@ func IsAuthorized(au User, resource string) (int, []byte) {
 		"usages/report":             403,
 		"users/create":              403,
 		"users/delete":              403,
+		"roles/list":                403,
 	}
 	if st, ok := adminResources[resource]; ok {
 		return st, AuthNonAdmin

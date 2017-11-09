@@ -7,6 +7,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/sirupsen/logrus"
@@ -58,6 +59,15 @@ func (l *Role) Map(data []byte) error {
 func (l *Role) FindAll(roles *[]Role) (err error) {
 	query := make(map[string]interface{})
 	return NewBaseModel("authorization").FindBy(query, roles)
+}
+
+// FindByID : Gets a role by ID
+func (l *Role) FindByID(id string, role *Role) (err error) {
+	query := make(map[string]interface{})
+	if query["id"], err = strconv.Atoi(id); err != nil {
+		return err
+	}
+	return NewBaseModel("authorization").GetBy(query, role)
 }
 
 // FindAllByUserAndResource : Searches for all roles on the system by user and resource type

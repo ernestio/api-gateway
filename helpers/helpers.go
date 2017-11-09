@@ -78,6 +78,7 @@ func GetRequestBody(c echo.Context) ([]byte, error) {
 	return data, err
 }
 
+// Bool : ...
 func Bool(b bool) *bool {
 	return &b
 }
