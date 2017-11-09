@@ -200,7 +200,7 @@ func TestUpdateUser(t *testing.T) {
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	other := models.User{ID: 3, Username: "other", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
-	data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password"}`)
+	data := []byte(`{"id": 1, "username": "test", "password": "new-password"}`)
 
 	Convey("Scenario: updating a user", t, func() {
 		setUserSubscriber()
@@ -223,7 +223,7 @@ func TestUpdateUser(t *testing.T) {
 						})
 					})
 					Convey("With a payload updating the admin field", func() {
-						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						data := []byte(`{"id": 1, "username": "test", "password": "new-password", "admin": true}`)
 						getUserSubscriber(1)
 						st, resp := users.Update(admin, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
@@ -238,28 +238,28 @@ func TestUpdateUser(t *testing.T) {
 							So(*u.Admin, ShouldEqual, true)
 						})
 					})
-					Convey("With an invalid payload", func() {
+					Convey("With a payload containing no username", func() {
 						getUserSubscriber(1)
-						invalidData := []byte(`{"id": 1, "group_id": 1, "password": "new-password"}`)
-						st, _ := users.Update(admin, "test", invalidData)
+						data := []byte(`{"id": 1, "password": "new-password"}`)
+						st, _ := users.Update(admin, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							So(st, ShouldEqual, 200)
 						})
 					})
-					Convey("With a username using invalid characters", func() {
-						invalidData := []byte(`{"group_id": 1, "username": "new^test", "password": "test1234"}`)
+					Convey("With a payload updating the username", func() {
+						data := []byte(`{"id": 1, "username": "newtest", "password": "new-password"}`)
 						getUserSubscriber(1)
-						st, resp := users.Update(admin, "new^test", invalidData)
+						st, resp := users.Update(admin, "newtest", data)
 
 						Convey("It should return an error message with a 400 repsonse", func() {
-							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldContainSubstring, "Username can only contain the following characters: a-z 0-9 @._-")
+							So(st, ShouldEqual, 404)
+							So(string(resp), ShouldContainSubstring, "Specified user not found")
 						})
 					})
 					Convey("With a password using invalid characters", func() {
 						getUserSubscriber(1)
-						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": "test^1234"}`)
-						st, resp := users.Update(admin, "1", invalidData)
+						data := []byte(`{"id": 1, "username": "test", "password": "new^password"}`)
+						st, resp := users.Update(admin, "test", data)
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
 							So(string(resp), ShouldContainSubstring, "Password can only contain the following characters: a-z 0-9 @._-")
@@ -267,20 +267,23 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With no username", func() {
 						getUserSubscriber(1)
-						invalidData := []byte(`{"group_id": 1, "username": "", "password": "test1234"}`)
-						st, resp := users.Update(admin, "", invalidData)
+						data := []byte(`{"id": 1, "password": "new-password"}`)
+						st, resp := users.Update(admin, "", data)
 						Convey("It should return an error message with a 400 repsonse", func() {
-							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldContainSubstring, "Username cannot be empty")
+							So(st, ShouldEqual, 404)
+							So(string(resp), ShouldContainSubstring, "Specified user not found")
 						})
 					})
 					Convey("With no password", func() {
 						getUserSubscriber(1)
-						invalidData := []byte(`{"group_id": 1, "username": "new-test", "password": ""}`)
-						st, resp := users.Update(admin, "1", invalidData)
-						Convey("It should return an error message with a 400 repsonse", func() {
-							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldContainSubstring, "Password cannot be empty")
+						data := []byte(`{"id": 1, "admin": true}`)
+						st, resp := users.Update(admin, "test", data)
+
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(st, ShouldEqual, 200)
+							So(*u.Admin, ShouldEqual, true)
 						})
 					})
 				})
@@ -300,7 +303,7 @@ func TestUpdateUser(t *testing.T) {
 						})
 					})
 					Convey("With a payload updating the admin field", func() {
-						data := []byte(`{"id": 1, "group_id": 1, "username": "test", "password": "new-password", "admin": true}`)
+						data := []byte(`{"id": 1, "username": "test", "password": "new-password", "admin": true}`)
 						getUserSubscriber(1)
 						st, resp := users.Update(au, "test", data)
 						Convey("It should return an error message with a 403 response", func() {
@@ -312,7 +315,7 @@ func TestUpdateUser(t *testing.T) {
 
 				Convey("And I'm not authenticated as the user being updated", func() {
 					getUserSubscriber(1)
-					st, _ := users.Update(other, "1", data)
+					st, _ := users.Update(other, "test", data)
 					Convey("It should return with 403 unauthorized", func() {
 						So(st, ShouldEqual, 403)
 					})
