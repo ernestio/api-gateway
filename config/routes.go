@@ -118,6 +118,7 @@ func setupAPI(e *echo.Echo) {
 	// Setup notifications
 	not := api.Group("/notifications")
 	not.GET("/", controllers.GetNotificationsHandler)
+	not.GET("/:notification/", controllers.GetNotificationHandler)
 	not.POST("/", controllers.CreateNotificationHandler)
 	not.PUT("/:notification/", controllers.UpdateNotificationHandler)
 	not.DELETE("/:notification/", controllers.DeleteNotificationHandler)
