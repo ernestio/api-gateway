@@ -28,7 +28,7 @@ func Review(au models.User, env string, action *models.Action) (int, []byte) {
 
 	id, err := e.RequestReview(au, action.Options.Resolution)
 	if err != nil {
-		return 500, []byte(err.Error())
+		return 500, []byte(`{"error":"` + err.Error() + `"}`)
 	}
 
 	action.Status = "done"
