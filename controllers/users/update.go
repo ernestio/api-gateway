@@ -41,6 +41,8 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 404, []byte(err.Error())
 	}
 
+	u.Username = existing.Username
+
 	if !au.IsAdmin() && existing.Username != au.Username {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
@@ -54,7 +56,6 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	if u.Password != nil {
-		u.Username = user
 		err := u.Validate()
 		if err != nil {
 			return 400, []byte(err.Error())
