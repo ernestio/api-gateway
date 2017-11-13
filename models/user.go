@@ -159,6 +159,7 @@ func (u *User) Redact() {
 	empty := ""
 	u.Password = &empty
 	u.Salt = ""
+	u.MFASecret = ""
 }
 
 // Improve : adds extra data
