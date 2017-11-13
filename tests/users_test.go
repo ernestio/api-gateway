@@ -71,8 +71,9 @@ func TestGetUser(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
-						So(*u.Password, ShouldEqual, "")
-						So(u.Salt, ShouldEqual, "")
+						So(*u.Password, ShouldBeBlank)
+						So(u.Salt, ShouldBeBlank)
+						So(u.MFASecret, ShouldBeBlank)
 					})
 				})
 				Convey("And the user is the same as registered  user", func() {
@@ -84,8 +85,9 @@ func TestGetUser(t *testing.T) {
 						So(err, ShouldBeNil)
 						So(u.ID, ShouldEqual, 1)
 						So(u.Username, ShouldEqual, "test")
-						So(*u.Password, ShouldEqual, "")
+						So(*u.Password, ShouldBeBlank)
 						So(u.Salt, ShouldEqual, "")
+						So(u.MFASecret, ShouldBeBlank)
 					})
 				})
 				Convey("And the user is not the same as a registered user", func() {
@@ -130,8 +132,9 @@ func TestCreateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 3)
 							So(u.Username, ShouldEqual, "new-test")
-							So(*u.Password, ShouldEqual, "")
-							So(u.Salt, ShouldEqual, "")
+							So(*u.Password, ShouldBeBlank)
+							So(u.Salt, ShouldBeBlank)
+							So(u.MFASecret, ShouldBeBlank)
 						})
 					})
 					Convey("With a password less than the minimum length", func() {
@@ -218,8 +221,9 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(*u.Password, ShouldEqual, "")
-							So(u.Salt, ShouldEqual, "")
+							So(*u.Password, ShouldBeBlank)
+							So(u.Salt, ShouldBeBlank)
+							So(u.MFASecret, ShouldBeBlank)
 						})
 					})
 					Convey("With a payload updating the admin field", func() {
@@ -233,9 +237,10 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(*u.Password, ShouldEqual, "")
-							So(u.Salt, ShouldEqual, "")
+							So(*u.Password, ShouldBeBlank)
+							So(u.Salt, ShouldBeBlank)
 							So(*u.Admin, ShouldEqual, true)
+							So(u.MFASecret, ShouldBeBlank)
 						})
 					})
 					Convey("With a payload containing no username", func() {
@@ -286,6 +291,34 @@ func TestUpdateUser(t *testing.T) {
 							So(*u.Admin, ShouldEqual, true)
 						})
 					})
+					Convey("With a payload enabling MFA", func() {
+						getUserSubscriber(1)
+						data := []byte(`{"id": 1, "mfa": true}`)
+						st, resp := users.Update(admin, "test", data)
+
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(st, ShouldEqual, 200)
+							So(u.Username, ShouldEqual, "test")
+							So(*u.MFA, ShouldEqual, true)
+							So(u.MFASecret, ShouldNotBeBlank)
+						})
+					})
+					Convey("With a payload disabling MFA", func() {
+						getUserSubscriber(1)
+						data := []byte(`{"id": 1, "mfa": false}`)
+						st, resp := users.Update(admin, "test", data)
+
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(st, ShouldEqual, 200)
+							So(u.Username, ShouldEqual, "test")
+							So(*u.MFA, ShouldEqual, false)
+							So(u.MFASecret, ShouldBeBlank)
+						})
+					})
 				})
 				Convey("And I'm authenticated as the user being updated", func() {
 					Convey("With a valid payload", func() {
@@ -298,8 +331,9 @@ func TestUpdateUser(t *testing.T) {
 							So(st, ShouldEqual, 200)
 							So(u.ID, ShouldEqual, 1)
 							So(u.Username, ShouldEqual, "test")
-							So(*u.Password, ShouldEqual, "")
-							So(u.Salt, ShouldEqual, "")
+							So(*u.Password, ShouldBeBlank)
+							So(u.Salt, ShouldBeBlank)
+							So(u.MFASecret, ShouldBeBlank)
 						})
 					})
 					Convey("With a payload updating the admin field", func() {
@@ -311,8 +345,35 @@ func TestUpdateUser(t *testing.T) {
 							So(string(resp), ShouldContainSubstring, "You're not allowed to perform this action, please contact your admin")
 						})
 					})
-				})
+					Convey("With a payload enabling MFA", func() {
+						getUserSubscriber(1)
+						data := []byte(`{"id": 1, "mfa": true}`)
+						st, resp := users.Update(admin, "test", data)
 
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(st, ShouldEqual, 200)
+							So(u.Username, ShouldEqual, "test")
+							So(*u.MFA, ShouldEqual, true)
+							So(u.MFASecret, ShouldNotBeBlank)
+						})
+					})
+					Convey("With a payload disabling MFA", func() {
+						getUserSubscriber(1)
+						data := []byte(`{"id": 1, "mfa": false}`)
+						st, resp := users.Update(admin, "test", data)
+
+						Convey("It should update the user and return the correct set of data", func() {
+							var u models.User
+							err = json.Unmarshal(resp, &u)
+							So(st, ShouldEqual, 200)
+							So(u.Username, ShouldEqual, "test")
+							So(*u.MFA, ShouldEqual, false)
+							So(u.MFASecret, ShouldBeBlank)
+						})
+					})
+				})
 				Convey("And I'm not authenticated as the user being updated", func() {
 					getUserSubscriber(1)
 					st, _ := users.Update(other, "test", data)

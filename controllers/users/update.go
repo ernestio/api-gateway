@@ -74,6 +74,10 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 500, []byte("Error updating user")
 	}
 
+	if existing.MFA == nil {
+		existing.MFA = h.Bool(false)
+	}
+
 	if u.MFA != nil && *u.MFA && !*existing.MFA {
 		mfaSecret := u.MFASecret
 		u.Redact()
