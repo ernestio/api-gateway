@@ -28,15 +28,18 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID          int      `json:"id"`
-	Username    string   `json:"username"`
-	Password    *string  `json:"password,omitempty"`
-	OldPassword *string  `json:"oldpassword,omitempty"`
-	Salt        string   `json:"salt,omitempty"`
-	Admin       *bool    `json:"admin"`
-	Envs        []string `json:"envs"`
-	Projects    []string `json:"projects"`
-	Type        string   `json:"type"`
+	ID               int      `json:"id"`
+	Username         string   `json:"username"`
+	Password         *string  `json:"password,omitempty"`
+	OldPassword      *string  `json:"oldpassword,omitempty"`
+	Salt             string   `json:"salt,omitempty"`
+	Admin            *bool    `json:"admin"`
+	MFA              *bool    `json:"mfa"`
+	MFASecret        string   `json:"mfa_secret"`
+	VerificationCode string   `json:"verification_code"`
+	Envs             []string `json:"envs"`
+	Projects         []string `json:"projects"`
+	Type             string   `json:"type"`
 }
 
 // AuthResponse : Describes an Authenticator service response
@@ -48,7 +51,16 @@ type AuthResponse struct {
 
 // Authenticate verifies user credentials
 func (u *User) Authenticate() (*AuthResponse, error) {
-	msg, err := N.Request("authentication.get", []byte(`{"username": "`+u.Username+`", "password": "`+*u.Password+`"}`), 10*time.Second)
+	mfa, err := u.IsMFA()
+	if err != nil {
+		return nil, err
+	}
+
+	if mfa && u.VerificationCode == "" {
+		return nil, errors.New("mfa required")
+	}
+
+	msg, err := N.Request("authentication.get", []byte(`{"username": "`+u.Username+`", "password": "`+*u.Password+`", "verification_code": "`+u.VerificationCode+`"}`), 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +159,7 @@ func (u *User) Redact() {
 	empty := ""
 	u.Password = &empty
 	u.Salt = ""
+	u.MFASecret = ""
 }
 
 // Improve : adds extra data
@@ -366,4 +379,24 @@ func (u *User) IsAdmin() bool {
 		return *u.Admin
 	}
 	return false
+}
+
+// IsMFA checks if a user has Multi-Factor authentication enabled
+func (u *User) IsMFA() (bool, error) {
+	msg, err := N.Request("user.get", []byte(`{"username": "`+u.Username+`"}`), time.Second)
+	if err != nil {
+		return false, err
+	}
+
+	var fetchedUser User
+	err = json.Unmarshal(msg.Data, &fetchedUser)
+	if err != nil {
+		return false, err
+	}
+
+	if fetchedUser.MFA != nil {
+		return *fetchedUser.MFA, nil
+	}
+
+	return false, nil
 }

@@ -14,9 +14,10 @@ var pw2 = "7bxJZHmyYoEZ9EcjJA85+XXUnZpTcV1Dk4ELpNCfTBeAYougTOcX2+0c/L+jGWuYOLr/U
 var (
 	mockUsers = []models.User{
 		models.User{
-			ID:       1,
-			Username: "test",
-			Password: &pw1,
+			ID:        1,
+			Username:  "test",
+			Password:  &pw1,
+			MFASecret: "secret",
 		},
 		models.User{
 			ID:       2,
@@ -101,8 +102,13 @@ func setUserSubscriber() {
 		if err := json.Unmarshal(msg.Data, &u); err != nil {
 			log.Println(err)
 		}
+
 		if u.ID == 0 {
 			u.ID = 3
+		}
+
+		if u.MFA != nil && *u.MFA {
+			u.MFASecret = "secret"
 		}
 
 		data, _ := json.Marshal(u)

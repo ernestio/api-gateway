@@ -20,12 +20,6 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
-	u.Username = user
-	err := u.Validate()
-	if err != nil {
-		return 400, []byte(err.Error())
-	}
-
 	// Check if authenticated user is admin or updating itself
 	if !u.CanBeChangedBy(au) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
@@ -47,6 +41,8 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 404, []byte(err.Error())
 	}
 
+	u.Username = existing.Username
+
 	if !au.IsAdmin() && existing.Username != au.Username {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
@@ -59,8 +55,13 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 403, []byte(err.Error())
 	}
 
-	// Check the old password if it is present
 	if u.Password != nil {
+		err := u.Validate()
+		if err != nil {
+			return 400, []byte(err.Error())
+		}
+
+		// Check the old password if it is present
 		if u.OldPassword != nil && !existing.ValidPassword(*u.OldPassword) {
 			err := errors.New("You're not allowed to perform this action, please contact your admin")
 			h.L.Error(err.Error())
@@ -73,9 +74,19 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 500, []byte("Error updating user")
 	}
 
-	u.Redact()
+	if existing.MFA == nil {
+		existing.MFA = h.Bool(false)
+	}
 
-	body, err = json.Marshal(u)
+	if u.MFA != nil && *u.MFA && !*existing.MFA {
+		mfaSecret := u.MFASecret
+		u.Redact()
+		u.MFASecret = mfaSecret
+	} else {
+		u.Redact()
+	}
+
+	body, err := json.Marshal(u)
 	if err != nil {
 		return 500, []byte("Internal server error")
 	}
