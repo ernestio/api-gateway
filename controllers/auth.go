@@ -34,11 +34,20 @@ func AuthenticatedUser(c echo.Context) models.User {
 
 // AuthenticateHandler manages user authentication
 func AuthenticateHandler(c echo.Context) error {
-	var u models.User
+	var err error
 
-	err := c.Bind(&u)
-	if err != nil {
-		return echo.NewHTTPError(400, err.Error())
+	usr := c.FormValue("username")
+	pwd := c.FormValue("password")
+	u := models.User{
+		Username: usr,
+		Password: &pwd,
+	}
+
+	if usr == "" {
+		err = c.Bind(&u)
+		if err != nil {
+			return echo.NewHTTPError(400, err.Error())
+		}
 	}
 
 	err = u.Validate()

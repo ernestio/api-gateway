@@ -16,7 +16,6 @@ import (
 func Route() *echo.Echo {
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
-	//e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.CORS())
 
 	e.Use(middleware.Logger())
