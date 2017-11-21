@@ -17,6 +17,9 @@ import (
 func mapInputBuild(c echo.Context) (definition definition.Definition, raw []byte, err error) {
 	req := c.Request()
 	raw, err = ioutil.ReadAll(req.Body)
+	if err != nil {
+		return definition, raw, err
+	}
 
 	// Normalize input body to json
 	ctype := req.Header.Get("Content-Type")

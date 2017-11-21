@@ -12,7 +12,8 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Update : Not implemented
+// Update : responds to PUT /projects/:project:/envs/:env/ by updating an
+// existing environment
 func Update(au models.User, name string, body []byte) (int, []byte) {
 	var err error
 	var resp []byte
@@ -23,7 +24,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return st, res
 	}
 
-	if err := json.Unmarshal(body, &input); err != nil {
+	if err = json.Unmarshal(body, &input); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())
 	}
@@ -34,6 +35,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	}
 
 	e.Options = input.Options
+	e.Schedules = input.Schedules
 	e.Credentials = input.Credentials
 
 	if err := e.Save(); err != nil {
