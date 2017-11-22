@@ -35,7 +35,13 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 500, []byte("Error creating user")
 	}
 
-	u.Redact()
+	if u.MFA != nil && *u.MFA {
+		mfaSecret := u.MFASecret
+		u.Redact()
+		u.MFASecret = mfaSecret
+	} else {
+		u.Redact()
+	}
 
 	body, err = json.Marshal(u)
 	if err != nil {
