@@ -99,20 +99,6 @@ func setupAPI(e *echo.Echo) {
 	s.GET("/", controllers.GetEnvsHandler)
 	s.GET("/search/", controllers.SearchEnvsHandler)
 
-	// Setup components
-	comp := api.Group("/components")
-	comp.GET("/nats/", controllers.GetAllComponentsHandler)
-	comp.GET("/network/", controllers.GetAllComponentsHandler)
-	comp.GET("/route53/", controllers.GetAllComponentsHandler)
-	comp.GET("/s3/", controllers.GetAllComponentsHandler)
-	comp.GET("/elb/", controllers.GetAllComponentsHandler)
-	comp.GET("/vpc/", controllers.GetAllComponentsHandler)
-	comp.GET("/instance/", controllers.GetAllComponentsHandler)
-	comp.GET("/firewall/", controllers.GetAllComponentsHandler)
-	comp.GET("/ebs_volume/", controllers.GetAllComponentsHandler)
-	comp.GET("/rds_cluster/", controllers.GetAllComponentsHandler)
-	comp.GET("/rds_instance/", controllers.GetAllComponentsHandler)
-
 	// Setup reports
 	rep := api.Group("/reports")
 	rep.GET("/usage/", controllers.GetUsageReportHandler)
