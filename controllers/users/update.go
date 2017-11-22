@@ -78,10 +78,14 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		existing.MFA = h.Bool(false)
 	}
 
-	if u.MFA != nil && *u.MFA && !*existing.MFA {
-		mfaSecret := u.MFASecret
-		u.Redact()
-		u.MFASecret = mfaSecret
+	if u.MFA != nil {
+		if *u.MFA && !*existing.MFA {
+			mfaSecret := u.MFASecret
+			u.Redact()
+			u.MFASecret = mfaSecret
+		} else {
+			u.Redact()
+		}
 	} else {
 		u.Redact()
 	}
