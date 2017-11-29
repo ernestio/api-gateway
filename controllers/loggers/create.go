@@ -7,6 +7,7 @@ package loggers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/ernestio/api-gateway/models"
 )
@@ -22,7 +23,14 @@ func Create(au models.User, body []byte) (int, []byte) {
 	}
 
 	if err = l.Save(); err != nil {
-		return 500, []byte(err.Error())
+		var e struct {
+			Msg []byte `json:"_error"`
+		}
+		parts := strings.Split(err.Error(), "message=")
+		if len(parts) > 0 {
+			return 500, []byte(parts[1])
+		}
+		return 500, []byte(e.Msg)
 	}
 
 	if body, err = json.Marshal(l); err != nil {
