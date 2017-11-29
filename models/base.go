@@ -53,7 +53,6 @@ func (b *BaseModel) CallStoreByRaw(verb string, query map[string]interface{}, re
 			return err
 		}
 	}
-
 	if *res, err = b.Query(b.Type+"."+verb, string(req)); err != nil {
 		return err
 	}
@@ -114,6 +113,7 @@ func (b *BaseModel) Delete(query map[string]interface{}) (err error) {
 // Query : Allows a free query by subject
 func (b *BaseModel) Query(subject, query string) ([]byte, error) {
 	var res []byte
+
 	msg, err := N.Request(subject, []byte(query), 5*time.Second)
 	if err != nil {
 		eMsg := "An internal error happened trying to reach the data store"
