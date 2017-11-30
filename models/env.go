@@ -26,6 +26,7 @@ type Env struct {
 	Type        string                 `json:"type"`
 	Status      string                 `json:"status"`
 	Options     map[string]interface{} `json:"options,omitempty"`
+	Schedules   map[string]interface{} `json:"schedules,omitempty"`
 	Credentials map[string]interface{} `json:"credentials,omitempty"`
 	Roles       []string               `json:"roles,omitempty"`
 }
