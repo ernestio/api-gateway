@@ -63,7 +63,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 
 		// Check the old password if it is present
 		if u.OldPassword != nil && !existing.ValidPassword(*u.OldPassword) {
-			err := errors.New("You're not allowed to perform this action, please contact your admin")
+			err := errors.New("Provided credentials are not valid")
 			h.L.Error(err.Error())
 			return 403, []byte(err.Error())
 		}
