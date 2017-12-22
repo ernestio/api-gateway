@@ -5,6 +5,9 @@
 package envs
 
 import (
+	"encoding/json"
+	"net/http"
+
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
@@ -30,8 +33,7 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 	}
 
 	if builds[0].Status != "in_progress" {
-		println("IN")
-		return 200, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + builds[0].Status)
+		return 400, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + builds[0].Status)
 	}
 
 	if err := builds[0].Reset(); err != nil {
@@ -39,5 +41,12 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 		return 500, []byte("Internal error (B)")
 	}
 
-	return 200, []byte("success")
+	action.Status = "done"
+
+	data, err := json.Marshal(action)
+	if err != nil {
+		return 500, []byte("could not process sync request")
+	}
+
+	return http.StatusOK, data
 }

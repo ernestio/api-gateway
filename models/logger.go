@@ -57,8 +57,8 @@ func (l *Logger) Save() (err error) {
 }
 
 // Delete : will delete a logger by its type
-func (l *Logger) Delete() (err error) {
+func (l *Logger) Delete(logger string) (err error) {
 	query := make(map[string]interface{})
-	query["type"] = l.Type
+	query["type"] = logger
 	return NewBaseModel("logger").Delete(query)
 }

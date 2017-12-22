@@ -12,18 +12,14 @@ import (
 
 // Delete : responds to DELETE /loggers/:id: by deleting an
 // existing logger
-func Delete(au models.User, body []byte) (int, []byte) {
+func Delete(au models.User, logger string) (int, []byte) {
 	var l models.Logger
 
-	if l.Map(body) != nil {
-		return 400, []byte("Invalid input")
-	}
-
-	if l.Type == "basic" {
+	if logger == "basic" {
 		return 400, []byte("Basic logger can't be deleted")
 	}
 
-	if err := l.Delete(); err != nil {
+	if err := l.Delete(logger); err != nil {
 		return 500, []byte("Internal server error")
 	}
 

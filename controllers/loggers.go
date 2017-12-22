@@ -6,7 +6,6 @@ package controllers
 
 import (
 	"github.com/ernestio/api-gateway/controllers/loggers"
-	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -25,14 +24,5 @@ func CreateLoggerHandler(c echo.Context) (err error) {
 // DeleteLoggerHandler : responds to DELETE /loggers/:id: by deleting an
 // existing logger
 func DeleteLoggerHandler(c echo.Context) (err error) {
-	s := 500
-	b := []byte("Invalid input")
-	au := AuthenticatedUser(c)
-
-	body, err := h.GetRequestBody(c)
-	if err == nil {
-		s, b = loggers.Delete(au, body)
-	}
-
-	return c.JSONBlob(s, b)
+	return genericDelete(c, "logger", loggers.Delete)
 }

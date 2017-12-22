@@ -31,3 +31,8 @@ func Respond(c echo.Context, st int, b []byte) error {
 
 	return echo.NewHTTPError(st, string(b))
 }
+
+// ErrMessage prepares a message string to be responded
+func ErrMessage(msg string) []byte {
+	return []byte(`{"message": "` + msg + `"}`)
+}
