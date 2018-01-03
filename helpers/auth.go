@@ -92,6 +92,8 @@ func IsAuthorizedToResource(au User, endpoint, resource, resourceID string) (int
 		if !au.IsOwner(resource, resourceID) {
 			return st, AuthNonOwner
 		}
+		// TODO : Check if it's authorized by inheritance
+
 	}
 
 	return IsAuthorizedToReadResource(au, endpoint, resource, resourceID)
@@ -134,6 +136,7 @@ func IsAuthorizedToReadResource(au User, endpoint, resource, resourceID string) 
 		if !au.IsReader(resource, resourceID) {
 			return st, AuthNonReadable
 		}
+		// TODO : Check if it's authorized by inheritance
 	}
 
 	return 200, []byte("")

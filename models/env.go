@@ -111,6 +111,13 @@ func (e *Env) FindByProjectID(id int, envs *[]Env) (err error) {
 	return NewBaseModel(e.getStore()).FindBy(query, envs)
 }
 
+// FindByProjectName : find a envs for the given project name
+func (e *Env) FindByProjectName(name string, envs *[]Env) (err error) {
+	query := make(map[string]interface{})
+	query["project_name"] = name
+	return NewBaseModel(e.getStore()).FindBy(query, envs)
+}
+
 // RequestSync : calls environment.sync with the given raw message
 func (e *Env) RequestSync(au User) (string, error) {
 	req := map[string]interface{}{

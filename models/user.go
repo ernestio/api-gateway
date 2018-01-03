@@ -12,6 +12,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -258,15 +259,36 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 // EnvsBy : Get authorized envs by any filter
 func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
 	var s Env
+	var p Project
+	names := make(map[string]struct{}, 0)
 
 	if !u.IsAdmin() && filters["id"] == nil {
 		var r Role
 		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
-			if ids == nil {
-				return ss, nil
+			for _, id := range ids {
+				names[id] = struct{}{}
 			}
-			filters["names"] = ids
 		}
+		if pIDs, err := r.FindAllIDsByUserAndType(u.GetID(), p.GetType()); err == nil {
+			for _, id := range pIDs {
+				var envs []Env
+				s.FindByProjectName(id, &envs)
+				for _, env := range envs {
+					names[env.Name] = struct{}{}
+				}
+			}
+		} else {
+			log.Println(err.Error())
+		}
+		var ids []string
+		for name := range names {
+			ids = append(ids, name)
+		}
+		if len(ids) == 0 {
+			println("xoxo")
+			return ss, nil
+		}
+		filters["names"] = ids
 	}
 
 	if err = s.Find(filters, &ss); err != nil {
@@ -334,13 +356,29 @@ func (u *User) Owns(o resource) bool {
 
 // IsOwner : check if is the owner of a specific resource
 func (u *User) IsOwner(resourceType, resourceID string) bool {
+	owner := "owner"
+	reader := "reader"
+
 	if u.IsAdmin() {
 		return true
 	}
 
 	if role, err := u.getRole(resourceType, resourceID); err == nil {
-		if role == "owner" {
+		if role == owner {
 			return true
+		}
+		if role == reader {
+			return false
+		}
+	}
+	if resourceType == "build" || resourceType == "environment" {
+		parts := strings.Split(resourceID, "/")
+		if len(parts) > 0 {
+			if role, err := u.getRole("project", parts[0]); err == nil {
+				if role == owner {
+					return true
+				}
+			}
 		}
 	}
 
@@ -349,13 +387,26 @@ func (u *User) IsOwner(resourceType, resourceID string) bool {
 
 // IsReader : check if has reader permissions on a specific resource
 func (u *User) IsReader(resourceType, resourceID string) bool {
+	owner := "owner"
+	reader := "reader"
+
 	if u.IsAdmin() {
 		return true
 	}
 
 	if role, err := u.getRole(resourceType, resourceID); err == nil {
-		if role == "reader" || role == "owner" {
+		if role == reader || role == owner {
 			return true
+		}
+	}
+	if resourceType == "build" || resourceType == "environment" {
+		parts := strings.Split(resourceID, "/")
+		if len(parts) > 0 {
+			if role, err := u.getRole("project", parts[0]); err == nil {
+				if role == reader || role == owner {
+					return true
+				}
+			}
 		}
 	}
 
