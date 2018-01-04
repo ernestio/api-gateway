@@ -24,6 +24,7 @@ func Get(au models.User, id string) (int, []byte) {
 	var p models.Project
 	var r models.Role
 	var roles []models.Role
+	var pRoles []models.Role
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
@@ -42,10 +43,19 @@ func Get(au models.User, id string) (int, []byte) {
 		return 404, h.ErrMessage("Project not found")
 	}
 
+	computedRoles := make(map[string]string, 0)
+	if err := r.FindAllByResource(e.Project, p.GetType(), &pRoles); err == nil {
+		for _, v := range pRoles {
+			computedRoles[v.UserID] = "(project " + v.Role + ")"
+		}
+	}
 	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
 		for _, v := range roles {
-			o.Roles = append(o.Roles, v.UserID+" ("+v.Role+")")
+			computedRoles[v.UserID] = "(env " + v.Role + ")"
 		}
+	}
+	for k, v := range computedRoles {
+		o.Roles = append(o.Roles, k+" "+v)
 	}
 
 	o.Name = strings.Split(e.Name, "/")[1]

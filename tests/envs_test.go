@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/ernestio/api-gateway/config"
-	"github.com/ernestio/api-gateway/controllers/builds"
 	"github.com/ernestio/api-gateway/controllers/envs"
 	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -17,46 +16,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func TestResetEnvironment(t *testing.T) {
-	testsSetup()
-	config.Setup()
-	au := mockUsers[0]
-
-	Convey("Scenario: reseting a service", t, func() {
-		action := models.Action{Type: "reset"}
-		findUserSubscriber()
-		foundSubscriber("environment.set", `"success"`, 1)
-
-		Convey("Given my existing service is in progress", func() {
-			foundSubscriber("environment.get", `{"id":1,"name":"fake/test","status":"in_progress"}`, 1)
-			foundSubscriber("build.find", `[{"id":"1","name":"fake/test","status":"in_progress"}]`, 1)
-			foundSubscriber("authorization.find", `[{"role":"owner"}]`, 1)
-			serviceResetSubscriber()
-			Convey("When I do a call to /services/reset", func() {
-				s, b := envs.Reset(au, "fake/test", &action)
-				Convey("Then it should return a success message", func() {
-					So(s, ShouldEqual, 200)
-					So(string(b), ShouldEqual, `success`)
-				})
-			})
-		})
-
-		Convey("Given my existing service is errored", func() {
-			foundSubscriber("environment.get", `{"id":1,"name":"fake/test","status":"in_progress"}`, 1)
-			foundSubscriber("build.find", `[{"id":"1","name":"fake/test","status":"errored"}]`, 1)
-			foundSubscriber("authorization.find", `[{"role":"owner","resource_id":"1"}]`, 1)
-
-			Convey("When I do a call to /services/reset", func() {
-				s, b := envs.Reset(au, "fake/test", &action)
-				Convey("Then it should return an error message", func() {
-					So(s, ShouldEqual, 200)
-					So(string(b), ShouldEqual, "Reset only applies to an 'in progress' environment, however environment 'fake/test' is on status 'errored")
-				})
-			})
-		})
-	})
-}
 
 func TestListingEnvs(t *testing.T) {
 	testsSetup()
@@ -122,50 +81,6 @@ func TestSearchEnv(t *testing.T) {
 						So(st, ShouldEqual, 200)
 						So(len(s), ShouldEqual, 0)
 					})
-				})
-			})
-		})
-	})
-}
-
-func TestDeletingEnvs(t *testing.T) {
-	testsSetup()
-	config.Setup()
-	au := mockUsers[0]
-
-	Convey("Scenario: deleting a service", t, func() {
-		Convey("Given a service exists with in progress status", func() {
-			foundSubscriber("environment.get", `{"id":1,"name":"test","status":"in_progress"}`, 3)
-			foundSubscriber("build.find", `[{"id":"test","status":"in_progress"}]`, 1)
-			foundSubscriber("build.get.mapping", `{}`, 1)
-			foundSubscriber("build.set", `{"_error": "environment build is in progress"}`, 1)
-			foundSubscriber("mapping.get.delete", `{"id":"test-uuid-1"}`, 1)
-			foundSubscriber("datacenter.get", `{"id":1, "credentials": {"username":" test"}}`, 1)
-			res := `[{"resource_id":"test","role":"owner"}]`
-			foundSubscriber("authorization.find", res, 1)
-			Convey("When I call DELETE /services/:service", func() {
-				st, resp := builds.Delete(au, "foo-bar")
-				Convey("Then I should get a 400 response", func() {
-					So(st, ShouldEqual, 400)
-					So(string(resp), ShouldEqual, `"Environment is already applying some changes, please wait until they are done"`)
-				})
-			})
-		})
-		Convey("Given a service exists on the store", func() {
-			foundSubscriber("environment.get", `{"id":1,"status":"done"}`, 3)
-			foundSubscriber("build.find", `[{"id":"test","status":"done"}]`, 1)
-			foundSubscriber("build.get.mapping", `{}`, 1)
-			foundSubscriber("build.set", `{}`, 1)
-			foundSubscriber("mapping.get.delete", `{"id":"foo-bar"}`, 1)
-			foundSubscriber("datacenter.get", `{"id":1, "credentials": {"username":" test"}}`, 1)
-			res := `[{"resource_id":"1","role":"owner"}]`
-			foundSubscriber("authorization.find", res, 1)
-			Convey("When I call DELETE /services/:service", func() {
-				st, resp := builds.Delete(au, "foo-bar")
-
-				Convey("Then I should get a response with id and stream id", func() {
-					So(st, ShouldEqual, 200)
-					So(string(resp), ShouldEqual, `{"id":"foo-bar"}`)
 				})
 			})
 		})
