@@ -36,6 +36,11 @@ func Submission(au models.User, e *models.Env, definition *definition.Definition
 		return 500, []byte(`"Couldn't map the environment"`)
 	}
 
+	changes, ok := m["changes"].([]interface{})
+	if !ok || len(changes) < 1 {
+		return 400, []byte(`"The provided definition contains no changes."`)
+	}
+
 	if dry == "true" {
 		res, err := views.RenderChanges(m)
 		if err != nil {
