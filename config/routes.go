@@ -88,7 +88,6 @@ func setupAPI(e *echo.Echo) {
 	d.GET("/:project/envs/:env/builds/:build/mapping/", controllers.GetBuildMappingHandler)
 	d.GET("/:project/envs/:env/builds/:build/definition/", controllers.GetBuildDefinitionHandler)
 	d.POST("/:project/envs/:env/actions/", controllers.ActionHandler)
-
 	d.DELETE("/:project/envs/:env/actions/force/", controllers.ForceEnvDeletionHandler)
 
 	// Setup service routes
@@ -111,6 +110,15 @@ func setupAPI(e *echo.Echo) {
 	not.DELETE("/:notification/projects/:project/", controllers.RmProjectToNotificationHandler)
 	not.POST("/:notification/projects/:project/envs/:env/", controllers.AddEnvToNotificationHandler)
 	not.DELETE("/:notification/projects/:project/envs/:env/", controllers.RmEnvToNotificationHandler)
+
+	// Setup policies
+	pol := api.Group("/policies")
+	pol.GET("/", controllers.GetPoliciesHandler)
+	pol.GET("/:policy/", controllers.GetPoliciesHandler)
+	pol.POST("/", controllers.CreatePolicyHandler)
+	pol.PUT("/:policy/", controllers.UpdatePolicyHandler)
+	pol.DELETE("/:policy/", controllers.DeletePolicyHandler)
+
 }
 
 func start(e *echo.Echo) {

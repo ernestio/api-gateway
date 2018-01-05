@@ -113,6 +113,11 @@ func IsLicensed(au User, resource string) (int, []byte) {
 		"envs/resolve":              405,
 		"envs/submission":           405,
 		"envs/review":               405,
+		"policies/create":           405,
+		"policies/get":              405,
+		"policies/delete":           405,
+		"policies/list":             405,
+		"policies/update":           405,
 	}
 	if st, ok := licensedResources[resource]; ok {
 		if err := Licensed(); err != nil {
