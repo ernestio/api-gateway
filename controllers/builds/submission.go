@@ -38,7 +38,6 @@ func Submission(au models.User, e *models.Env, definition *definition.Definition
 
 	changes, ok := m["changes"].([]interface{})
 	if !ok || len(changes) < 1 {
-		h.L.Error(err.Error())
 		return 400, []byte(`"The provided definition contains no changes."`)
 	}
 
