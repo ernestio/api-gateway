@@ -24,5 +24,5 @@ func Delete(au models.User, name string) (int, []byte) {
 		return 500, []byte("Internal server error")
 	}
 
-	return http.StatusOK, []byte("Policy deleted")
+	return http.StatusOK, []byte("policy deleted")
 }

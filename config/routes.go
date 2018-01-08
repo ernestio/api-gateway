@@ -114,7 +114,7 @@ func setupAPI(e *echo.Echo) {
 	// Setup policies
 	pol := api.Group("/policies")
 	pol.GET("/", controllers.GetPoliciesHandler)
-	pol.GET("/:policy/", controllers.GetPoliciesHandler)
+	pol.GET("/:policy/", controllers.GetPolicyHandler)
 	pol.POST("/", controllers.CreatePolicyHandler)
 	pol.PUT("/:policy/", controllers.UpdatePolicyHandler)
 	pol.DELETE("/:policy/", controllers.DeletePolicyHandler)

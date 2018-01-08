@@ -33,7 +33,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 500, []byte("Internal server error")
 	}
 
-	if body, err = json.Marshal(d); err != nil {
+	if body, err = json.Marshal(existing); err != nil {
 		return 500, []byte("Internal server error")
 	}
 

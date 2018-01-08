@@ -15,10 +15,15 @@ import (
 // on the data store
 func Create(au models.User, body []byte) (int, []byte) {
 	var l models.Policy
+	var existing models.Policy
 	var err error
 
 	if l.Map(body) != nil {
 		return http.StatusBadRequest, []byte("Invalid input")
+	}
+
+	if err = l.FindByName(l.Name, &existing); err == nil {
+		return 409, []byte("policy already exists")
 	}
 
 	if err = l.Save(); err != nil {
@@ -26,7 +31,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 	}
 
 	if body, err = json.Marshal(l); err != nil {
-		return 500, []byte("Internal error")
+		return 500, []byte("Internal server error")
 	}
 	return http.StatusOK, body
 }

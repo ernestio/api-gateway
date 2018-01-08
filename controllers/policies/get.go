@@ -21,12 +21,12 @@ func Get(au models.User, name string) (int, []byte) {
 
 	if err = policy.FindByName(name, &policy); err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Policy not found")
+		return 404, []byte("policy not found")
 	}
 
 	if body, err = json.Marshal(policy); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal serveier error")
+		return 500, []byte("Internal server error")
 	}
 	return http.StatusOK, body
 }
