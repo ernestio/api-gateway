@@ -27,6 +27,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	}
 
 	existing.Definition = d.Definition
+	existing.Environments = d.Environments
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
