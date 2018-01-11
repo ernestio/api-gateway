@@ -15,9 +15,10 @@ import (
 
 // Policy holds the policy response from policy
 type Policy struct {
-	ID         int    `json:"id"`
-	Name       string `json:"name"`
-	Definition string `json:"definition"`
+	ID           int      `json:"id"`
+	Name         string   `json:"name"`
+	Definition   string   `json:"definition"`
+	Environments []string `json:"environments"`
 }
 
 // Validate : validates the policy
