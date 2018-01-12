@@ -19,9 +19,13 @@ func Get(au models.User, name string) (int, []byte) {
 	var body []byte
 	var policy models.Policy
 
-	if err = policy.FindByName(name, &policy); err != nil {
+	if err = policy.GetByName(name, &policy); err != nil {
 		h.L.Error(err.Error())
 		return 404, []byte("policy not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.GetPolicy, policy.GetType(), policy.GetID()); st != 200 {
+		return st, res
 	}
 
 	if body, err = json.Marshal(policy); err != nil {

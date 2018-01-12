@@ -15,7 +15,6 @@ func List(au models.User) (int, []byte) {
 	var body []byte
 
 	projects, err = au.GetProjects()
-
 	if err != nil {
 		return 404, []byte(err.Error())
 	}

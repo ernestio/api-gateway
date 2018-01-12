@@ -15,14 +15,11 @@ import (
 // List : responds to GET /policies/ with a list of all
 // policies
 func List(au models.User) (int, []byte) {
-	var err error
-	var policies []models.Policy
 	var body []byte
-	var policy models.Policy
 
-	if err = policy.FindAll(&policies); err != nil {
-		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+	policies, err := au.GetPolicies()
+	if err != nil {
+		return 404, []byte(err.Error())
 	}
 
 	if body, err = json.Marshal(policies); err != nil {

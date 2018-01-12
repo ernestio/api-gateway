@@ -22,12 +22,16 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte("Invalid input")
 	}
 
-	if err = l.FindByName(l.Name, &existing); err == nil {
+	if err = l.GetByName(l.Name, &existing); err == nil {
 		return 409, []byte("policy already exists")
 	}
 
 	if err = l.Save(); err != nil {
 		return 400, []byte(err.Error())
+	}
+
+	if err := au.SetOwner(&l); err != nil {
+		return 500, []byte("Internal server error")
 	}
 
 	if body, err = json.Marshal(l); err != nil {

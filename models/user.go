@@ -193,6 +193,30 @@ func (u *User) ValidPassword(pw string) bool {
 	return false
 }
 
+// GetPolicies : Gets the related user policies if any
+func (u *User) GetPolicies() (ds []Policy, err error) {
+	var d Policy
+
+	if u.IsAdmin() {
+		err = d.FindAll(&ds)
+	} else {
+		var r Role
+		if names, err := r.FindAllIDsByUserAndType(u.GetID(), d.GetType()); err == nil {
+			if names == nil {
+				return ds, nil
+			}
+			err = d.FindByNames(names, &ds)
+			if err != nil {
+				log.Println(err.Error())
+			}
+		} else {
+			log.Println(err.Error())
+		}
+	}
+
+	return ds, err
+}
+
 // GetProjects : Gets the related user projects if any
 func (u *User) GetProjects() (ds []Project, err error) {
 	var d Project

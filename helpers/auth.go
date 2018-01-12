@@ -40,6 +40,12 @@ var (
 	ResetBuild = "reset_build"
 	// SubmitBuild : ...
 	SubmitBuild = "submit_build"
+	// GetPolicy : ...
+	GetPolicy = "get_policy"
+	// DeletePolicy : ...
+	DeletePolicy = "delete_policy"
+	// UpdatePolicy : ...
+	UpdatePolicy = "update_policy"
 )
 
 // IsAuthorized : Validates if the given user has access to the given resource
@@ -87,6 +93,8 @@ func IsAuthorizedToResource(au User, endpoint, resource, resourceID string) (int
 		UpdateProject:  403,
 		ResetBuild:     403,
 		SyncEnv:        403,
+		DeletePolicy:   403,
+		UpdatePolicy:   403,
 	}
 	if st, ok := ownedResources[endpoint]; ok {
 		if !au.IsOwner(resource, resourceID) {
@@ -131,11 +139,13 @@ func IsLicensed(au User, resource string) (int, []byte) {
 // IsAuthorizedToReadResource : check  if the user is authorized to read only access a specific resource
 func IsAuthorizedToReadResource(au User, endpoint, resource, resourceID string) (int, []byte) {
 	readableResources := map[string]int{
+		GetPolicy:   403,
 		GetProject:  403,
 		GetEnv:      403,
 		ListBuilds:  403,
 		GetBuild:    403,
 		SubmitBuild: 403,
+		GetPolicy:   403,
 	}
 	if st, ok := readableResources[endpoint]; ok {
 		if !au.IsReader(resource, resourceID) {

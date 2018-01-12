@@ -147,7 +147,7 @@ func (l *Role) ResourceExists() bool {
 		}
 	} else if l.ResourceType == "policy" {
 		var r Policy
-		err := r.FindByName(l.ResourceID, &r)
+		err := r.GetByName(l.ResourceID, &r)
 		if err == nil && &r != nil {
 			return true
 		}
