@@ -17,7 +17,7 @@ func Delete(au models.User, name string) (int, []byte) {
 	var existing models.Policy
 
 	if err = existing.FindByName(name, &existing); err != nil {
-		return 404, []byte("Not found")
+		return 404, []byte("policy not found")
 	}
 
 	if err := existing.Delete(); err != nil {
