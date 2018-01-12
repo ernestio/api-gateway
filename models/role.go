@@ -32,8 +32,8 @@ func (l *Role) Validate() error {
 		return errors.New("Resource is empty")
 	}
 
-	if l.ResourceType != "project" && l.ResourceType != "environment" {
-		return errors.New("Resource type accepted values are ['project', 'environment']")
+	if l.ResourceType != "project" && l.ResourceType != "environment" && l.ResourceType != "policy" {
+		return errors.New("Resource type accepted values are ['project', 'environment', 'policy']")
 	}
 
 	if l.Role == "" {
@@ -142,6 +142,12 @@ func (l *Role) ResourceExists() bool {
 	} else if l.ResourceType == "environment" {
 		var r Env
 		err := r.FindByName(l.ResourceID)
+		if err == nil && &r != nil {
+			return true
+		}
+	} else if l.ResourceType == "policy" {
+		var r Policy
+		err := r.FindByName(l.ResourceID, &r)
 		if err == nil && &r != nil {
 			return true
 		}
