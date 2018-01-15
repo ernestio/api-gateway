@@ -7,6 +7,7 @@ package policies
 import (
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -16,8 +17,12 @@ func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var existing models.Policy
 
-	if err = existing.FindByName(name, &existing); err != nil {
+	if err = existing.GetByName(name, &existing); err != nil {
 		return 404, []byte("policy not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.DeletePolicy, existing.GetType(), existing.GetID()); st != 200 {
+		return st, res
 	}
 
 	if err := existing.Delete(); err != nil {

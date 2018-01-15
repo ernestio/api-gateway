@@ -57,11 +57,18 @@ func (l *Policy) FindByID(id string, policy *Policy) (err error) {
 	return NewBaseModel("policy").GetBy(query, policy)
 }
 
-// FindByName : Searches for all policys with a name equal to the specified
-func (l *Policy) FindByName(name string, policy *Policy) (err error) {
+// GetByName : Searches for all policys with a name equal to the specified
+func (l *Policy) GetByName(name string, policy *Policy) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
 	return NewBaseModel("policy").GetBy(query, policy)
+}
+
+// FindByNames : Gets a list by names array
+func (l *Policy) FindByNames(names []string, policies *[]Policy) (err error) {
+	query := make(map[string]interface{})
+	query["names"] = names
+	return NewBaseModel("policy").FindBy(query, policies)
 }
 
 // Save : calls policy.set with the marshalled current policy
@@ -74,4 +81,14 @@ func (l *Policy) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = l.ID
 	return NewBaseModel("policy").Delete(query)
+}
+
+// GetType : get the object type
+func (l *Policy) GetType() string {
+	return "policy"
+}
+
+// GetID : get the object id
+func (l *Policy) GetID() string {
+	return l.Name
 }

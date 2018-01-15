@@ -22,8 +22,12 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, []byte("Invalid input")
 	}
 
-	if err = existing.FindByName(name, &existing); err != nil {
+	if err = existing.GetByName(name, &existing); err != nil {
 		return 404, []byte("Not found")
+	}
+
+	if st, res := h.IsAuthorizedToResource(&au, h.UpdatePolicy, existing.GetType(), existing.GetID()); st != 200 {
+		return st, res
 	}
 
 	existing.Definition = d.Definition
