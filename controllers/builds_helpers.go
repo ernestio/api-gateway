@@ -53,3 +53,14 @@ func mapAction(c echo.Context) (*models.Action, error) {
 
 	return &action, json.Unmarshal(data, &action)
 }
+
+func mapDiffRequest(c echo.Context) (*models.Diff, error) {
+	var dr models.Diff
+
+	data, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dr, json.Unmarshal(data, &dr)
+}

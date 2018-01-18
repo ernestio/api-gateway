@@ -12,7 +12,7 @@ import (
 )
 
 // Diff : Diffs an environment
-func Diff(au models.User, env string, action *models.Action) (int, []byte) {
+func Diff(au models.User, env string, request *models.Diff) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
@@ -26,7 +26,7 @@ func Diff(au models.User, env string, action *models.Action) (int, []byte) {
 		return st, res
 	}
 
-	err = m.Diff(env, action.Options.FromID, action.Options.ToID)
+	err = m.Diff(env, request.FromID, request.ToID)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't diff the specified builds"`)

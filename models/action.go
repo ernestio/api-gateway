@@ -17,7 +17,5 @@ type Action struct {
 		BuildID     string   `json:"build_id,omitempty"`
 		Environment string   `json:"environment,omitempty"`
 		Resolution  string   `json:"resolution,omitempty"`
-		FromID      string   `json:"from_id,omitempty"`
-		ToID        string   `json:"to_id,omitempty"`
 	} `json:"options,omitempty"`
 }

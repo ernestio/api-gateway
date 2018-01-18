@@ -88,6 +88,7 @@ func setupAPI(e *echo.Echo) {
 	d.GET("/:project/envs/:env/builds/:build/mapping/", controllers.GetBuildMappingHandler)
 	d.GET("/:project/envs/:env/builds/:build/definition/", controllers.GetBuildDefinitionHandler)
 	d.POST("/:project/envs/:env/actions/", controllers.ActionHandler)
+	d.POST("/:project/envs/:env/diff/", controllers.GetDiffHandler)
 	d.DELETE("/:project/envs/:env/actions/force/", controllers.ForceEnvDeletionHandler)
 
 	// Setup service routes
