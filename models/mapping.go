@@ -16,10 +16,9 @@ type Mapping map[string]interface{}
 
 // Apply : apply a definition
 func (m *Mapping) Apply(d *definition.Definition, au User) error {
-	var err error
-
 	mr := mapping.New(N, d.FullName())
-	err = mr.Apply(d)
+
+	err := mr.Apply(d)
 	if err != nil {
 		return err
 	}
@@ -34,10 +33,9 @@ func (m *Mapping) Apply(d *definition.Definition, au User) error {
 
 // Delete : get mapping for deleting an environment
 func (m *Mapping) Delete(env string, au User) error {
-	var err error
-
 	mr := mapping.New(N, env)
-	err = mr.Delete()
+
+	err := mr.Delete()
 	if err != nil {
 		return err
 	}
@@ -52,10 +50,9 @@ func (m *Mapping) Delete(env string, au User) error {
 
 // Import : get mapping for importing an environment
 func (m *Mapping) Import(env string, filters []string, au User) error {
-	var err error
-
 	mr := mapping.New(N, env)
-	err = mr.Import(filters)
+
+	err := mr.Import(filters)
 	if err != nil {
 		return err
 	}
@@ -66,6 +63,29 @@ func (m *Mapping) Import(env string, filters []string, au User) error {
 	*m = mr.Result
 
 	return nil
+}
+
+// Diff : diff two builds by id
+func (m *Mapping) Diff(env, from, to string) error {
+	mr := mapping.New(N, env)
+
+	err := mr.Diff(from, to)
+	if err != nil {
+		return err
+	}
+
+	*m = mr.Result
+
+	return nil
+}
+
+// Changelog : returns the mappings changelog if present
+func (m *Mapping) ChangelogJSON() ([]byte, error) {
+	if (*m)["changelog"] == nil {
+		return json.Marshal([]string{})
+	}
+
+	return json.Marshal((*m)["changelog"])
 }
 
 // ToJSON : serializes the mapping to json
