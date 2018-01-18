@@ -881,6 +881,137 @@ paths:
             $ref: '#/definitions/Action'
         '403':
           description: You're not authorized to view this resource
+  '/api/policies/':
+    get:
+      summary: List all policies
+      description: |
+        returns all plicies viewable by the logged user
+      produces:
+        - application/json
+      tags:
+        - Policies
+      responses:
+        '200':
+          description: A json array containing all available policies
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Policy not found
+    post:
+      summary: Create a policy
+      description: |
+        accepts a valid policy model
+        return a policy model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: name
+          in: name
+          description: The policy name (unique)
+          schema:
+            $ref: '#/definitions/Policy'
+        - name: definition
+          in: body
+          description: The policy spec to be processed
+          schema:
+            $ref: '#/definitions/Policy'
+      tags:
+        - Policies
+      responses:
+        '201':
+          description: Returns the created policy
+          schema:
+            $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/policies/{policy}':
+    get:
+      summary: Get a policy
+      description: |
+        Returns a policy by name
+      produces:
+        - application/json
+      parameters:
+        - name: policy
+          in: path
+          description: name of policy to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Policies
+      responses:
+        '200':
+          description: A valid policy object
+          schema:
+            $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a policy
+      description: |
+        accepts a valid policy model
+        return a policy model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: policy
+          in: path
+          description: name of the policy to update
+          required: true
+          type: string
+          format: string
+        - name: definition
+          in: body
+          description: The policy spec to be processed
+          schema:
+            $ref: '#/definitions/Policy'
+        - name: environments
+          in: body
+          description: The array of environments related with this policy
+          schema:
+            $ref: '#/definitions/Policy'
+      tags:
+        - Policies
+      responses:
+        '201':
+          description: Returns the created policy
+          schema:
+            $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a policy
+      description: |
+        deletes a policy
+      produces:
+        - application/json
+      parameters:
+        - name: policy
+          in: path
+          description: name of policy to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Policies
+      responses:
+        '202':
+          description: Policy has been successfully deleted
+          schema:
+            $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to delete this resource
 definitions:
   Token:
     type: object
@@ -1096,3 +1227,24 @@ definitions:
         description: |
           For when action type is 'clone' - the name of the environment you wish
           to clone
+  Policy:
+    type: object
+    required:
+      - name
+      - definition
+    properties:
+      id:
+        type: integer
+        description: policy id
+        readOnly: true
+      name:
+        type: string
+        description: the name of the policy
+      description:
+        type: string
+        description: the spec to be processed
+      environments:
+        type: array
+        readOnly: true
+        items:
+            $ref: '#/definitions/Environment'
