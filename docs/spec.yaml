@@ -885,7 +885,7 @@ paths:
     get:
       summary: List all policies
       description: |
-        returns all plicies viewable by the logged user
+        returns all policies viewable by the logged user
       produces:
         - application/json
       tags:
@@ -1010,6 +1010,269 @@ paths:
           description: Policy has been successfully deleted
           schema:
             $ref: '#/definitions/Policy'
+        '403':
+          description: You're not authorized to delete this resource
+  '/api/notifications/':
+    get:
+      summary: List all notifications
+      description: |
+        returns all notifications viewable by the logged user
+      produces:
+        - application/json
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: A json array containing all available notifications
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Notification'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource not found
+    post:
+      summary: Create a notification
+      description: |
+        accepts a valid notification model
+        return a policy model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: name
+          in: name
+          description: The notification name (unique)
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: type
+          in: body
+          description: The notification type
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: config
+          in: body
+          description: The notification configuration
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: members
+          in: body
+          description: The array of members related with this notification
+          schema:
+            $ref: '#/definitions/Notificationn'
+      tags:
+        - Notifications
+      responses:
+        '201':
+          description: Returns the created notification
+          schema:
+            $ref: '#/definitions/Notification'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/notifications/{notification}':
+    get:
+      summary: Get a notification
+      description: |
+        Returns a notification by name
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of the notification to return
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '200':
+          description: A valid notification object
+          schema:
+            $ref: '#/definitions/Notification'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a notificaion
+      description: |
+        accepts a valid notification model
+        return a notificaion model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: name
+          in: name
+          description: The notification name (unique)
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: type
+          in: body
+          description: The notification type
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: config
+          in: body
+          description: The notification configuration
+          schema:
+            $ref: '#/definitions/Notification'
+        - name: members
+          in: body
+          description: The array of members related with this notification
+          schema:
+            $ref: '#/definitions/Notificationn'
+      tags:
+        - Notifications
+      responses:
+        '201':
+          description: Returns the created notificaion
+          schema:
+            $ref: '#/definitions/Notification'
+        '403':
+          description: You're not authorized to view this resource
+    delete:
+      summary: Delete a notificaion
+      description: |
+        deletes a notification
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of notification to delete
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '202':
+          description: Notification has been successfully deleted
+          schema:
+            $ref: '#/definitions/Notification'
+        '403':
+          description: You're not authorized to delete this resource
+  '/api/notifications/{notification}/projects/{project}':
+    post:
+      summary: attaches a project from a notification
+      description: |
+        attaches a project from a notification
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of notification
+          required: true
+          type: string
+          format: string
+        - name: project
+          in: path
+          description: name of project to attach
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '202':
+          description: Project successfully attached from the notification
+        '403':
+          description: You're not authorized to delete this resource
+    delete:
+      summary: detaches a project from a notification
+      description: |
+        detaches a project from a notification
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of notification
+          required: true
+          type: string
+          format: string
+        - name: project
+          in: path
+          description: name of project to detach
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '202':
+          description: Project successfully detached from the notification
+        '403':
+          description: You're not authorized to delete this resource
+  '/api/notifications/{notification}/projects/{project}/envs/{env}':
+    post:
+      summary: attaches an environment from a notification
+      description: |
+        attaches an environment from a notification
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of notification
+          required: true
+          type: string
+          format: string
+        - name: project
+          in: path
+          description: name of project environment
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to attached
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '202':
+          description: Environment successfully attached from the notification
+        '403':
+          description: You're not authorized to delete this resource
+    delete:
+      summary: detaches an environment from a notification
+      description: |
+        detaches an environment from a notification
+      produces:
+        - application/json
+      parameters:
+        - name: notification
+          in: path
+          description: name of notification
+          required: true
+          type: string
+          format: string
+        - name: project
+          in: path
+          description: name of project environment
+          required: true
+          type: string
+          format: string
+        - name: environment
+          in: path
+          description: name of environment to detach
+          required: true
+          type: string
+          format: string
+      tags:
+        - Notifications
+      responses:
+        '202':
+          description: Environment successfully detached from the notification
         '403':
           description: You're not authorized to delete this resource
 definitions:
@@ -1244,7 +1507,29 @@ definitions:
         type: string
         description: the spec to be processed
       environments:
-        type: array
+        type: string
+        description: environments associated to the current policy
+  Notification:
+    type: object
+    required:
+      - name
+      - type
+      - config
+      - members
+    properties:
+      id:
+        type: integer
+        description: notification id
         readOnly: true
-        items:
-            $ref: '#/definitions/Environment'
+      name:
+        type: string
+        description: the name of the notification
+      type:
+        type: string
+        description: the type of notification
+      config:
+        type: string
+        description: the config required by the notification
+      members:
+        type: string
+        description: Users associated with current notification
