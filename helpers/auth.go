@@ -40,6 +40,8 @@ var (
 	ResetBuild = "reset_build"
 	// SubmitBuild : ...
 	SubmitBuild = "submit_build"
+	// DiffBuild : ...
+	DiffBuild = "diff_build"
 	// GetPolicy : ...
 	GetPolicy = "get_policy"
 	// DeletePolicy : ...
@@ -144,6 +146,7 @@ func IsAuthorizedToReadResource(au User, endpoint, resource, resourceID string) 
 		GetEnv:      403,
 		ListBuilds:  403,
 		GetBuild:    403,
+		DiffBuild:   403,
 		SubmitBuild: 403,
 		GetPolicy:   403,
 	}

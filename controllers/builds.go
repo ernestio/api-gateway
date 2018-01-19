@@ -47,6 +47,25 @@ func GetBuildMappingHandler(c echo.Context) error {
 	return h.Respond(c, st, b)
 }
 
+// GetDiffHandler : get a diff of two builds
+func GetDiffHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+
+	dr, err := mapDiffRequest(c)
+	if err != nil {
+		return h.Respond(c, 400, []byte(err.Error()))
+	}
+
+	st, b := h.IsAuthorized(&au, "envs/diff")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
+
+	st, b = builds.Diff(au, envName(c), dr)
+
+	return h.Respond(c, st, b)
+}
+
 // GetBuildDefinitionHandler : gets the mapping of a build
 func GetBuildDefinitionHandler(c echo.Context) error {
 	au := AuthenticatedUser(c)
