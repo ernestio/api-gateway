@@ -5,6 +5,7 @@
 package builds
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -15,7 +16,7 @@ import (
 
 // Mapping : responds to GET /builds/:/mapping with the
 // details of an existing build
-func Mapping(au models.User, id string, changes string) (int, []byte) {
+func Mapping(au models.User, id string, changes, changelog string) (int, []byte) {
 	var o views.BuildRender
 	var err error
 	var body []byte
@@ -65,6 +66,21 @@ func Mapping(au models.User, id string, changes string) (int, []byte) {
 			return 400, []byte("Internal error")
 		}
 		return http.StatusOK, res
+	}
+
+	if changelog == "true" {
+		m, err := b.GetRawMapping()
+		if err != nil {
+			h.L.Error(err.Error())
+			return 400, []byte("Internal error")
+		}
+
+		data, err := json.Marshal(m["changelog"])
+		if err != nil {
+			return 400, []byte("Internal error")
+		}
+
+		return http.StatusOK, data
 	}
 
 	o.Name = strings.Split(e.Name, "/")[1]

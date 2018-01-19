@@ -30,7 +30,7 @@ func Submission(au models.User, e *models.Env, definition *definition.Definition
 		return st, res
 	}
 
-	err := m.Apply(definition, au)
+	err := m.Submission(definition, au)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, []byte(`"Couldn't map the environment"`)

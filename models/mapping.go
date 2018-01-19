@@ -16,7 +16,19 @@ type Mapping map[string]interface{}
 
 // Apply : apply a definition
 func (m *Mapping) Apply(d *definition.Definition, au User) error {
+	return m.apply(d, au, false)
+}
+
+// Submission : submit a definition
+func (m *Mapping) Submission(d *definition.Definition, au User) error {
+	return m.apply(d, au, true)
+}
+
+// Apply : apply a definition
+func (m *Mapping) apply(d *definition.Definition, au User, changelog bool) error {
 	mr := mapping.New(N, d.FullName())
+
+	mr.Changelog = changelog
 
 	err := mr.Apply(d)
 	if err != nil {
