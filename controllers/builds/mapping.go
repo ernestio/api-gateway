@@ -16,7 +16,7 @@ import (
 
 // Mapping : responds to GET /builds/:/mapping with the
 // details of an existing build
-func Mapping(au models.User, id string, changes, changelog string) (int, []byte) {
+func Mapping(au models.User, id string, changelog string) (int, []byte) {
 	var o views.BuildRender
 	var err error
 	var body []byte
@@ -53,26 +53,15 @@ func Mapping(au models.User, id string, changes, changelog string) (int, []byte)
 		}
 	}
 
-	if changes == "true" {
-		m, err := b.GetRawMapping()
-		if err != nil {
-			h.L.Error(err.Error())
-			return 400, []byte("Internal error")
-		}
-
-		res, err := views.RenderChanges(m)
-		if err != nil {
-			h.L.Error(err.Error())
-			return 400, []byte("Internal error")
-		}
-		return http.StatusOK, res
-	}
-
 	if changelog == "true" {
 		m, err := b.GetRawMapping()
 		if err != nil {
 			h.L.Error(err.Error())
 			return 400, []byte("Internal error")
+		}
+
+		if m["changelog"] == nil {
+			return 400, []byte("changelog has not been generated for this build")
 		}
 
 		data, err := json.Marshal(m["changelog"])
