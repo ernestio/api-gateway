@@ -6,10 +6,18 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
 
 	"github.com/ernestio/mapping"
 	"github.com/ernestio/mapping/definition"
 )
+
+type policyResponse struct {
+	status string `json:"status"`
+	output string `json:"output"`
+}
 
 // Mapping : graph mapping
 type Mapping map[string]interface{}
@@ -89,6 +97,27 @@ func (m *Mapping) Diff(env, from, to string) error {
 	*m = mr.Result
 
 	return nil
+}
+
+// Validate : checks a map against any attached policies.
+func (m *Mapping) Validate(env string) (string, error) {
+	req := fmt.Sprintf(`{"environment": "%s", "mapping": "%s"}`, env, m)
+	msg, err := N.Request("policy.check", []byte(req), 1*time.Second)
+	if err != nil {
+		return "", err
+	}
+
+	var pr policyResponse
+	err = json.Unmarshal(msg.Data, &pr)
+	if err != nil {
+		return "", err
+	}
+
+	if pr.status == "error" {
+		return pr.output, errors.New("policy error")
+	}
+
+	return pr.output, nil
 }
 
 // Changelog : returns the mappings changelog if present

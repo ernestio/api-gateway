@@ -44,6 +44,13 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return http.StatusOK, res
 	}
 
+	// policy check
+	res, err := m.Validate(e.Name)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 400, []byte(res)
+	}
+
 	b := models.Build{
 		ID:            m["id"].(string),
 		EnvironmentID: e.ID,
