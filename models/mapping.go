@@ -14,9 +14,25 @@ import (
 	"github.com/ernestio/mapping/definition"
 )
 
-type policyResponse struct {
-	status string `json:"status"`
-	output string `json:"output"`
+type BuildValidate struct {
+	Mapping  *Mapping `json:"mapping"`
+	Policies []Policy `json:"policies"`
+	// response
+	Version    string     `json:"version,omitempty"`
+	Controls   []Control  `json:"controls,omitemtpy"`
+	Statistics Statistics `json:"statistics,omitempty"`
+}
+
+type Control struct {
+	ID        string `json:"id"`
+	ProfileID string `json:"profile_id"`
+	Status    string `json:"status"`
+	CodeDesc  string `json:"code_desc"`
+	Message   string `json:"message"`
+}
+
+type Statistics struct {
+	Duration float64 `json:"duration"`
 }
 
 // Mapping : graph mapping
@@ -100,24 +116,47 @@ func (m *Mapping) Diff(env, from, to string) error {
 }
 
 // Validate : checks a map against any attached policies.
-func (m *Mapping) Validate(env string) (string, error) {
-	req := fmt.Sprintf(`{"environment": "%s", "mapping": "%s"}`, env, m)
-	msg, err := N.Request("policy.check", []byte(req), 1*time.Second)
+func (m *Mapping) Validate(project, environment string) (string, error) {
+	policyReq := fmt.Sprintf(`{"environment": ["%s/%s"]}`, project, environment)
+	msg, err := N.Request("policy.find", []byte(policyReq), 1*time.Second)
 	if err != nil {
 		return "", err
 	}
 
-	var pr policyResponse
-	err = json.Unmarshal(msg.Data, &pr)
+	var p []Policy
+	err = json.Unmarshal(msg.Data, &p)
 	if err != nil {
 		return "", err
 	}
 
-	if pr.status == "error" {
-		return pr.output, errors.New("policy error")
+	validateReq := &BuildValidate{
+		Mapping:  m,
+		Policies: p,
 	}
 
-	return pr.output, nil
+	data, err := json.Marshal(validateReq)
+	if err != nil {
+		return "", err
+	}
+
+	msg, err = N.Request("build.validate", data, 1*time.Second)
+	if err != nil {
+		return "", err
+	}
+
+	var bv BuildValidate
+	err = json.Unmarshal(msg.Data, &bv)
+	if err != nil {
+		return "", err
+	}
+
+	for _, e := range bv.Controls {
+		if e.Status == "failed" {
+			return string(msg.Data), errors.New("validation failed")
+		}
+	}
+
+	return string(msg.Data), nil
 }
 
 // Changelog : returns the mappings changelog if present

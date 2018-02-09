@@ -44,8 +44,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return http.StatusOK, res
 	}
 
-	// policy check
-	res, err := m.Validate(e.Name)
+	res, err := m.Validate(e.Project, e.Name)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(res)
