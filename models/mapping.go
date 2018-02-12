@@ -19,9 +19,9 @@ type BuildValidate struct {
 }
 
 type BuildValidateResponse struct {
-	Version    string     `json:"version,omitempty"`
-	Controls   []Control  `json:"controls,omitemtpy"`
-	Statistics Statistics `json:"statistics,omitempty"`
+	Version    string     `json:"version"`
+	Controls   []Control  `json:"controls"`
+	Statistics Statistics `json:"statistics"`
 }
 
 type Control struct {
