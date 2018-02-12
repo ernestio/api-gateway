@@ -46,23 +46,26 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 		return http.StatusOK, res
 	}
 
-	res, err := m.Validate(e.Name)
-	if err != nil {
-		h.L.Error(err.Error())
-		return 400, []byte("build validation failed")
-	}
+	err = h.Licensed()
+	if err == nil {
+		res, err := m.Validate(e.Name)
+		if err != nil {
+			h.L.Error(err.Error())
+			return 400, []byte("build validation failed")
+		}
 
-	if res != nil {
-		ok := res.Pass()
-		if ok != true {
-			data, err := json.Marshal(res)
-			if err != nil {
-				h.L.Error(err.Error())
-				return 400, []byte("failed to encode build validation")
+		if res != nil {
+			ok := res.Pass()
+			if ok != true {
+				data, err := json.Marshal(res)
+				if err != nil {
+					h.L.Error(err.Error())
+					return 400, []byte("failed to encode build validation")
+				}
+
+				h.L.Error(errors.New("build validation failed"))
+				return 400, data
 			}
-
-			h.L.Error(errors.New("build validation failed"))
-			return 400, data
 		}
 	}
 
