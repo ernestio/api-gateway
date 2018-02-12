@@ -119,7 +119,7 @@ func (m *Mapping) Diff(env, from, to string) error {
 // Validate : checks a map against any attached policies.
 func (m *Mapping) Validate(project, environment string) (*BuildValidateResponse, error) {
 	policyReq := fmt.Sprintf(`{"environment": ["%s/%s"]}`, project, environment)
-	msg, err := N.Request("policy.find", []byte(policyReq), 1*time.Second)
+	msg, err := N.Request("policy.find", []byte(policyReq), 2*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +128,10 @@ func (m *Mapping) Validate(project, environment string) (*BuildValidateResponse,
 	err = json.Unmarshal(msg.Data, &p)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(p) == 0 {
+		return nil, nil
 	}
 
 	validateReq := &BuildValidate{
@@ -140,7 +144,7 @@ func (m *Mapping) Validate(project, environment string) (*BuildValidateResponse,
 		return nil, err
 	}
 
-	msg, err = N.Request("build.validate", data, 1*time.Second)
+	msg, err = N.Request("build.validate", data, 2*time.Second)
 	if err != nil {
 		return nil, err
 	}
