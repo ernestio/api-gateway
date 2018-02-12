@@ -13,17 +13,20 @@ import (
 	"github.com/ernestio/mapping/definition"
 )
 
+// BuildValidate describes a request to the build validate service.
 type BuildValidate struct {
 	Mapping  *Mapping `json:"mapping"`
 	Policies []Policy `json:"policies"`
 }
 
+// BuildValidateReponse describes a response from the build validate service.
 type BuildValidateResponse struct {
 	Version    string     `json:"version"`
 	Controls   []Control  `json:"controls"`
 	Statistics Statistics `json:"statistics"`
 }
 
+// Control describes an individual test within a build validation.
 type Control struct {
 	ID        string `json:"id"`
 	ProfileID string `json:"profile_id"`
@@ -32,6 +35,7 @@ type Control struct {
 	Message   string `json:"message"`
 }
 
+// Statistics describes stats for the build validate service.
 type Statistics struct {
 	Duration float64 `json:"duration"`
 }
@@ -117,8 +121,8 @@ func (m *Mapping) Diff(env, from, to string) error {
 }
 
 // Validate : checks a map against any attached policies.
-func (m *Mapping) Validate(project, environment string) (*BuildValidateResponse, error) {
-	policyReq := fmt.Sprintf(`{"environment": ["%s/%s"]}`, project, environment)
+func (m *Mapping) Validate(name string) (*BuildValidateResponse, error) {
+	policyReq := fmt.Sprintf(`{"environments": ["%s"]}`, name)
 	msg, err := N.Request("policy.find", []byte(policyReq), 2*time.Second)
 	if err != nil {
 		return nil, err
@@ -172,6 +176,7 @@ func (m *Mapping) ToJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+// Pass tests if a build is valid or not.
 func (b *BuildValidateResponse) Pass() bool {
 	for _, e := range b.Controls {
 		if e.Status == "failed" {
