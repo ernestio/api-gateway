@@ -6,7 +6,6 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -17,7 +16,9 @@ import (
 type BuildValidate struct {
 	Mapping  *Mapping `json:"mapping"`
 	Policies []Policy `json:"policies"`
-	// response
+}
+
+type BuildValidateResponse struct {
 	Version    string     `json:"version,omitempty"`
 	Controls   []Control  `json:"controls,omitemtpy"`
 	Statistics Statistics `json:"statistics,omitempty"`
@@ -116,17 +117,17 @@ func (m *Mapping) Diff(env, from, to string) error {
 }
 
 // Validate : checks a map against any attached policies.
-func (m *Mapping) Validate(project, environment string) (string, error) {
+func (m *Mapping) Validate(project, environment string) (*BuildValidateResponse, error) {
 	policyReq := fmt.Sprintf(`{"environment": ["%s/%s"]}`, project, environment)
 	msg, err := N.Request("policy.find", []byte(policyReq), 1*time.Second)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var p []Policy
 	err = json.Unmarshal(msg.Data, &p)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	validateReq := &BuildValidate{
@@ -136,27 +137,21 @@ func (m *Mapping) Validate(project, environment string) (string, error) {
 
 	data, err := json.Marshal(validateReq)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	msg, err = N.Request("build.validate", data, 1*time.Second)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var bv BuildValidate
-	err = json.Unmarshal(msg.Data, &bv)
+	var bvr BuildValidateResponse
+	err = json.Unmarshal(msg.Data, &bvr)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	for _, e := range bv.Controls {
-		if e.Status == "failed" {
-			return string(msg.Data), errors.New("validation failed")
-		}
-	}
-
-	return string(msg.Data), nil
+	return &bvr, nil
 }
 
 // Changelog : returns the mappings changelog if present
@@ -171,4 +166,14 @@ func (m *Mapping) ChangelogJSON() ([]byte, error) {
 // ToJSON : serializes the mapping to json
 func (m *Mapping) ToJSON() ([]byte, error) {
 	return json.Marshal(m)
+}
+
+func (b *BuildValidateResponse) Pass() bool {
+	for _, e := range b.Controls {
+		if e.Status == "failed" {
+			return false
+		}
+	}
+
+	return true
 }

@@ -5,6 +5,8 @@
 package builds
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -47,7 +49,19 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	res, err := m.Validate(e.Project, e.Name)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte(res)
+		return 400, []byte("build validation failed")
+	}
+
+	ok := res.Pass()
+	if ok != true {
+		data, err := json.Marshal(res)
+		if err != nil {
+			h.L.Error(err.Error())
+			return 400, []byte("failed to encode build validation")
+		}
+
+		h.L.Error(errors.New("build validation failed"))
+		return 400, data
 	}
 
 	b := models.Build{
