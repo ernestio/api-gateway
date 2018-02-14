@@ -6,10 +6,39 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/ernestio/mapping"
 	"github.com/ernestio/mapping/definition"
 )
+
+// BuildValidate describes a request to the build validate service.
+type BuildValidate struct {
+	Mapping  *Mapping `json:"mapping"`
+	Policies []Policy `json:"policies"`
+}
+
+// BuildValidateReponse describes a response from the build validate service.
+type BuildValidateResponse struct {
+	Version    string     `json:"version"`
+	Controls   []Control  `json:"controls"`
+	Statistics Statistics `json:"statistics"`
+}
+
+// Control describes an individual test within a build validation.
+type Control struct {
+	ID        string `json:"id"`
+	ProfileID string `json:"profile_id"`
+	Status    string `json:"status"`
+	CodeDesc  string `json:"code_desc"`
+	Message   string `json:"message"`
+}
+
+// Statistics describes stats for the build validate service.
+type Statistics struct {
+	Duration float64 `json:"duration"`
+}
 
 // Mapping : graph mapping
 type Mapping map[string]interface{}
@@ -91,6 +120,48 @@ func (m *Mapping) Diff(env, from, to string) error {
 	return nil
 }
 
+// Validate : checks a map against any attached policies.
+func (m *Mapping) Validate(name string) (*BuildValidateResponse, error) {
+	policyReq := fmt.Sprintf(`{"environments": ["%s"]}`, name)
+	msg, err := N.Request("policy.find", []byte(policyReq), 2*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	var p []Policy
+	err = json.Unmarshal(msg.Data, &p)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(p) == 0 {
+		return nil, nil
+	}
+
+	validateReq := &BuildValidate{
+		Mapping:  m,
+		Policies: p,
+	}
+
+	data, err := json.Marshal(validateReq)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err = N.Request("build.validate", data, 2*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	var bvr BuildValidateResponse
+	err = json.Unmarshal(msg.Data, &bvr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &bvr, nil
+}
+
 // Changelog : returns the mappings changelog if present
 func (m *Mapping) ChangelogJSON() ([]byte, error) {
 	if (*m)["changelog"] == nil {
@@ -103,4 +174,15 @@ func (m *Mapping) ChangelogJSON() ([]byte, error) {
 // ToJSON : serializes the mapping to json
 func (m *Mapping) ToJSON() ([]byte, error) {
 	return json.Marshal(m)
+}
+
+// Pass tests if a build is valid or not.
+func (b *BuildValidateResponse) Pass() bool {
+	for _, e := range b.Controls {
+		if e.Status == "failed" {
+			return false
+		}
+	}
+
+	return true
 }
