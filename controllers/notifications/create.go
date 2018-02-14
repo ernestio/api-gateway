@@ -18,15 +18,15 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var err error
 
 	if l.Map(body) != nil {
-		return http.StatusBadRequest, []byte("Invalid input")
+		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
 	if err = l.Save(); err != nil {
-		return 400, []byte(err.Error())
+		return 400, models.NewJSONError(err.Error())
 	}
 
 	if body, err = json.Marshal(l); err != nil {
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 	return http.StatusOK, body
 }

@@ -19,22 +19,22 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	var existing models.Notification
 
 	if d.Map(body) != nil {
-		return http.StatusBadRequest, []byte("Invalid input")
+		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
 	if err = existing.FindByName(name, &existing); err != nil {
-		return 404, []byte("Not found")
+		return 404, models.NewJSONError("Not found")
 	}
 
 	existing.Config = d.Config
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(d); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

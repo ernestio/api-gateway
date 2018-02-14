@@ -23,7 +23,7 @@ func Report(au models.User, fromStr, toStr string) (int, []byte) {
 		fromTime, err := time.Parse(layout, fromStr)
 		if err != nil {
 			h.L.Warning(err.Error())
-			return http.StatusBadRequest, []byte("Invalid from parameter")
+			return http.StatusBadRequest, models.NewJSONError("Invalid from parameter")
 		}
 		from = fromTime.Unix()
 	}
@@ -31,17 +31,17 @@ func Report(au models.User, fromStr, toStr string) (int, []byte) {
 		toTime, err := time.Parse(layout, toStr)
 		if err != nil {
 			h.L.Warning(err.Error())
-			return http.StatusBadRequest, []byte("Invalid to parameter")
+			return http.StatusBadRequest, models.NewJSONError("Invalid to parameter")
 		}
 		to = toTime.Unix()
 	}
 
 	if err = usage.FindAllInRange(from, to, &reportables); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = views.RenderUsageReport(reportables); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

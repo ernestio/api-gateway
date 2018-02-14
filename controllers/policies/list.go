@@ -19,12 +19,12 @@ func List(au models.User) (int, []byte) {
 
 	policies, err := au.GetPolicies()
 	if err != nil {
-		return 404, []byte(err.Error())
+		return 404, models.NewJSONError(err.Error())
 	}
 
 	if body, err = json.Marshal(policies); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 	return http.StatusOK, body
 }

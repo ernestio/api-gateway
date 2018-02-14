@@ -21,12 +21,12 @@ func Get(au models.User, id string) (int, []byte) {
 
 	if err = role.FindByID(id, &role); err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Role not found")
+		return 404, models.NewJSONError("Role not found")
 	}
 
 	if body, err = json.Marshal(role); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal serveier error")
+		return 500, models.NewJSONError("Internal serveier error")
 	}
 	return http.StatusOK, body
 }

@@ -19,7 +19,7 @@ func Delete(au models.User, name string) (int, []byte) {
 	err := e.FindByName(name)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnv, e.GetType(), e.Name); st != 200 {
@@ -29,7 +29,7 @@ func Delete(au models.User, name string) (int, []byte) {
 	err = m.Delete(name, au)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the environment"`)
+		return 500, models.NewJSONError("Couldn't map the environment")
 	}
 
 	b := models.Build{
@@ -44,12 +44,12 @@ func Delete(au models.User, name string) (int, []byte) {
 	err = b.Save()
 	if err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte(`"Environment is already applying some changes, please wait until they are done"`)
+		return 400, models.NewJSONError("Environment is already applying some changes, please wait until they are done")
 	}
 
 	if err := b.RequestDeletion(&m); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call build.delete"`)
+		return 500, models.NewJSONError("Couldn't call build.delete")
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)

@@ -16,12 +16,12 @@ func Delete(au models.User, logger string) (int, []byte) {
 	var l models.Logger
 
 	if logger == "basic" {
-		return 400, []byte("Basic logger can't be deleted")
+		return 400, models.NewJSONError("Basic logger can't be deleted")
 	}
 
 	if err := l.Delete(logger); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
-	return http.StatusOK, []byte("Logger successfully deleted")
+	return http.StatusOK, models.NewJSONError("Logger successfully deleted")
 }

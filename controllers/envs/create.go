@@ -21,18 +21,18 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 	var existing models.Env
 
 	if e.Map(body) != nil {
-		return 400, []byte("Input is not valid")
+		return 400, models.NewJSONError("Input is not valid")
 	}
 
 	err = e.Validate()
 	if err != nil {
 		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
 	}
 
 	err = p.FindByName(project)
 	if err != nil {
-		return 404, []byte("Specified project does not exist")
+		return 404, models.NewJSONError("Specified project does not exist")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, p.GetType(), p.Name); st != 200 {
@@ -41,7 +41,7 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 
 	e.Name = project + models.EnvNameSeparator + e.Name
 	if err := existing.FindByName(e.Name); err == nil {
-		return 409, []byte("Specified environment already exists")
+		return 409, models.NewJSONError("Specified environment already exists")
 	}
 
 	e.ProjectID = p.ID
@@ -49,16 +49,16 @@ func Create(au models.User, project string, body []byte) (int, []byte) {
 
 	if err = e.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if err := au.SetOwner(&e); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(e); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

@@ -22,10 +22,10 @@ func Get(au models.User, name string) (int, []byte) {
 
 	if err = e.FindByName(name); err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return 404, []byte("Specified environment name does not exist")
+			return 404, models.NewJSONError("Specified environment name does not exist")
 		}
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), name); st != 200 {
@@ -33,7 +33,7 @@ func Get(au models.User, name string) (int, []byte) {
 	}
 
 	if body, err = json.Marshal(e); err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	return http.StatusOK, body

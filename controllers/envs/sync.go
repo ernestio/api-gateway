@@ -19,7 +19,7 @@ func Sync(au models.User, env string, action *models.Action) (int, []byte) {
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
@@ -28,7 +28,7 @@ func Sync(au models.User, env string, action *models.Action) (int, []byte) {
 
 	id, err := e.RequestSync(au)
 	if err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	action.ResourceType = "build"
@@ -37,7 +37,7 @@ func Sync(au models.User, env string, action *models.Action) (int, []byte) {
 
 	data, err := json.Marshal(action)
 	if err != nil {
-		return 500, []byte("could not process sync request")
+		return 500, models.NewJSONError("could not process sync request")
 	}
 
 	return http.StatusOK, data

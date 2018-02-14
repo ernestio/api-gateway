@@ -18,11 +18,11 @@ func List(au models.User) (int, []byte) {
 
 	if au.IsAdmin() {
 		if err := au.FindAll(&users); err != nil {
-			return 500, []byte("Internal server error")
+			return 500, models.NewJSONError("Internal server error")
 		}
 	} else {
 		if err := au.FindByUserName(au.Username, &user); err != nil {
-			return 500, []byte("Internal server error")
+			return 500, models.NewJSONError("Internal server error")
 		}
 		users = append(users, user)
 	}
@@ -34,7 +34,7 @@ func List(au models.User) (int, []byte) {
 
 	body, err := json.Marshal(users)
 	if err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

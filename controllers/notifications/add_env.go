@@ -18,7 +18,7 @@ func AddEnv(au models.User, name, env string) (int, []byte) {
 	var body []byte
 
 	if err = existing.FindByName(name, &existing); err != nil {
-		return 500, []byte("Noification not found")
+		return 500, models.NewJSONError("Noification not found")
 	}
 
 	members := strings.Split(existing.Members, ",")
@@ -36,7 +36,7 @@ func AddEnv(au models.User, name, env string) (int, []byte) {
 	existing.Members = strings.Join(members, ",")
 
 	if err = existing.Save(); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

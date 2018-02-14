@@ -13,33 +13,6 @@ import (
 	"github.com/ernestio/mapping/definition"
 )
 
-// BuildValidate describes a request to the build validate service.
-type BuildValidate struct {
-	Mapping  *Mapping `json:"mapping"`
-	Policies []Policy `json:"policies"`
-}
-
-// BuildValidateReponse describes a response from the build validate service.
-type BuildValidateResponse struct {
-	Version    string     `json:"version"`
-	Controls   []Control  `json:"controls"`
-	Statistics Statistics `json:"statistics"`
-}
-
-// Control describes an individual test within a build validation.
-type Control struct {
-	ID        string `json:"id"`
-	ProfileID string `json:"profile_id"`
-	Status    string `json:"status"`
-	CodeDesc  string `json:"code_desc"`
-	Message   string `json:"message"`
-}
-
-// Statistics describes stats for the build validate service.
-type Statistics struct {
-	Duration float64 `json:"duration"`
-}
-
 // Mapping : graph mapping
 type Mapping map[string]interface{}
 
@@ -174,15 +147,4 @@ func (m *Mapping) ChangelogJSON() ([]byte, error) {
 // ToJSON : serializes the mapping to json
 func (m *Mapping) ToJSON() ([]byte, error) {
 	return json.Marshal(m)
-}
-
-// Pass tests if a build is valid or not.
-func (b *BuildValidateResponse) Pass() bool {
-	for _, e := range b.Controls {
-		if e.Status == "failed" {
-			return false
-		}
-	}
-
-	return true
 }

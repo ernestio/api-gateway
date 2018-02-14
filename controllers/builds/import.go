@@ -20,7 +20,7 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
@@ -30,7 +30,7 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	err = m.Import(env, action.Options.Filters, au)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the import build"`)
+		return 500, models.NewJSONError(`"Couldn't map the import build"`)
 	}
 
 	b := models.Build{
@@ -45,12 +45,12 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	err = b.Save()
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't create the build"`)
+		return 500, models.NewJSONError(`"Couldn't create the build"`)
 	}
 
 	if err := b.RequestImport(&m); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call build.import"`)
+		return 500, models.NewJSONError(`"Couldn't call build.import"`)
 	}
 
 	action.ResourceID = b.ID
@@ -60,7 +60,7 @@ func Import(au models.User, env string, action *models.Action) (int, []byte) {
 	data, err := json.Marshal(action)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't marshal response"`)
+		return 500, models.NewJSONError(`"Couldn't marshal response"`)
 	}
 
 	return http.StatusOK, data

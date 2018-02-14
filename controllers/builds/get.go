@@ -28,11 +28,11 @@ func Get(au models.User, id string) (int, []byte) {
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
-		return 404, h.ErrMessage("Specified environment build does not exist")
+		return 404, models.NewJSONError("Specified environment build does not exist")
 	}
 
 	if err := e.FindByID(int(b.EnvironmentID)); err != nil {
-		return 404, h.ErrMessage("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
@@ -40,7 +40,7 @@ func Get(au models.User, id string) (int, []byte) {
 	}
 
 	if err := p.FindByID(int(e.ProjectID)); err != nil {
-		return 404, h.ErrMessage("Project not found")
+		return 404, models.NewJSONError("Project not found")
 	}
 
 	computedRoles := make(map[string]string, 0)
@@ -64,10 +64,10 @@ func Get(au models.User, id string) (int, []byte) {
 
 	if err := o.Render(b); err != nil {
 		h.L.Warning(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
 	}
 	if body, err = o.ToJSON(); err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	return http.StatusOK, body

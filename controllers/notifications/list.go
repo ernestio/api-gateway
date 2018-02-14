@@ -22,12 +22,12 @@ func List(au models.User) (int, []byte) {
 
 	if err = notification.FindAll(&notifications); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal serveier error")
+		return 500, models.NewJSONError("Internal serveier error")
 	}
 
 	if body, err = json.Marshal(notifications); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal serveier error")
+		return 500, models.NewJSONError("Internal serveier error")
 	}
 	return http.StatusOK, body
 }

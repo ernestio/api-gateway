@@ -20,11 +20,11 @@ func List(au models.User) (int, []byte) {
 	var logger models.Logger
 
 	if err = logger.FindAll(&loggers); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(loggers); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body
