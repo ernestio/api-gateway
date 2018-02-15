@@ -54,9 +54,11 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 			return 400, models.NewJSONError("could not validate build")
 		}
 
-		if validation.Passed() != true {
-			h.L.Error(errors.New("build validation failed"))
-			return 400, models.NewJSONValidationError("build validation failed", validation)
+		if validation != nil {
+			if validation.Passed() != true {
+				h.L.Error(errors.New("build validation failed"))
+				return 400, models.NewJSONValidationError("build validation failed", validation)
+			}
 		}
 	}
 
