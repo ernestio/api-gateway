@@ -21,13 +21,13 @@ func Definition(au models.User, id string) (int, []byte) {
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 
 	err = e.FindByID(b.EnvironmentID)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
@@ -35,7 +35,7 @@ func Definition(au models.User, id string) (int, []byte) {
 	}
 
 	if body, err = b.GetDefinition(); err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	return http.StatusOK, body

@@ -16,11 +16,11 @@ func List(au models.User) (int, []byte) {
 	var r models.Role
 
 	if err = r.FindAll(&roles); err != nil {
-		return 404, []byte(err.Error())
+		return 404, models.NewJSONError(err.Error())
 	}
 
 	if body, err = json.Marshal(roles); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 	return http.StatusOK, body
 }

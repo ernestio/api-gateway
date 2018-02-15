@@ -19,7 +19,7 @@ func RmEnv(au models.User, name, env string) (int, []byte) {
 	var body []byte
 
 	if err = existing.FindByName(name, &existing); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	members := strings.Split(existing.Members, ",")
@@ -33,7 +33,7 @@ func RmEnv(au models.User, name, env string) (int, []byte) {
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

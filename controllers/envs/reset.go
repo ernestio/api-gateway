@@ -25,27 +25,27 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 
 	if err := b.FindByEnvironmentName(name, &builds); err != nil {
 		h.L.Warning(err.Error())
-		return 500, []byte("Internal Error (A)")
+		return 500, models.NewJSONError("Internal Error (A)")
 	}
 
 	if len(builds) == 0 {
-		return 404, []byte("No builds found for the specified environment")
+		return 404, models.NewJSONError("No builds found for the specified environment")
 	}
 
 	if builds[0].Status != "in_progress" {
-		return 400, []byte("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + builds[0].Status)
+		return 400, models.NewJSONError("Reset only applies to an 'in progress' environment, however environment '" + name + "' is on status '" + builds[0].Status)
 	}
 
 	if err := builds[0].Reset(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error (B)")
+		return 500, models.NewJSONError("Internal error (B)")
 	}
 
 	action.Status = "done"
 
 	data, err := json.Marshal(action)
 	if err != nil {
-		return 500, []byte("could not process sync request")
+		return 500, models.NewJSONError("could not process sync request")
 	}
 
 	return http.StatusOK, data

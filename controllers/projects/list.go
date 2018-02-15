@@ -25,7 +25,7 @@ func List(au models.User) (int, []byte) {
 	}
 
 	if body, err = json.Marshal(projects); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 	return http.StatusOK, body
 }

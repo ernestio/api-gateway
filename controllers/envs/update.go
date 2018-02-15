@@ -31,7 +31,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 	// Get existing environment
 	if err := e.FindByName(name); err != nil {
-		return 404, []byte(err.Error())
+		return 404, models.NewJSONError(err.Error())
 	}
 
 	e.Options = input.Options
@@ -39,13 +39,13 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	e.Credentials = input.Credentials
 
 	if err := e.Save(); err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	resp, err = json.Marshal(e)
 	if err != nil {
 		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
 	}
 
 	return http.StatusOK, resp

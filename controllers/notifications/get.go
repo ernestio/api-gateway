@@ -21,12 +21,12 @@ func Get(au models.User, name string) (int, []byte) {
 
 	if err = notification.FindByName(name, &notification); err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Notification not found")
+		return 404, models.NewJSONError("Notification not found")
 	}
 
 	if body, err = json.Marshal(notification); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal serveier error")
+		return 500, models.NewJSONError("Internal serveier error")
 	}
 	return http.StatusOK, body
 }

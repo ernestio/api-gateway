@@ -19,7 +19,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var err error
 
 	if l.Map(body) != nil {
-		return 400, []byte("Invalid input")
+		return 400, models.NewJSONError("Invalid input")
 	}
 
 	if err = l.Save(); err != nil {
@@ -28,13 +28,13 @@ func Create(au models.User, body []byte) (int, []byte) {
 		}
 		parts := strings.Split(err.Error(), "message=")
 		if len(parts) > 0 {
-			return 500, []byte(parts[1])
+			return 500, models.NewJSONError(parts[1])
 		}
-		return 500, []byte(e.Msg)
+		return 500, models.NewJSONError(string(e.Msg))
 	}
 
 	if body, err = json.Marshal(l); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 	return http.StatusOK, body
 }

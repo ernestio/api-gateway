@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/users"
 	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -18,7 +17,6 @@ import (
 func TestGetUsers(t *testing.T) {
 	var err error
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
@@ -41,7 +39,7 @@ func TestGetUsers(t *testing.T) {
 			Convey("And I'm authenticated as a non-admin user", func() {
 				st, resp := users.List(au)
 				Convey("It should return only the users in the same group", func() {
-					So(string(resp), ShouldEqual, "Internal server error")
+					So(string(resp), ShouldEqual, `{"message":"Internal server error"}`)
 					So(st, ShouldEqual, 500)
 				})
 			})
@@ -52,7 +50,6 @@ func TestGetUsers(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	var err error
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	other := models.User{ID: 3, Username: "other", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
@@ -113,7 +110,6 @@ func TestGetUser(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	var err error
 	testsSetup()
-	config.Setup()
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: creating a user", t, func() {
@@ -143,7 +139,7 @@ func TestCreateUser(t *testing.T) {
 
 						Convey("It should return an error message with a 400 repsonse", func() {
 							So(st, ShouldEqual, 400)
-							So(string(resp), ShouldEqual, `Minimum password length is 8 characters`)
+							So(string(resp), ShouldEqual, `{"message":"Minimum password length is 8 characters"}`)
 						})
 					})
 					Convey("With a username using invalid characters", func() {
@@ -199,7 +195,6 @@ func TestCreateUser(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	var err error
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	other := models.User{ID: 3, Username: "other", Password: &pw1}
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
@@ -401,7 +396,6 @@ func TestUpdateUser(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	admin := models.User{ID: 2, Username: "admin", Admin: helpers.Bool(true)}
 
 	Convey("Scenario: deleting a user", t, func() {

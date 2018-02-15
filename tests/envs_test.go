@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/envs"
 	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -19,7 +18,6 @@ import (
 
 func TestListingEnvs(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := mockUsers[0]
 
 	Convey("Scenario: getting a list of services", t, func() {
@@ -44,7 +42,6 @@ func TestListingEnvs(t *testing.T) {
 
 func TestGetEnv(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := mockUsers[0]
 
 	Convey("Scenario: getting a single service", t, func() {
@@ -61,7 +58,6 @@ func TestGetEnv(t *testing.T) {
 
 func TestSearchEnv(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := mockUsers[0]
 
 	Convey("Scenario: searching for services", t, func() {

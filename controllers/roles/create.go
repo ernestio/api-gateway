@@ -15,26 +15,26 @@ func Create(au models.User, body []byte) (int, []byte) {
 	var d models.Role
 
 	if d.Map(body) != nil {
-		return 400, []byte("Input is not valid")
+		return 400, models.NewJSONError("Input is not valid")
 	}
 
 	err = d.Validate()
 	if err != nil {
 		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
 	}
 
 	if !d.ResourceExists() {
-		return 404, []byte("Specified resource not found")
+		return 404, models.NewJSONError("Specified resource not found")
 	}
 
 	if !d.UserExists() {
-		return 404, []byte("Specified user not found")
+		return 404, models.NewJSONError("Specified user not found")
 	}
 
 	if !au.IsAdmin() {
 		if ok := au.IsOwner(d.ResourceType, d.ResourceID); !ok {
-			return 403, []byte("You're not authorized to perform this action")
+			return 403, models.NewJSONError("You're not authorized to perform this action")
 		}
 	}
 
@@ -45,12 +45,12 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	if err = d.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(d); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

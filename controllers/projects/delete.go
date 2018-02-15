@@ -17,7 +17,7 @@ func Delete(au models.User, project string) (int, []byte) {
 	if err = d.FindByName(project); err != nil {
 		id, err := strconv.Atoi(project)
 		if err = d.FindByID(id); err != nil {
-			return 404, []byte("Project not found")
+			return 404, models.NewJSONError("Project not found")
 		}
 	}
 
@@ -27,16 +27,16 @@ func Delete(au models.User, project string) (int, []byte) {
 
 	ss, err := d.Envs()
 	if err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	if len(ss) > 0 {
-		return 400, []byte("Existing environments are referring to this project.")
+		return 400, models.NewJSONError("Existing environments are referring to this project.")
 	}
 
 	if err := d.Delete(); err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
-	return http.StatusOK, []byte("Project successfully deleted")
+	return http.StatusOK, []byte(`{"status": "Project successfully deleted"}`)
 }

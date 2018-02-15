@@ -21,7 +21,7 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 
 	if err := e.DeleteByName(name); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	return http.StatusOK, []byte(`{"status":"ok"}`)

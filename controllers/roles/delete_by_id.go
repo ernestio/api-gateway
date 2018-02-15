@@ -13,12 +13,12 @@ func DeleteByID(au models.User, id string) (int, []byte) {
 	var existing models.Role
 
 	if err = existing.FindByID(id, &existing); err != nil {
-		return 404, []byte("Not found")
+		return 404, models.NewJSONError("Not found")
 	}
 
 	if err := existing.Delete(); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
-	return http.StatusOK, []byte("Role deleted")
+	return http.StatusOK, models.NewJSONError("Role deleted")
 }

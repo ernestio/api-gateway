@@ -23,7 +23,7 @@ func List(au models.User, env string) (int, []byte) {
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
@@ -33,7 +33,7 @@ func List(au models.User, env string) (int, []byte) {
 	err = b.FindByEnvironmentName(env, &list)
 	if err != nil {
 		h.L.Warning(err.Error())
-		return 404, []byte("Build not found")
+		return 404, models.NewJSONError("Build not found")
 	}
 
 	for i := len(list) - 1; i >= 0; i-- {
@@ -44,7 +44,7 @@ func List(au models.User, env string) (int, []byte) {
 
 	body, err = json.Marshal(list)
 	if err != nil {
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 
 	return http.StatusOK, body

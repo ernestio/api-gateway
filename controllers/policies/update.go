@@ -19,11 +19,11 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	var existing models.Policy
 
 	if d.Map(body) != nil {
-		return http.StatusBadRequest, []byte("Invalid input")
+		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
 	if err = existing.GetByName(name, &existing); err != nil {
-		return 404, []byte("Not found")
+		return 404, models.NewJSONError("Not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdatePolicy, existing.GetType(), existing.GetID()); st != 200 {
@@ -39,11 +39,11 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(existing); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

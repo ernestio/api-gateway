@@ -24,21 +24,21 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	if !u.CanBeChangedBy(au) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
-		return 403, []byte(err.Error())
+		return 403, models.NewJSONError(err.Error())
 	}
 
 	// Check user exists
 	if err := au.FindByUserName(user, &existing); err != nil {
 		if err := au.FindByID(user, &existing); err != nil {
 			h.L.Error(err.Error())
-			return 404, []byte("Specified user not found")
+			return 404, models.NewJSONError("Specified user not found")
 		}
 	}
 
 	if existing.ID == 0 {
 		err := errors.New("Specified user not found")
 		h.L.Error(err.Error())
-		return 404, []byte(err.Error())
+		return 404, models.NewJSONError(err.Error())
 	}
 
 	u.Username = existing.Username
@@ -46,32 +46,32 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	if !au.IsAdmin() && existing.Username != au.Username {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
-		return 403, []byte(err.Error())
+		return 403, models.NewJSONError(err.Error())
 	}
 
 	if !au.IsAdmin() && existing.IsAdmin() != u.IsAdmin() {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
 		h.L.Error(err.Error())
-		return 403, []byte(err.Error())
+		return 403, models.NewJSONError(err.Error())
 	}
 
 	if u.Password != nil {
 		err := u.Validate()
 		if err != nil {
-			return 400, []byte(err.Error())
+			return 400, models.NewJSONError(err.Error())
 		}
 
 		// Check the old password if it is present
 		if u.OldPassword != nil && !existing.ValidPassword(*u.OldPassword) {
 			err := errors.New("Provided credentials are not valid")
 			h.L.Error(err.Error())
-			return 403, []byte(err.Error())
+			return 403, models.NewJSONError(err.Error())
 		}
 	}
 
 	if err := u.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Error updating user")
+		return 500, models.NewJSONError("Error updating user")
 	}
 
 	if existing.MFA == nil {
@@ -92,7 +92,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 
 	body, err := json.Marshal(u)
 	if err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

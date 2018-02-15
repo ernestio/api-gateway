@@ -23,7 +23,7 @@ func List(au models.User, project *string) (int, []byte) {
 		p, err := au.ProjectByName(*project)
 		if err != nil {
 			h.L.Warning(err.Error())
-			return 404, []byte("Project not found")
+			return 404, models.NewJSONError("Project not found")
 		}
 
 		query["project_id"] = p.ID
@@ -32,7 +32,7 @@ func List(au models.User, project *string) (int, []byte) {
 	envs, err := au.EnvsBy(query)
 	if err != nil {
 		h.L.Warning(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	for i := range envs {
@@ -41,7 +41,7 @@ func List(au models.User, project *string) (int, []byte) {
 
 	body, err = json.Marshal(envs)
 	if err != nil {
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 
 	return http.StatusOK, body

@@ -19,11 +19,12 @@ import (
 func Create(au models.User, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
+	var validation *models.BuildValidateResponse
 
 	err := e.FindByName(definition.FullName())
 	if err != nil {
 		h.L.Error(err.Error())
-		return 404, []byte("Environment not found")
+		return 404, models.NewJSONError("Environment not found")
 	}
 
 	if st, _ := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
@@ -34,38 +35,28 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	err = m.Apply(definition, au)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't map the environment"`)
+		return 500, models.NewJSONError("Couldn't map the environment")
 	}
 
 	if dry == "true" {
 		res, err := views.RenderChanges(m)
 		if err != nil {
 			h.L.Error(err.Error())
-			return 400, []byte("Internal error")
+			return 400, models.NewJSONError("Internal error")
 		}
 		return http.StatusOK, res
 	}
 
-	err = h.Licensed()
-	if err == nil {
-		res, err := m.Validate(e.Name)
+	if h.Licensed() == nil {
+		validation, err = m.Validate(e.Name)
 		if err != nil {
 			h.L.Error(err.Error())
-			return 400, []byte("build validation failed")
+			return 400, models.NewJSONError("could not validate build")
 		}
 
-		if res != nil {
-			ok := res.Pass()
-			if ok != true {
-				data, err := json.Marshal(res)
-				if err != nil {
-					h.L.Error(err.Error())
-					return 400, []byte("failed to encode build validation")
-				}
-
-				h.L.Error(errors.New("build validation failed"))
-				return 400, data
-			}
+		if validation.Passed() != true {
+			h.L.Error(errors.New("build validation failed"))
+			return 400, models.NewJSONValidationError("build validation failed", validation)
 		}
 	}
 
@@ -82,13 +73,25 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	err = b.Save()
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't create the build"`)
+		return 500, models.NewJSONError("Couldn't create the build")
 	}
 
 	if err := b.RequestCreation(&m); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte(`"Couldn't call build.create"`)
+		return 500, models.NewJSONError("Couldn't call build.create")
 	}
 
-	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)
+	br := models.BuildDetails{
+		ID:         b.ID,
+		Status:     b.Status,
+		Validation: validation,
+	}
+
+	data, err := json.Marshal(br)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 400, models.NewJSONError("Internal error")
+	}
+
+	return http.StatusOK, data
 }

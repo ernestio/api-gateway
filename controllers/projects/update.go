@@ -17,13 +17,13 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 	var err error
 
 	if d.Map(body) != nil {
-		return 400, []byte("Invalid input")
+		return 400, models.NewJSONError("Invalid input")
 	}
 
 	if err = existing.FindByName(project); err != nil {
 		id, err := strconv.Atoi(project)
 		if err = existing.FindByID(id); err != nil {
-			return 404, []byte("Project not found")
+			return 404, models.NewJSONError("Project not found")
 		}
 	}
 
@@ -35,11 +35,11 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	if body, err = json.Marshal(d); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

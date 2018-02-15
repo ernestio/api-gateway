@@ -17,12 +17,12 @@ func Delete(au models.User, name string) (int, []byte) {
 	var existing models.Notification
 
 	if err = existing.FindByName(name, &existing); err != nil {
-		return 404, []byte("Not found")
+		return 404, models.NewJSONError("Not found")
 	}
 
 	if err := existing.Delete(); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
-	return http.StatusOK, []byte("Notification deleted")
+	return http.StatusOK, []byte(`{"status": "Notification deleted"}`)
 }

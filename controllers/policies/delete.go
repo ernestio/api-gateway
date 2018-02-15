@@ -18,7 +18,7 @@ func Delete(au models.User, name string) (int, []byte) {
 	var existing models.Policy
 
 	if err = existing.GetByName(name, &existing); err != nil {
-		return 404, []byte("policy not found")
+		return 404, models.NewJSONError("policy not found")
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.DeletePolicy, existing.GetType(), existing.GetID()); st != 200 {
@@ -26,8 +26,8 @@ func Delete(au models.User, name string) (int, []byte) {
 	}
 
 	if err := existing.Delete(); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
-	return http.StatusOK, []byte("policy deleted")
+	return http.StatusOK, models.NewJSONError("policy deleted")
 }

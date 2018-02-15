@@ -16,23 +16,23 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	if err := u.Map(body); err != nil {
 		h.L.Error(err.Error())
-		return 400, []byte(`{"code":400, "message":"` + err.Error() + `"}`)
+		return 400, models.NewJSONError(`{"code":400, "message":"` + err.Error() + `"}`)
 	}
 
 	err := u.Validate()
 	if err != nil {
-		return 400, []byte(err.Error())
+		return 400, models.NewJSONError(err.Error())
 	}
 
 	if err := existing.FindByUserName(u.Username, &existing); err == nil {
-		return 409, []byte(`Specified user already exists`)
+		return 409, models.NewJSONError(`Specified user already exists`)
 	}
 
 	u.Type = "local"
 
 	if err := u.Save(); err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Error creating user")
+		return 500, models.NewJSONError("Error creating user")
 	}
 
 	if u.MFA != nil {
@@ -49,7 +49,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	body, err = json.Marshal(u)
 	if err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

@@ -16,13 +16,13 @@ import (
 func Search(au models.User, query map[string]interface{}) (int, []byte) {
 	envs, err := au.EnvsBy(query)
 	if err != nil {
-		return 500, []byte(err.Error())
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	b, err := json.Marshal(envs)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, []byte("Internal error")
+		return 500, models.NewJSONError("Internal error")
 	}
 
 	return http.StatusOK, b

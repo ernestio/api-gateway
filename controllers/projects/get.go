@@ -26,7 +26,7 @@ func Get(au models.User, project string) (int, []byte) {
 	appended := make(map[string]string)
 
 	if err := d.FindByName(project); err != nil {
-		return 404, []byte("Project not found")
+		return 404, models.NewJSONError("Project not found")
 	}
 
 	query := make(map[string]interface{}, 0)
@@ -49,7 +49,7 @@ func Get(au models.User, project string) (int, []byte) {
 	}
 
 	if body, err = json.Marshal(d); err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body

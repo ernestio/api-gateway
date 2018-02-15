@@ -16,12 +16,12 @@ func Get(au models.User, u string) (int, []byte) {
 
 	if !au.IsAdmin() {
 		if au.Username != u {
-			return 404, []byte("User not found")
+			return 404, models.NewJSONError("User not found")
 		}
 	}
 
 	if err := au.FindByUserName(u, &user); err != nil {
-		return 404, []byte("User not found")
+		return 404, models.NewJSONError("User not found")
 	}
 
 	if err := r.FindAllByUserAndResource(user.GetID(), "project", &roles); err == nil {
@@ -39,7 +39,7 @@ func Get(au models.User, u string) (int, []byte) {
 
 	body, err := json.Marshal(user)
 	if err != nil {
-		return 500, []byte("Internal server error")
+		return 500, models.NewJSONError("Internal server error")
 	}
 
 	return http.StatusOK, body
