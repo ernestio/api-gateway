@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ernestio/api-gateway/config"
 	"github.com/ernestio/api-gateway/controllers/projects"
 	"github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -17,7 +16,6 @@ import (
 
 func TestListProjects(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	Convey("Scenario: getting a list of datacenters", t, func() {
 		Convey("Given datacenters exist on the store", func() {
@@ -40,7 +38,6 @@ func TestListProjects(t *testing.T) {
 
 func TestGetProject(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 	Convey("Scenario: getting a single datacenters", t, func() {
 		Convey("Given the datacenter exists on the store", func() {
@@ -76,7 +73,6 @@ func TestGetProject(t *testing.T) {
 
 func TestCreateProject(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	au := models.User{ID: 1, Username: "test", Password: &pw1}
 
 	Convey("Scenario: creating a datacenter", t, func() {
@@ -128,7 +124,6 @@ func TestCreateProject(t *testing.T) {
 
 func TestDeleteProject(t *testing.T) {
 	testsSetup()
-	config.Setup()
 	Convey("Scenario: deleting a datacenter", t, func() {
 		Convey("Given a datacenter exists on the store", func() {
 			getDatacenterSolo(1)
@@ -140,7 +135,7 @@ func TestDeleteProject(t *testing.T) {
 				st, resp := projects.Delete(ft, "1")
 				Convey("It should delete the datacenter and return ok", func() {
 					So(st, ShouldEqual, 400)
-					So(string(resp), ShouldEqual, "Existing environments are referring to this project.")
+					So(string(resp), ShouldEqual, `{"message":"Existing environments are referring to this project."}`)
 				})
 			})
 		})

@@ -14,7 +14,7 @@ import (
 // Error : the default error type for responses
 type Error struct {
 	Message    string                 `json:"message"`
-	Validation *BuildValidateResponse `json:"validation"`
+	Validation *BuildValidateResponse `json:"validation,omitempty"`
 }
 
 // ToJSON : marshals error to json
