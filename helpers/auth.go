@@ -9,11 +9,11 @@ type User interface {
 
 var (
 	// AuthNonAdmin : Response body for non authorized requests on admin resources
-	AuthNonAdmin = []byte("You don't have permissions to perform this action, please login with an admin account")
+	AuthNonAdmin = []byte(`{"message": "You don't have permissions to perform this action, please login with an admin account"}`)
 	// AuthNonOwner : Response body for non authorized requests on owned resources
-	AuthNonOwner = []byte("You don't have permissions to perform this action, please login as a resource owner")
+	AuthNonOwner = []byte(`{"message": You don't have permissions to perform this action, please login as a resource owner"}`)
 	// AuthNonReadable : Response body for non authorized requests on admin resources
-	AuthNonReadable = []byte("You don't have permissions to perform this action, please contact the resource owner")
+	AuthNonReadable = []byte(`{"message": "You don't have permissions to perform this action, please contact the resource owner"}`)
 	// GetProject : ...
 	GetProject = "get_project"
 	// DeleteProject : ...
@@ -131,7 +131,7 @@ func IsLicensed(au User, resource string) (int, []byte) {
 	}
 	if st, ok := licensedResources[resource]; ok {
 		if err := Licensed(); err != nil {
-			return st, []byte(err.Error())
+			return st, ErrMessage(err.Error())
 		}
 	}
 
