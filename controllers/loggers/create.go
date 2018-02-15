@@ -28,9 +28,9 @@ func Create(au models.User, body []byte) (int, []byte) {
 		}
 		parts := strings.Split(err.Error(), "message=")
 		if len(parts) > 0 {
-			return 500, []byte(parts[1])
+			return 500, models.NewJSONError(parts[1])
 		}
-		return 500, models.NewJSONError(e.Msg)
+		return 500, models.NewJSONError(string(e.Msg))
 	}
 
 	if body, err = json.Marshal(l); err != nil {
