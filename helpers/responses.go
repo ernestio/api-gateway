@@ -25,11 +25,7 @@ var (
 
 // Respond : manage responses
 func Respond(c echo.Context, st int, b []byte) error {
-	if st == 200 {
-		return c.JSONBlob(st, b)
-	}
-
-	return echo.NewHTTPError(st, string(b))
+	return c.JSONBlob(st, b)
 }
 
 // ErrMessage prepares a message string to be responded
