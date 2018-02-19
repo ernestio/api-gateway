@@ -11,7 +11,7 @@ var (
 	// AuthNonAdmin : Response body for non authorized requests on admin resources
 	AuthNonAdmin = []byte(`{"message": "You don't have permissions to perform this action, please login with an admin account"}`)
 	// AuthNonOwner : Response body for non authorized requests on owned resources
-	AuthNonOwner = []byte(`{"message": You don't have permissions to perform this action, please login as a resource owner"}`)
+	AuthNonOwner = []byte(`{"message": "You don't have permissions to perform this action, please login as a resource owner"}`)
 	// AuthNonReadable : Response body for non authorized requests on admin resources
 	AuthNonReadable = []byte(`{"message": "You don't have permissions to perform this action, please contact the resource owner"}`)
 	// GetProject : ...
