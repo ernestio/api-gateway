@@ -27,7 +27,7 @@ type ControlDetails struct {
 	ID             string    `json:"id"`
 	Title          string    `json:"title"`
 	Description    string    `json:"desc"`
-	Impact         string    `json:"impact"`
+	Impact         float32   `json:"impact"`
 	References     []string  `json:"refs"`
 	Tags           []string  `json:"tags"`
 	Code           string    `json:"code"`
@@ -37,7 +37,7 @@ type ControlDetails struct {
 	SHA256         string    `json:"sha256"`
 	SourceLocation struct {
 		Reference string `json:"ref"`
-		Line      string `json:"line"`
+		Line      int    `json:"line"`
 	} `json:"source_location"`
 }
 
