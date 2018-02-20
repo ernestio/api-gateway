@@ -47,8 +47,8 @@ type Control struct {
 	ProfileID string  `json:"profile_id"`
 	Status    string  `json:"status"`
 	CodeDesc  string  `json:"code_desc"`
-	RunTime   string  `json:"run_time"`
-	StartTime float64 `json:"start_time"`
+	RunTime   float64 `json:"run_time"`
+	StartTime string  `json:"start_time"`
 	Message   string  `json:"message"`
 }
 
