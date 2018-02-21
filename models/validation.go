@@ -24,17 +24,17 @@ type Profile struct {
 
 // ControlDetails describes additional information about a control
 type ControlDetails struct {
-	ID             string    `json:"id"`
-	Title          string    `json:"title"`
-	Description    string    `json:"desc"`
-	Impact         float32   `json:"impact"`
-	References     []string  `json:"refs"`
-	Tags           []string  `json:"tags"`
-	Code           string    `json:"code"`
-	Results        []Control `json:"results"`
-	Groups         []Group   `json:"groups"`
-	Attributes     []string  `json:"attribues"`
-	SHA256         string    `json:"sha256"`
+	ID             string            `json:"id"`
+	Title          string            `json:"title"`
+	Description    string            `json:"desc"`
+	Impact         float32           `json:"impact"`
+	References     []string          `json:"refs"`
+	Tags           map[string]string `json:"tags"`
+	Code           string            `json:"code"`
+	Results        []Control         `json:"results"`
+	Groups         []Group           `json:"groups"`
+	Attributes     []string          `json:"attribues"`
+	SHA256         string            `json:"sha256"`
 	SourceLocation struct {
 		Reference string `json:"ref"`
 		Line      int    `json:"line"`
