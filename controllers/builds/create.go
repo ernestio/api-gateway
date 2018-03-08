@@ -13,13 +13,14 @@ import (
 	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/api-gateway/views"
 	"github.com/ernestio/mapping/definition"
+	"github.com/ernestio/mapping/validation"
 )
 
 // Create : Creates an environment build
 func Create(au models.User, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
-	var validation *models.BuildValidateResponse
+	var validation *validation.Validation
 
 	err := e.FindByName(definition.FullName())
 	if err != nil {

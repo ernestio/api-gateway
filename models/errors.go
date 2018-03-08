@@ -8,13 +8,14 @@ import (
 	"encoding/json"
 
 	h "github.com/ernestio/api-gateway/helpers"
+	"github.com/ernestio/mapping/validation"
 	"github.com/sirupsen/logrus"
 )
 
 // Error : the default error type for responses
 type Error struct {
 	Message    string                 `json:"message"`
-	Validation *BuildValidateResponse `json:"validation,omitempty"`
+	Validation *validation.Validation `json:"validation,omitempty"`
 }
 
 // ToJSON : marshals error to json
@@ -34,6 +35,6 @@ func NewJSONError(message string) []byte {
 }
 
 // NewJSONValidationError : constructs a json payload
-func NewJSONValidationError(message string, validation *BuildValidateResponse) []byte {
+func NewJSONValidationError(message string, validation *validation.Validation) []byte {
 	return Error{message, validation}.ToJSON()
 }
