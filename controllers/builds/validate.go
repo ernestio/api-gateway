@@ -25,7 +25,7 @@ func Validate(au models.User, env string, action *models.Action) (int, []byte) {
 		return 404, models.NewJSONError("Environment not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.UpdateEnv, e.GetType(), e.Name); st != 200 {
+	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), e.Name); st != 200 {
 		return st, res
 	}
 
@@ -40,7 +40,7 @@ func Validate(au models.User, env string, action *models.Action) (int, []byte) {
 
 	m, err = builds[0].GetRawMapping()
 	if err != nil {
-		return 400, models.NewJSONError("unable to get envionrment build")
+		return 400, models.NewJSONError("unable to get environment build")
 	}
 
 	validation, err := m.Validate(env)
