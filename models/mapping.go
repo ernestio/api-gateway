@@ -6,11 +6,10 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 
 	"github.com/ernestio/mapping"
 	"github.com/ernestio/mapping/definition"
+	"github.com/ernestio/mapping/validation"
 )
 
 // Mapping : graph mapping
@@ -94,45 +93,17 @@ func (m *Mapping) Diff(env, from, to string) error {
 }
 
 // Validate : checks a map against any attached policies.
-func (m *Mapping) Validate(name string) (*BuildValidateResponse, error) {
-	policyReq := fmt.Sprintf(`{"environments": ["%s"]}`, name)
-	msg, err := N.Request("policy.find", []byte(policyReq), 2*time.Second)
+func (m *Mapping) Validate(env string) (*validation.Validation, error) {
+	mr := mapping.New(N, env)
+
+	mr.Result = *m
+
+	err := mr.Validate()
 	if err != nil {
 		return nil, err
 	}
 
-	var p []Policy
-	err = json.Unmarshal(msg.Data, &p)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(p) == 0 {
-		return nil, nil
-	}
-
-	validateReq := &BuildValidate{
-		Mapping:  m,
-		Policies: p,
-	}
-
-	data, err := json.Marshal(validateReq)
-	if err != nil {
-		return nil, err
-	}
-
-	msg, err = N.Request("build.validate", data, 2*time.Second)
-	if err != nil {
-		return nil, err
-	}
-
-	var bvr BuildValidateResponse
-	err = json.Unmarshal(msg.Data, &bvr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &bvr, nil
+	return &mr.Validation, nil
 }
 
 // Changelog : returns the mappings changelog if present

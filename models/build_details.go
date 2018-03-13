@@ -4,9 +4,11 @@
 
 package models
 
+import "github.com/ernestio/mapping/validation"
+
 // BuildDetails : for returning build information to the user
 type BuildDetails struct {
 	ID         string                 `json:"id,omitempty"`
 	Status     string                 `json:"status,omitempty"`
-	Validation *BuildValidateResponse `json:"validation"`
+	Validation *validation.Validation `json:"validation"`
 }

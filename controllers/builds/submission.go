@@ -13,12 +13,13 @@ import (
 	"github.com/ernestio/api-gateway/models"
 	"github.com/ernestio/api-gateway/views"
 	"github.com/ernestio/mapping/definition"
+	"github.com/ernestio/mapping/validation"
 )
 
 // Submission : Submits an environment build for approval
 func Submission(au models.User, e *models.Env, definition *definition.Definition, raw []byte, dry string) (int, []byte) {
 	var m models.Mapping
-	var validation *models.BuildValidateResponse
+	var validation *validation.Validation
 
 	submissions, _ := e.Options["submissions"].(bool)
 	if !submissions {

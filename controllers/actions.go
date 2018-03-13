@@ -36,6 +36,8 @@ func ActionHandler(c echo.Context) error {
 		st, b = envs.Resolve(au, envName(c), action)
 	case "review":
 		st, b = builds.Review(au, envName(c), action)
+	case "validate":
+		st, b = builds.Validate(au, envName(c), action)
 	default:
 		return h.Respond(c, 400, []byte("unsupported action"))
 	}
