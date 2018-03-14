@@ -6,6 +6,7 @@ package controllers
 
 import (
 	"github.com/ernestio/api-gateway/controllers/policies"
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/labstack/echo"
 )
 
@@ -36,4 +37,53 @@ func DeletePolicyHandler(c echo.Context) (err error) {
 // UpdatePolicyHandler : ...
 func UpdatePolicyHandler(c echo.Context) (err error) {
 	return genericUpdate(c, "policy", policies.Update)
+}
+
+// GetPoliciesHandler : responds to GET /policies/ with a list of all
+// policies
+func GetPolicyDocumentsHandler(c echo.Context) (err error) {
+	au := AuthenticatedUser(c)
+	name := c.Param("policy")
+
+	st, b := h.IsAuthorized(&au, "policys/list")
+	if st == 200 {
+		st, b = policies.ListDocuments(au, name)
+	}
+
+	return h.Respond(c, st, b)
+}
+
+// GetPolicyDocumentHandler : responds to GET /policies/:id:/revisions/:rev:
+func GetPolicyDocumentHandler(c echo.Context) error {
+	au := AuthenticatedUser(c)
+	name := c.Param("policy")
+	revision := c.Param("revision")
+
+	st, b := h.IsAuthorized(&au, "policys/get")
+	if st == 200 {
+		st, b = policies.GetDocument(au, name, revision)
+	}
+
+	return h.Respond(c, st, b)
+}
+
+// CreatePolicyDocumentHandler : responds to POST /policies/ by creating a policy
+// on the data store
+func CreatePolicyDocumentHandler(c echo.Context) (err error) {
+	au := AuthenticatedUser(c)
+	name := c.Param("policy")
+
+	st, b := h.IsAuthorized(&au, "policys/create")
+	if st != 200 {
+		return h.Respond(c, st, b)
+	}
+
+	st = 500
+	b = []byte("Invalid input")
+	body, err := h.GetRequestBody(c)
+	if err == nil {
+		st, b = policies.CreateDocument(au, name, body)
+	}
+
+	return h.Respond(c, st, b)
 }
