@@ -38,7 +38,7 @@ func CreateDocument(au models.User, name string, body []byte) (int, []byte) {
 		return 404, models.NewJSONError(err.Error())
 	}
 
-	document.UserID = au.ID
+	document.Username = au.Username
 	document.PolicyID = policy.ID
 
 	err = document.Save()
