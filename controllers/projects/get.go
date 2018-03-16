@@ -23,8 +23,6 @@ func Get(au models.User, project string) (int, []byte) {
 		return st, res
 	}
 
-	appended := make(map[string]string)
-
 	if err := d.FindByName(project); err != nil {
 		return 404, models.NewJSONError("Project not found")
 	}
@@ -35,9 +33,8 @@ func Get(au models.User, project string) (int, []byte) {
 	if err == nil {
 		for _, v := range envs {
 			nameParts := strings.Split(v.Name, models.EnvNameSeparator)
-			if _, ok := appended[nameParts[1]]; !ok {
+			if nameParts[0] == project {
 				d.Environments = append(d.Environments, nameParts[1])
-				appended[nameParts[1]] = "x"
 			}
 		}
 	}
