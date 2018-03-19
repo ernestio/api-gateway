@@ -69,6 +69,14 @@ func (p *PolicyDocument) FindByPolicy(name string, documents *[]PolicyDocument) 
 	return NewBaseModel("policy_document").FindBy(query, documents)
 }
 
+// FindByID : Gets a policy revision by policy name and id
+func (p *PolicyDocument) FindByPolicyID(id int, documents *[]PolicyDocument) (err error) {
+	query := make(map[string]interface{})
+
+	query["policy_id"] = id
+	return NewBaseModel("policy_document").FindBy(query, documents)
+}
+
 // FindByID : Gets a policy revision by policy name and revision number
 func (p *PolicyDocument) GetByRevision(name, revision string, policy *PolicyDocument) (err error) {
 	query := make(map[string]interface{})

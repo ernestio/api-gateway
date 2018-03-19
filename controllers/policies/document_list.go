@@ -30,7 +30,7 @@ func ListDocuments(au models.User, name string) (int, []byte) {
 		return st, res
 	}
 
-	if err = document.FindByPolicy(name, &documents); err != nil {
+	if err = document.FindByPolicyID(policy.ID, &documents); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("policy revision not found")
 	}
