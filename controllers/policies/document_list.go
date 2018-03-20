@@ -35,7 +35,7 @@ func ListDocuments(au models.User, name string) (int, []byte) {
 		return 404, models.NewJSONError("policy revision not found")
 	}
 
-	if body, err = json.Marshal(document); err != nil {
+	if body, err = json.Marshal(documents); err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal server error")
 	}
