@@ -6,7 +6,6 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -17,17 +16,8 @@ import (
 type Policy struct {
 	ID           int      `json:"id"`
 	Name         string   `json:"name"`
-	Definition   string   `json:"definition"`
+	Revisions    []int    `json:"revisions"`
 	Environments []string `json:"environments"`
-}
-
-// Validate : validates the policy
-func (l *Policy) Validate() error {
-	if l.Definition == "" {
-		return errors.New("Policy definition is empty")
-	}
-
-	return nil
 }
 
 // Map : maps a datacenter from a request's body and validates the input

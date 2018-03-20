@@ -30,7 +30,6 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return st, res
 	}
 
-	existing.Definition = d.Definition
 	existing.Environments = d.Environments
 
 	if len(existing.Environments) == 0 {

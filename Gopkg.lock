@@ -38,7 +38,7 @@
     "query",
     "validation"
   ]
-  revision = "d7cb6c44bce38abcd3730c3c6dccd2ecfc3e4c29"
+  revision = "e23e995590cc7895a64f5b83b556d55a6e87c684"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -243,6 +243,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "20c14717392545b73965b3cb16d016a1ff791ed8d217ce45fc2eee0dce25d425"
+  inputs-digest = "d4e07abd57a830c4e90b4e0bc6833142df4e63891bb96ab76bea553467db8db2"
   solver-name = "gps-cdcl"
   solver-version = 1
