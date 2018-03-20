@@ -120,7 +120,7 @@ func setupAPI(e *echo.Echo) {
 	pol.PUT("/:policy/", controllers.UpdatePolicyHandler)
 	pol.DELETE("/:policy/", controllers.DeletePolicyHandler)
 	pol.GET("/:policy/revisions/", controllers.GetPolicyDocumentsHandler)
-	pol.GET("/:policy/revisions/:revision", controllers.GetPolicyDocumentHandler)
+	pol.GET("/:policy/revisions/:revision/", controllers.GetPolicyDocumentHandler)
 	pol.POST("/:policy/revisions/", controllers.CreatePolicyDocumentHandler)
 }
 
