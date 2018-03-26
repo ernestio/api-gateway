@@ -36,7 +36,7 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	err = m.Apply(definition, au)
 	if err != nil {
 		h.L.Error(err.Error())
-		return 500, models.NewJSONError("Couldn't map the environment")
+		return 500, models.NewJSONError(err.Error())
 	}
 
 	if dry == "true" {
