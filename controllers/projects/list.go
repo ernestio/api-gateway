@@ -20,8 +20,16 @@ func List(au models.User) (int, []byte) {
 	}
 
 	for i := 0; i < len(projects); i++ {
+		var r models.Role
+		var roles []models.Role
+
 		projects[i].Redact()
-		projects[i].Improve()
+
+		if err := r.FindAllByResource(projects[i].GetID(), projects[i].GetType(), &roles); err == nil {
+			for _, v := range roles {
+				projects[i].Roles = append(projects[i].Roles, v.UserID+" ("+v.Role+")")
+			}
+		}
 	}
 
 	if body, err = json.Marshal(projects); err != nil {
