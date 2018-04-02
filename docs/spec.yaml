@@ -911,11 +911,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: name
-          in: name
-          description: The policy name (unique)
-          schema:
-            $ref: '#/definitions/Policy'
         - name: definition
           in: body
           description: The policy spec to be processed
@@ -974,11 +969,6 @@ paths:
         - name: definition
           in: body
           description: The policy spec to be processed
-          schema:
-            $ref: '#/definitions/Policy'
-        - name: environments
-          in: body
-          description: The array of environments related with this policy
           schema:
             $ref: '#/definitions/Policy'
       tags:
@@ -1042,26 +1032,11 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: name
-          in: name
-          description: The notification name (unique)
-          schema:
-            $ref: '#/definitions/Notification'
-        - name: type
+        - name: notification
           in: body
           description: The notification type
           schema:
             $ref: '#/definitions/Notification'
-        - name: config
-          in: body
-          description: The notification configuration
-          schema:
-            $ref: '#/definitions/Notification'
-        - name: members
-          in: body
-          description: The array of members related with this notification
-          schema:
-            $ref: '#/definitions/Notificationn'
       tags:
         - Notifications
       responses:
@@ -1106,26 +1081,17 @@ paths:
       produces:
         - application/json
       parameters:
-        - name: name
-          in: name
-          description: The notification name (unique)
-          schema:
-            $ref: '#/definitions/Notification'
+        - name: notification
+          in: path
+          description: name of the notification to return
+          required: true
+          type: string
+          format: string
         - name: type
           in: body
           description: The notification type
           schema:
             $ref: '#/definitions/Notification'
-        - name: config
-          in: body
-          description: The notification configuration
-          schema:
-            $ref: '#/definitions/Notification'
-        - name: members
-          in: body
-          description: The array of members related with this notification
-          schema:
-            $ref: '#/definitions/Notificationn'
       tags:
         - Notifications
       responses:
@@ -1210,7 +1176,7 @@ paths:
           description: Project successfully detached from the notification
         '403':
           description: You're not authorized to delete this resource
-  '/api/notifications/{notification}/projects/{project}/envs/{env}':
+  '/api/notifications/{notification}/projects/{project}/envs/{environment}':
     post:
       summary: attaches an environment from a notification
       description: |
@@ -1477,6 +1443,8 @@ definitions:
     properties:
       filters:
         type: array
+        items:
+          type: string
         description: |
           For when action type is 'import' -  values that limit the scope of the
           import
