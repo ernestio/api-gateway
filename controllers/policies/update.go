@@ -36,6 +36,8 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		existing.Environments = make([]string, 0)
 	}
 
+	existing.Username = au.Username
+
 	if err = existing.Save(); err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal server error")
