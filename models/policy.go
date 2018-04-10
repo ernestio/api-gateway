@@ -18,6 +18,7 @@ type Policy struct {
 	Name         string   `json:"name"`
 	Revisions    []int    `json:"revisions"`
 	Environments []string `json:"environments"`
+	Username     string   `json:"username"`
 }
 
 // Map : maps a datacenter from a request's body and validates the input
