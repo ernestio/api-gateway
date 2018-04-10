@@ -1345,11 +1345,25 @@ definitions:
         readOnly: true
       options:
         $ref: '#/definitions/EnvironmentOptions'
-      members:
+      credentials:
+        $ref: '#/definitions/Credentials'
+      schedules:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/EnvironmentSchedule'
+      roles:
         type: array
         readOnly: true
         items:
-            $ref: '#/definitions/Member'
+          type: string
+      created_at:
+        type: string
+        format: date-time
+        description: timestamp of environment creation
+      updated_at:
+        type: string
+        format: date-time
+        description: timestamp of environment creation
   EnvironmentOptions:
     type: object
     properties:
@@ -1368,6 +1382,26 @@ definitions:
         type: integer
         description: the sync configuration of the environment
         default: hard
+  EnvironmentSchedule:
+    type: object
+    required:
+      - action
+      - interval
+    properties:
+      name:
+        type: string
+        description: the name of the schedule
+      action:
+        type: string
+        enum:
+          - power_on
+          - power_off
+      interval:
+        type: string
+        description: the interval at which the task will run. Must be valid cron syntax
+      instance_type:
+        type: string
+        description: the name of the instance group that the scheduled action applies to.
   Build:
     type: object
     properties:
@@ -1413,6 +1447,8 @@ definitions:
         description: type of credentials
   Action:
     type: object
+    required:
+      - type
     properties:
       id:
         type: integer
@@ -1426,8 +1462,11 @@ definitions:
         type: string
         enum:
           - import
-          - reapply
-          - clone
+          - reset
+          - sync
+          - resolve
+          - review
+          - validate
       options:
         $ref: '#/definitions/ActionOptions'
       resource_id:
@@ -1437,6 +1476,10 @@ definitions:
       resource_type:
         type: string
         description: the type of resource created/modified
+        readOnly: true
+      error:
+        type: string
+        description: status of the action
         readOnly: true
   ActionOptions:
     type: object
@@ -1456,8 +1499,12 @@ definitions:
       environment:
         type: string
         description: |
-          For when action type is 'clone' - the name of the environment you wish
+          For when action type is 'sync' - the name of the environment you wish
           to clone
+      resolution:
+        type: string
+        description: |
+          Specifies the resolution when an environment has been synced
   Policy:
     type: object
     required:
