@@ -29,8 +29,8 @@ type Env struct {
 	Schedules   map[string]interface{} `json:"schedules,omitempty"`
 	Credentials map[string]interface{} `json:"credentials,omitempty"`
 	Roles       []string               `json:"roles,omitempty"`
-	CreatedAt   string                 `json:"created_at"`
-	UpdatedAt   string                 `json:"updated_at"`
+	CreatedAt   string                 `json:"created_at,omitempty"`
+	UpdatedAt   string                 `json:"updated_at,omitempty"`
 }
 
 // Validate the env
