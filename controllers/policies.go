@@ -13,22 +13,13 @@ import (
 // GetPoliciesHandler : responds to GET /policies/ with a list of all
 // policies
 func GetPoliciesHandler(c echo.Context) (err error) {
-	au := AuthenticatedUser(c)
-
-	st, b := policies.List(au)
-
-	return h.Respond(c, st, b)
+	return genericList(c, "policy", policies.List)
 }
 
 // GetPolicyHandler : responds to GET /policies/:id:/ with the specified
 // user details
 func GetPolicyHandler(c echo.Context) error {
-	au := AuthenticatedUser(c)
-	name := c.Param("policy")
-
-	st, b := policies.Get(au, name)
-
-	return h.Respond(c, st, b)
+	return genericGet(c, "policy", policies.Get)
 }
 
 // CreatePolicyHandler : responds to POST /policies/ by creating a policy
@@ -48,13 +39,16 @@ func UpdatePolicyHandler(c echo.Context) (err error) {
 	return genericUpdate(c, "policy", policies.Update)
 }
 
-// GetPolicyDocumentsHandler : responds to GET /policies/ with a list of all
+// GetPoliciesHandler : responds to GET /policies/ with a list of all
 // policies
 func GetPolicyDocumentsHandler(c echo.Context) (err error) {
 	au := AuthenticatedUser(c)
 	name := c.Param("policy")
 
-	st, b := policies.ListDocuments(au, name)
+	st, b := h.IsAuthorized(&au, "policys/list")
+	if st == 200 {
+		st, b = policies.ListDocuments(au, name)
+	}
 
 	return h.Respond(c, st, b)
 }
@@ -65,7 +59,10 @@ func GetPolicyDocumentHandler(c echo.Context) error {
 	name := c.Param("policy")
 	revision := c.Param("revision")
 
-	st, b := policies.GetDocument(au, name, revision)
+	st, b := h.IsAuthorized(&au, "policys/get")
+	if st == 200 {
+		st, b = policies.GetDocument(au, name, revision)
+	}
 
 	return h.Respond(c, st, b)
 }
