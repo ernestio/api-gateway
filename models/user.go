@@ -41,7 +41,6 @@ type User struct {
 	Envs             []string `json:"envs"`
 	Projects         []string `json:"projects"`
 	Type             string   `json:"type"`
-	Disabled         bool     `json:"disabled"`
 }
 
 // AuthResponse : Describes an Authenticator service response
