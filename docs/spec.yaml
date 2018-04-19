@@ -1072,7 +1072,8 @@ definitions:
       - role
     properties:
       id:
-        type: string
+        type: integer
+        readOnly: true
         description: id of the membership role
       user_id:
         type: string
