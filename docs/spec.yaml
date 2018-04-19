@@ -273,90 +273,6 @@ paths:
             $ref: '#/definitions/Project'
         '403':
           description: You're not authorized to view this resource
-  '/api/projects/{project}/members/':
-    get:
-      summary: List all members
-      description: |
-        returns all members viewable by a logged in user
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-      tags:
-        - Projects
-      responses:
-        '200':
-          description: A json array containing all available members
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
-    post:
-      summary: Create a member
-      description: |
-        accepts a valid member model
-        return a member model populated with an ID
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: body
-          in: body
-          description: The member to be created
-          schema:
-            $ref: '#/definitions/Member'
-      tags:
-        - Projects
-      responses:
-        '201':
-          description: Returns the created member
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
-  '/api/projects/{project}/members/{member}':
-    delete:
-      summary: Delete a project member
-      description: |
-        deletes a project member
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: member
-          in: path
-          description: name of member user to delete
-          required: true
-          type: string
-          format: string
-      tags:
-        - Projects
-      responses:
-        '202':
-          description: Indicates the project member has been successfully deleted
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
   '/api/projects/{project}/environments/':
     get:
       summary: List all environments
@@ -507,109 +423,6 @@ paths:
             $ref: '#/definitions/Build'
         '403':
           description: You're not authorized to view this resource
-  '/api/projects/{project}/environments/{environment}/members/':
-    get:
-      summary: List all members
-      description: |
-        returns all environment members
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment
-          required: true
-          type: string
-          format: string
-      tags:
-        - Environments
-      responses:
-        '200':
-          description: A json array containing all available members
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
-    post:
-      summary: Create a member
-      description: |
-        accepts a valid member model
-        return a member model
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment
-          required: true
-          type: string
-          format: string
-        - name: body
-          in: body
-          description: The member to be created
-          schema:
-            $ref: '#/definitions/Member'
-      tags:
-        - Environments
-      responses:
-        '201':
-          description: Returns the created member
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
-  '/api/projects/{project}/environments/{environment}/members/{member}':
-    delete:
-      summary: Delete a environment member
-      description: |
-        deletes a environment member
-      produces:
-        - application/json
-      parameters:
-        - name: project
-          in: path
-          description: name of project
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment
-          required: true
-          type: string
-          format: string
-        - name: member
-          in: path
-          description: name of member user to delete
-          required: true
-          type: string
-          format: string
-      tags:
-        - Environments
-      responses:
-        '202':
-          description: Indicates the environment member has been successfully deleted
-          schema:
-            $ref: '#/definitions/Member'
-        '403':
-          description: You're not authorized to view this resource
-
   '/api/projects/{project}/environments/{environment}/builds/':
     get:
       summary: List all builds
@@ -1123,124 +936,128 @@ paths:
             $ref: '#/definitions/Notification'
         '403':
           description: You're not authorized to delete this resource
-  '/api/notifications/{notification}/projects/{project}':
+  '/api/roles/':
+    get:
+      summary: List all membership roles
+      description: |
+        returns all membership roles viewable by the logged user
+      produces:
+        - application/json
+      tags:
+        - Roles
+      responses:
+        '200':
+          description: A json array containing all available membership roles
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource not found
     post:
-      summary: attaches a project from a notification
+      summary: Create a membership roles
       description: |
-        attaches a project from a notification
+        accepts a valid membership roles model
+        return a membership roles model populated with an ID
+      consumes:
+        - application/json
       produces:
         - application/json
       parameters:
-        - name: notification
+        - name: membership roles
+          in: body
+          description: The membership roles type
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Roles
+      responses:
+        '201':
+          description: Returns the created membership roles
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
+  '/api/roles/{role}':
+    get:
+      summary: Get a role
+      description: |
+        Returns a membership role by name
+      produces:
+        - application/json
+      parameters:
+        - name: role
           in: path
-          description: name of notification
-          required: true
-          type: string
-          format: string
-        - name: project
-          in: path
-          description: name of project to attach
+          description: id of the membership role to return
           required: true
           type: string
           format: string
       tags:
-        - Notifications
+        - Roles
       responses:
-        '202':
-          description: Project successfully attached from the notification
+        '200':
+          description: A valid membership role object
+          schema:
+            $ref: '#/definitions/Member'
         '403':
-          description: You're not authorized to delete this resource
+          description: You're not authorized to view this resource
+        '404':
+          description: Resource does not exist
+    put:
+      summary: Update a role membership
+      description: |
+        accepts a valid role model
+        return a role model populated with an ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: role
+          in: path
+          description: id of the membership role to return
+          required: true
+          type: string
+          format: string
+        - name: type
+          in: body
+          description: The membership role type
+          schema:
+            $ref: '#/definitions/Member'
+      tags:
+        - Roles
+      responses:
+        '201':
+          description: Returns the created notificaion
+          schema:
+            $ref: '#/definitions/Member'
+        '403':
+          description: You're not authorized to view this resource
     delete:
-      summary: detaches a project from a notification
+      summary: Delete a membership role
       description: |
-        detaches a project from a notification
+        deletes a membership role
       produces:
         - application/json
       parameters:
-        - name: notification
+        - name: role
           in: path
-          description: name of notification
-          required: true
-          type: string
-          format: string
-        - name: project
-          in: path
-          description: name of project to detach
+          description: id of membership role to delete
           required: true
           type: string
           format: string
       tags:
-        - Notifications
+        - Roles
       responses:
         '202':
-          description: Project successfully detached from the notification
+          description: Role has been successfully deleted
+          schema:
+            $ref: '#/definitions/Member'
         '403':
           description: You're not authorized to delete this resource
-  '/api/notifications/{notification}/projects/{project}/envs/{environment}':
-    post:
-      summary: attaches an environment from a notification
-      description: |
-        attaches an environment from a notification
-      produces:
-        - application/json
-      parameters:
-        - name: notification
-          in: path
-          description: name of notification
-          required: true
-          type: string
-          format: string
-        - name: project
-          in: path
-          description: name of project environment
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment to attached
-          required: true
-          type: string
-          format: string
-      tags:
-        - Notifications
-      responses:
-        '202':
-          description: Environment successfully attached from the notification
-        '403':
-          description: You're not authorized to delete this resource
-    delete:
-      summary: detaches an environment from a notification
-      description: |
-        detaches an environment from a notification
-      produces:
-        - application/json
-      parameters:
-        - name: notification
-          in: path
-          description: name of notification
-          required: true
-          type: string
-          format: string
-        - name: project
-          in: path
-          description: name of project environment
-          required: true
-          type: string
-          format: string
-        - name: environment
-          in: path
-          description: name of environment to detach
-          required: true
-          type: string
-          format: string
-      tags:
-        - Notifications
-      responses:
-        '202':
-          description: Environment successfully detached from the notification
-        '403':
-          description: You're not authorized to delete this resource
+
 definitions:
   Token:
     type: object
@@ -1254,14 +1071,22 @@ definitions:
       - user
       - role
     properties:
-      user:
+      id:
         type: string
-        description: name of user that the role applies to
+        description: id of the membership role
+      user_id:
+        type: string
+        description: name of user that the membership role applies to
+      resource_id:
+        type: string
+        description: id of the resource the membership role applies to
+      resource_type:
+        type: string
+        description: the type of resource the membership role applies to
       role:
         type: string
         description: the type of role
         enum:
-          - admin
           - owner
           - reader
   User:
@@ -1280,6 +1105,16 @@ definitions:
         type: boolean
         default: false
         description: indicates if user is a system wide admin
+      env_memberships:
+        type: array
+        readOnly: true
+        items:
+          $ref: '#/definitions/Member'
+      project_memberships:
+        type: array
+        readOnly: true
+        items:
+          $ref: '#/definitions/Member'
   UserCreate:
     allOf:
       - $ref: '#/definitions/User'
@@ -1351,11 +1186,11 @@ definitions:
         type: object
         additionalProperties:
           $ref: '#/definitions/EnvironmentSchedule'
-      roles:
+      members:
         type: array
         readOnly: true
         items:
-          type: string
+          $ref: '#/definitions/Member'
       created_at:
         type: string
         format: date-time
@@ -1530,7 +1365,7 @@ definitions:
       - name
       - type
       - config
-      - members
+      - recipients
     properties:
       id:
         type: integer
@@ -1545,6 +1380,8 @@ definitions:
       config:
         type: string
         description: the config required by the notification
-      members:
-        type: string
+      recipients:
+        type: array
+        items:
+          type: string
         description: Users associated with current notification

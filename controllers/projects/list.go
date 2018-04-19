@@ -26,9 +26,7 @@ func List(au models.User) (int, []byte) {
 		projects[i].Redact()
 
 		if err := r.FindAllByResource(projects[i].GetID(), projects[i].GetType(), &roles); err == nil {
-			for _, v := range roles {
-				projects[i].Roles = append(projects[i].Roles, v.UserID+" ("+v.Role+")")
-			}
+			projects[i].Members = roles
 		}
 	}
 

@@ -107,10 +107,6 @@ func setupAPI(e *echo.Echo) {
 	not.POST("/", controllers.CreateNotificationHandler)
 	not.PUT("/:notification/", controllers.UpdateNotificationHandler)
 	not.DELETE("/:notification/", controllers.DeleteNotificationHandler)
-	not.POST("/:notification/projects/:project/", controllers.AddProjectToNotificationHandler)
-	not.DELETE("/:notification/projects/:project/", controllers.RmProjectToNotificationHandler)
-	not.POST("/:notification/projects/:project/envs/:env/", controllers.AddEnvToNotificationHandler)
-	not.DELETE("/:notification/projects/:project/envs/:env/", controllers.RmEnvToNotificationHandler)
 
 	// Setup policies
 	pol := api.Group("/policies")
