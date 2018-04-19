@@ -16,8 +16,10 @@ import (
 // policies
 func List(au models.User) (int, []byte) {
 	var body []byte
+	var policy models.Policy
+	var policies []models.Policy
 
-	policies, err := au.GetPolicies()
+	err := policy.FindAll(&policies)
 	if err != nil {
 		return 404, models.NewJSONError(err.Error())
 	}
