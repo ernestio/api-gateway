@@ -24,10 +24,6 @@ func Get(au models.User, name string) (int, []byte) {
 		return 404, models.NewJSONError("policy not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetPolicy, policy.GetType(), policy.GetID()); st != 200 {
-		return st, res
-	}
-
 	if body, err = json.Marshal(policy); err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal server error")

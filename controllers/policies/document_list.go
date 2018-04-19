@@ -26,10 +26,6 @@ func ListDocuments(au models.User, name string) (int, []byte) {
 		return 404, models.NewJSONError("policy not found")
 	}
 
-	if st, res := h.IsAuthorizedToResource(&au, h.GetPolicy, policy.GetType(), policy.GetID()); st != 200 {
-		return st, res
-	}
-
 	if err = document.FindByPolicyID(policy.ID, &documents); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("policy revision not found")
