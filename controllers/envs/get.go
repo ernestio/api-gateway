@@ -32,7 +32,7 @@ func Get(au models.User, name string) (int, []byte) {
 		return 500, models.NewJSONError("Internal error")
 	}
 
-	if err = p.FindByID(e.ID); err != nil {
+	if err = p.FindByID(e.ProjectID); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return 404, models.NewJSONError("Specified environment name does not exist")
 		}
