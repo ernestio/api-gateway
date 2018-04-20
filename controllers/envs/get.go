@@ -19,6 +19,10 @@ func Get(au models.User, name string) (int, []byte) {
 	var err error
 	var body []byte
 	var e models.Env
+	var p models.Project
+	var r models.Role
+	var roles []models.Role
+	var pRoles []models.Role
 
 	if err = e.FindByName(name); err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -28,8 +32,32 @@ func Get(au models.User, name string) (int, []byte) {
 		return 500, models.NewJSONError("Internal error")
 	}
 
+	if err = p.FindByID(e.ID); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return 404, models.NewJSONError("Specified environment name does not exist")
+		}
+		h.L.Error(err.Error())
+		return 500, models.NewJSONError("Internal error")
+	}
+
 	if st, res := h.IsAuthorizedToResource(&au, h.GetEnv, e.GetType(), name); st != 200 {
 		return st, res
+	}
+
+	computedRoles := make(map[string]models.Role, 0)
+	if err := r.FindAllByResource(e.Project, p.GetType(), &pRoles); err == nil {
+		for _, v := range pRoles {
+			computedRoles[v.UserID] = v
+		}
+	}
+	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
+		for _, v := range roles {
+			computedRoles[v.UserID] = v
+		}
+	}
+
+	for _, v := range computedRoles {
+		e.Members = append(e.Members, v)
 	}
 
 	if body, err = json.Marshal(e); err != nil {
