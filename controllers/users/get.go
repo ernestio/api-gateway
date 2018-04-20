@@ -25,14 +25,10 @@ func Get(au models.User, u string) (int, []byte) {
 	}
 
 	if err := r.FindAllByUserAndResource(user.GetID(), "project", &roles); err == nil {
-		for _, v := range roles {
-			user.Projects = append(user.Projects, v.ResourceID+" ("+v.Role+")")
-		}
+		user.ProjectMemberships = roles
 	}
 	if err := r.FindAllByUserAndResource(user.GetID(), "environment", &roles); err == nil {
-		for _, v := range roles {
-			user.Envs = append(user.Envs, v.ResourceID+" ("+v.Role+")")
-		}
+		user.EnvMemberships = roles
 	}
 
 	user.Redact()

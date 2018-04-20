@@ -28,5 +28,6 @@ func List(au models.User) (int, []byte) {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal server error")
 	}
+
 	return http.StatusOK, body
 }

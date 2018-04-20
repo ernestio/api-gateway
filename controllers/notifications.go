@@ -40,26 +40,6 @@ func UpdateNotificationHandler(c echo.Context) (err error) {
 	return genericUpdate(c, "notification", notifications.Update)
 }
 
-// AddEnvToNotificationHandler : ...
-func AddEnvToNotificationHandler(c echo.Context) (err error) {
-	return entityToNotification(c, notifications.AddEnv, "notifications/add_env")
-}
-
-// RmEnvToNotificationHandler : ...
-func RmEnvToNotificationHandler(c echo.Context) (err error) {
-	return entityToNotification(c, notifications.RmEnv, "notifications/rm_env")
-}
-
-// AddProjectToNotificationHandler : ...
-func AddProjectToNotificationHandler(c echo.Context) (err error) {
-	return entityToNotification(c, notifications.AddEnv, "notifications/add_project")
-}
-
-// RmProjectToNotificationHandler : ...
-func RmProjectToNotificationHandler(c echo.Context) (err error) {
-	return entityToNotification(c, notifications.RmEnv, "notifications/rm_project")
-}
-
 type attachEntity func(models.User, string, string) (int, []byte)
 
 func entityToNotification(c echo.Context, fn attachEntity, path string) (err error) {

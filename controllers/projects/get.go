@@ -40,9 +40,7 @@ func Get(au models.User, project string) (int, []byte) {
 	}
 
 	if err := r.FindAllByResource(d.GetID(), d.GetType(), &roles); err == nil {
-		for _, v := range roles {
-			d.Roles = append(d.Roles, v.UserID+" ("+v.Role+")")
-		}
+		d.Members = roles
 	}
 
 	if body, err = json.Marshal(d); err != nil {

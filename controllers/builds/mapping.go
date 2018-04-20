@@ -23,8 +23,6 @@ func Mapping(au models.User, id string, changelog string) (int, []byte) {
 	var e models.Env
 	var b models.Build
 	var p models.Project
-	var r models.Role
-	var roles []models.Role
 
 	if err = b.FindByID(id); err != nil {
 		h.L.Error(err.Error())
@@ -45,12 +43,6 @@ func Mapping(au models.User, id string, changelog string) (int, []byte) {
 
 	if err := p.FindByID(int(e.ProjectID)); err != nil {
 		return 404, models.NewJSONError("Project not found")
-	}
-
-	if err := r.FindAllByResource(e.GetID(), e.GetType(), &roles); err == nil {
-		for _, v := range roles {
-			o.Roles = append(o.Roles, v.UserID+" ("+v.Role+")")
-		}
 	}
 
 	if changelog == "true" {

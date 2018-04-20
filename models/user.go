@@ -29,19 +29,19 @@ const (
 
 // User holds the user response from user-store
 type User struct {
-	ID               int      `json:"id"`
-	Username         string   `json:"username"`
-	Password         *string  `json:"password,omitempty"`
-	OldPassword      *string  `json:"oldpassword,omitempty"`
-	Salt             string   `json:"salt,omitempty"`
-	Admin            *bool    `json:"admin"`
-	MFA              *bool    `json:"mfa"`
-	MFASecret        string   `json:"mfa_secret"`
-	VerificationCode string   `json:"verification_code"`
-	Envs             []string `json:"envs"`
-	Projects         []string `json:"projects"`
-	Type             string   `json:"type"`
-	Disabled         *bool    `json:"disabled"`
+	ID                 int     `json:"id"`
+	Username           string  `json:"username"`
+	Password           *string `json:"password,omitempty"`
+	OldPassword        *string `json:"oldpassword,omitempty"`
+	Salt               string  `json:"salt,omitempty"`
+	Admin              *bool   `json:"admin"`
+	MFA                *bool   `json:"mfa"`
+	MFASecret          string  `json:"mfa_secret"`
+	VerificationCode   string  `json:"verification_code"`
+	EnvMemberships     []Role  `json:"env_memberships"`
+	ProjectMemberships []Role  `json:"project_memberships"`
+	Type               string  `json:"type"`
+	Disabled           *bool   `json:"disabled"`
 }
 
 // AuthResponse : Describes an Authenticator service response
