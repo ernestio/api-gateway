@@ -15,11 +15,11 @@ import (
 
 // Notification holds the notification response from notification
 type Notification struct {
-	ID         int      `json:"id"`
-	Name       string   `json:"name"`
-	Type       string   `json:"type"`
-	Config     string   `json:"config"`
-	Recipients []string `json:"recipients"`
+	ID      int      `json:"id"`
+	Name    string   `json:"name"`
+	Type    string   `json:"type"`
+	Config  string   `json:"config"`
+	Sources []string `json:"sources"`
 }
 
 // Validate : validates the notification

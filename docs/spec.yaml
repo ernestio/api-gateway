@@ -1381,8 +1381,8 @@ definitions:
       config:
         type: string
         description: the config required by the notification
-      recipients:
+      sources:
         type: array
         items:
           type: string
-        description: Users associated with current notification
+        description: Projects and environments associated with current notification
