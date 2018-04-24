@@ -15,30 +15,65 @@ import (
 // Update : ...
 func Update(au models.User, name string, body []byte) (int, []byte) {
 	var err error
-	var d models.Notification
+	var n models.Notification
 	var existing models.Notification
+	var e models.Env
+	var p models.Project
+	var envs []models.Env
+	var projects []models.Project
 
-	if d.Map(body) != nil {
+	if n.Map(body) != nil {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
-	err = d.Validate()
+	err = n.Validate()
 	if err != nil {
 		return 400, models.NewJSONError(err.Error())
 	}
 
-	if err = existing.FindByName(name, &existing); err != nil {
+	err = existing.FindByName(name, &existing)
+	if err != nil {
 		return 404, models.NewJSONError("Not found")
 	}
 
-	existing.Config = d.Config
+	err = p.FindAll(au, &projects)
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
 
-	if err = existing.Save(); err != nil {
+	err = e.FindAll(au, &envs)
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
+
+SOURCELOOP:
+	for _, source := range n.Sources {
+		for _, project := range projects {
+			if project.Name == source {
+				continue SOURCELOOP
+			}
+		}
+
+		for _, env := range envs {
+			if env.Name == source {
+				continue SOURCELOOP
+			}
+		}
+
+		return 400, models.NewJSONError("Notification source '" + source + "' does not exist")
+	}
+
+	existing.Config = n.Config
+	existing.Sources = n.Sources
+
+	err = existing.Save()
+	if err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal server error")
 	}
 
-	if body, err = json.Marshal(d); err != nil {
+	body, err = json.Marshal(n)
+	if err != nil {
 		return 500, models.NewJSONError("Internal server error")
 	}
 
