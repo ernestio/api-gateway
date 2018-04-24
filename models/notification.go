@@ -23,8 +23,12 @@ type Notification struct {
 }
 
 // Validate : validates the notification
-func (l *Notification) Validate() error {
-	if l.Type == "" {
+func (n *Notification) Validate() error {
+	if n.Name == "" {
+		return errors.New("Notification must specify a name")
+	}
+
+	if n.Type == "" {
 		return errors.New("Notification type is empty")
 	}
 
@@ -32,8 +36,8 @@ func (l *Notification) Validate() error {
 }
 
 // Map : maps a datacenter from a request's body and validates the input
-func (l *Notification) Map(data []byte) error {
-	if err := json.Unmarshal(data, &l); err != nil {
+func (n *Notification) Map(data []byte) error {
+	if err := json.Unmarshal(data, &n); err != nil {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
 		}).Error("Couldn't unmarshal given input")
@@ -44,13 +48,13 @@ func (l *Notification) Map(data []byte) error {
 }
 
 // FindAll : Searches for all notifications on the system
-func (l *Notification) FindAll(notifications *[]Notification) (err error) {
+func (n *Notification) FindAll(notifications *[]Notification) (err error) {
 	query := make(map[string]interface{})
 	return NewBaseModel("notification").FindBy(query, notifications)
 }
 
 // FindByID : Gets a notification by ID
-func (l *Notification) FindByID(id string, notification *Notification) (err error) {
+func (n *Notification) FindByID(id string, notification *Notification) (err error) {
 	query := make(map[string]interface{})
 	if query["id"], err = strconv.Atoi(id); err != nil {
 		return err
@@ -59,20 +63,20 @@ func (l *Notification) FindByID(id string, notification *Notification) (err erro
 }
 
 // FindByName : Searches for all notifications with a name equal to the specified
-func (l *Notification) FindByName(name string, notification *Notification) (err error) {
+func (n *Notification) FindByName(name string, notification *Notification) (err error) {
 	query := make(map[string]interface{})
 	query["name"] = name
 	return NewBaseModel("notification").GetBy(query, notification)
 }
 
 // Save : calls notification.set with the marshalled current notification
-func (l *Notification) Save() (err error) {
-	return NewBaseModel("notification").Save(l)
+func (n *Notification) Save() (err error) {
+	return NewBaseModel("notification").Save(n)
 }
 
 // Delete : will delete a notification by its type
-func (l *Notification) Delete() (err error) {
+func (n *Notification) Delete() (err error) {
 	query := make(map[string]interface{})
-	query["id"] = l.ID
+	query["id"] = n.ID
 	return NewBaseModel("notification").Delete(query)
 }

@@ -22,6 +22,11 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
+	err = d.Validate()
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
+
 	if err = existing.FindByName(name, &existing); err != nil {
 		return 404, models.NewJSONError("Not found")
 	}
