@@ -14,19 +14,63 @@ import (
 // Create : responds to POST /notifications/ by creating a notification
 // on the data store
 func Create(au models.User, body []byte) (int, []byte) {
-	var l models.Notification
-	var err error
+	var n models.Notification
+	var existing models.Notification
+	var e models.Env
+	var p models.Project
+	var envs []models.Env
+	var projects []models.Project
 
-	if l.Map(body) != nil {
+	if n.Map(body) != nil {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
-	if err = l.Save(); err != nil {
+	err := existing.FindByName(n.Name, &existing)
+	if err == nil {
+		return 409, models.NewJSONError("Specified notifiation already exists")
+	}
+
+	err = n.Validate()
+	if err != nil {
 		return 400, models.NewJSONError(err.Error())
 	}
 
-	if body, err = json.Marshal(l); err != nil {
+	err = p.FindAll(au, &projects)
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
+
+	err = e.FindAll(au, &envs)
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
+
+SOURCELOOP:
+	for _, source := range n.Sources {
+		for _, project := range projects {
+			if project.Name == source {
+				continue SOURCELOOP
+			}
+		}
+
+		for _, env := range envs {
+			if env.Name == source {
+				continue SOURCELOOP
+			}
+		}
+
+		return 400, models.NewJSONError("notification source '" + source + "' does not exist")
+	}
+
+	err = n.Save()
+	if err != nil {
+		return 400, models.NewJSONError(err.Error())
+	}
+
+	body, err = json.Marshal(n)
+	if err != nil {
 		return 500, models.NewJSONError("Internal error")
 	}
+
 	return http.StatusOK, body
 }
