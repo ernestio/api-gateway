@@ -1458,7 +1458,9 @@ definitions:
         type: string
         description: the spec to be processed
       environments:
-        type: string
+        type: array
+        items:
+          type: string
         description: environments associated to the current policy
   Notification:
     type: object
