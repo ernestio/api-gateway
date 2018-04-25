@@ -15,28 +15,31 @@ import (
 
 // BuildRender : Build representation to be rendered on the frontend
 type BuildRender struct {
-	ID              string              `json:"id"`
-	EnvironmentID   int                 `json:"environment_id"`
-	Name            string              `json:"name"`
-	Project         string              `json:"project"`
-	Provider        string              `json:"provider"`
-	Status          string              `json:"status"`
-	UserID          int                 `json:"user_id"`
-	UserName        string              `json:"user_name"`
-	CreatedAt       string              `json:"created_at"`
-	UpdatedAt       string              `json:"updated_at"`
-	Vpcs            []map[string]string `json:"vpcs,omitempty"`
-	Networks        []map[string]string `json:"networks,omitempty"`
-	Instances       []map[string]string `json:"instances,omitempty"`
-	Nats            []map[string]string `json:"nats,omitempty"`
-	SecurityGroups  []map[string]string `json:"security_groups,omitempty"`
-	Elbs            []map[string]string `json:"elbs,omitempty"`
-	RDSClusters     []map[string]string `json:"rds_clusters,omitempty"`
-	RDSInstances    []map[string]string `json:"rds_instances,omitempty"`
-	EBSVolumes      []map[string]string `json:"ebs_volumes,omitempty"`
-	LoadBalancers   []map[string]string `json:"load_balancers,omitempty"`
-	SQLDatabases    []map[string]string `json:"sql_databases,omitempty"`
-	VirtualMachines []map[string]string `json:"virtual_machines,omitempty"`
+	ID                  string                   `json:"id"`
+	EnvironmentID       int                      `json:"environment_id"`
+	Name                string                   `json:"name"`
+	Project             string                   `json:"project"`
+	Provider            string                   `json:"provider"`
+	Status              string                   `json:"status"`
+	UserID              int                      `json:"user_id"`
+	UserName            string                   `json:"user_name"`
+	CreatedAt           string                   `json:"created_at"`
+	UpdatedAt           string                   `json:"updated_at"`
+	Vpcs                []map[string]interface{} `json:"vpcs,omitempty"`
+	Networks            []map[string]interface{} `json:"networks,omitempty"`
+	Instances           []map[string]interface{} `json:"instances,omitempty"`
+	Nats                []map[string]interface{} `json:"nats,omitempty"`
+	SecurityGroups      []map[string]interface{} `json:"security_groups,omitempty"`
+	Elbs                []map[string]interface{} `json:"elbs,omitempty"`
+	RDSClusters         []map[string]interface{} `json:"rds_clusters,omitempty"`
+	RDSInstances        []map[string]interface{} `json:"rds_instances,omitempty"`
+	EBSVolumes          []map[string]interface{} `json:"ebs_volumes,omitempty"`
+	LoadBalancers       []map[string]interface{} `json:"load_balancers,omitempty"`
+	SQLDatabases        []map[string]interface{} `json:"sql_databases,omitempty"`
+	VirtualMachines     []map[string]interface{} `json:"virtual_machines,omitempty"`
+	IamPolicies         []map[string]interface{} `json:"iam_policies,omitempty"`
+	IamRoles            []map[string]interface{} `json:"iam_roles,omitempty"`
+	IamInstanceProfiles []map[string]interface{} `json:"iam_instance_profiles,omitempty"`
 }
 
 // Render : Map a Build to a BuildRender
@@ -67,20 +70,23 @@ func (o *BuildRender) Render(b models.Build) (err error) {
 	o.LoadBalancers = RenderLoadBalancers(g)
 	o.SQLDatabases = RenderSQLDatabases(g)
 	o.VirtualMachines = RenderVirtualMachines(g)
+	o.IamPolicies = RenderIamPolicies(g)
+	o.IamRoles = RenderIamRoles(g)
+	o.IamInstanceProfiles = RenderIamInstanceProfiles(g)
 
 	return err
 }
 
 // RenderVpcs : renders a builds vpcs
-func RenderVpcs(g *graph.Graph) []map[string]string {
-	var vpcs []map[string]string
+func RenderVpcs(g *graph.Graph) []map[string]interface{} {
+	var vpcs []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("vpc") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["vpc_aws_id"].(string)
 		subnet, _ := (*gc)["subnet"].(string)
-		vpcs = append(vpcs, map[string]string{
+		vpcs = append(vpcs, map[string]interface{}{
 			"name":       name,
 			"vpc_id":     id,
 			"vpc_subnet": subnet,
@@ -91,15 +97,15 @@ func RenderVpcs(g *graph.Graph) []map[string]string {
 }
 
 // RenderNetworks : renders a builds networks
-func RenderNetworks(g *graph.Graph) []map[string]string {
-	var networks []map[string]string
+func RenderNetworks(g *graph.Graph) []map[string]interface{} {
+	var networks []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("network") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["network_aws_id"].(string)
 		az, _ := (*gc)["availability_zone"].(string)
-		networks = append(networks, map[string]string{
+		networks = append(networks, map[string]interface{}{
 			"name":              name,
 			"network_aws_id":    id,
 			"availability_zone": az,
@@ -110,14 +116,14 @@ func RenderNetworks(g *graph.Graph) []map[string]string {
 }
 
 // RenderSecurityGroups : renders a builds security groups
-func RenderSecurityGroups(g *graph.Graph) []map[string]string {
-	var sgs []map[string]string
+func RenderSecurityGroups(g *graph.Graph) []map[string]interface{} {
+	var sgs []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("firewall") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["security_group_aws_id"].(string)
-		sgs = append(sgs, map[string]string{
+		sgs = append(sgs, map[string]interface{}{
 			"name":                  name,
 			"security_group_aws_id": id,
 		})
@@ -127,15 +133,15 @@ func RenderSecurityGroups(g *graph.Graph) []map[string]string {
 }
 
 // RenderNats : renders a builds nat gateways
-func RenderNats(g *graph.Graph) []map[string]string {
-	var nats []map[string]string
+func RenderNats(g *graph.Graph) []map[string]interface{} {
+	var nats []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("nat") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["nat_gateway_aws_id"].(string)
 		pubIP, _ := (*gc)["nat_gateway_allocation_ip"].(string)
-		nats = append(nats, map[string]string{
+		nats = append(nats, map[string]interface{}{
 			"name":               name,
 			"nat_gateway_aws_id": id,
 			"public_ip":          pubIP,
@@ -146,14 +152,14 @@ func RenderNats(g *graph.Graph) []map[string]string {
 }
 
 // RenderELBs : renders a builds elbs
-func RenderELBs(g *graph.Graph) []map[string]string {
-	var elbs []map[string]string
+func RenderELBs(g *graph.Graph) []map[string]interface{} {
+	var elbs []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("elb") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		dns, _ := (*gc)["dns_name"].(string)
-		elbs = append(elbs, map[string]string{
+		elbs = append(elbs, map[string]interface{}{
 			"name":     name,
 			"dns_name": dns,
 		})
@@ -163,8 +169,8 @@ func RenderELBs(g *graph.Graph) []map[string]string {
 }
 
 // RenderInstances : renders a builds instances
-func RenderInstances(g *graph.Graph) []map[string]string {
-	var instances []map[string]string
+func RenderInstances(g *graph.Graph) []map[string]interface{} {
+	var instances []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("instance") {
 		gc := n.(*graph.GenericComponent)
@@ -172,7 +178,7 @@ func RenderInstances(g *graph.Graph) []map[string]string {
 		id, _ := (*gc)["instance_aws_id"].(string)
 		pip, _ := (*gc)["public_ip"].(string)
 		ip, _ := (*gc)["ip"].(string)
-		instances = append(instances, map[string]string{
+		instances = append(instances, map[string]interface{}{
 			"name":            name,
 			"instance_aws_id": id,
 			"public_ip":       pip,
@@ -184,14 +190,14 @@ func RenderInstances(g *graph.Graph) []map[string]string {
 }
 
 // RenderRDSClusters : renders a builds rds clusters
-func RenderRDSClusters(g *graph.Graph) []map[string]string {
-	var rdss []map[string]string
+func RenderRDSClusters(g *graph.Graph) []map[string]interface{} {
+	var rdss []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("rds_cluster") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		endpoint, _ := (*gc)["endpoint"].(string)
-		rdss = append(rdss, map[string]string{
+		rdss = append(rdss, map[string]interface{}{
 			"name":     name,
 			"endpoint": endpoint,
 		})
@@ -201,14 +207,14 @@ func RenderRDSClusters(g *graph.Graph) []map[string]string {
 }
 
 // RenderRDSInstances : renders a builds rds instances
-func RenderRDSInstances(g *graph.Graph) []map[string]string {
-	var rdss []map[string]string
+func RenderRDSInstances(g *graph.Graph) []map[string]interface{} {
+	var rdss []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("rds_instance") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		endpoint, _ := (*gc)["endpoint"].(string)
-		rdss = append(rdss, map[string]string{
+		rdss = append(rdss, map[string]interface{}{
 			"name":     name,
 			"endpoint": endpoint,
 		})
@@ -218,14 +224,14 @@ func RenderRDSInstances(g *graph.Graph) []map[string]string {
 }
 
 // RenderEBSVolumes : renders a builds ebs volumes
-func RenderEBSVolumes(g *graph.Graph) []map[string]string {
-	var rdss []map[string]string
+func RenderEBSVolumes(g *graph.Graph) []map[string]interface{} {
+	var rdss []map[string]interface{}
 
 	for _, n := range g.GetComponents().ByType("ebs_volume") {
 		gc := n.(*graph.GenericComponent)
 		name, _ := (*gc)["name"].(string)
 		id, _ := (*gc)["volume_aws_id"].(string)
-		rdss = append(rdss, map[string]string{
+		rdss = append(rdss, map[string]interface{}{
 			"name":          name,
 			"volume_aws_id": id,
 		})
@@ -235,8 +241,8 @@ func RenderEBSVolumes(g *graph.Graph) []map[string]string {
 }
 
 // RenderLoadBalancers : renders load balancers
-func RenderLoadBalancers(g *graph.Graph) []map[string]string {
-	var lbs []map[string]string
+func RenderLoadBalancers(g *graph.Graph) []map[string]interface{} {
+	var lbs []map[string]interface{}
 	ips := listIPAddresses(g)
 
 	for _, n := range g.GetComponents().ByType("lb") {
@@ -251,7 +257,7 @@ func RenderLoadBalancers(g *graph.Graph) []map[string]string {
 			ip, _ = ips[ipID]
 		}
 
-		lbs = append(lbs, map[string]string{
+		lbs = append(lbs, map[string]interface{}{
 			"name":      name,
 			"id":        id,
 			"public_ip": ip,
@@ -275,8 +281,8 @@ func listIPAddresses(g *graph.Graph) map[string]string {
 }
 
 // RenderVirtualMachines : renders virtual machines
-func RenderVirtualMachines(g *graph.Graph) []map[string]string {
-	var resources []map[string]string
+func RenderVirtualMachines(g *graph.Graph) []map[string]interface{} {
+	var resources []map[string]interface{}
 	mappedIPs := make(map[string]interface{}, 0)
 	existingIPs := listIPAddresses(g)
 
@@ -321,7 +327,7 @@ func RenderVirtualMachines(g *graph.Graph) []map[string]string {
 			}
 		}
 
-		resources = append(resources, map[string]string{
+		resources = append(resources, map[string]interface{}{
 			"name":       name,
 			"id":         id,
 			"public_ip":  strings.Join(publicIPs, ", "),
@@ -333,13 +339,13 @@ func RenderVirtualMachines(g *graph.Graph) []map[string]string {
 }
 
 // RenderSQLDatabases : renders sql databases
-func RenderSQLDatabases(g *graph.Graph) []map[string]string {
-	return renderResources(g, "sql_database", func(gc *graph.GenericComponent) map[string]string {
+func RenderSQLDatabases(g *graph.Graph) []map[string]interface{} {
+	return renderResources(g, "sql_database", func(gc *graph.GenericComponent) map[string]interface{} {
 		name, _ := (*gc)["name"].(string)
 		server, _ := (*gc)["server_name"].(string)
 		id, _ := (*gc)["id"].(string)
 
-		return map[string]string{
+		return map[string]interface{}{
 			"name":        name,
 			"server_name": server + ".database.windows.net",
 			"id":          id,
@@ -347,9 +353,58 @@ func RenderSQLDatabases(g *graph.Graph) []map[string]string {
 	})
 }
 
-type convert func(*graph.GenericComponent) map[string]string
+// RenderIamPolicies : renders IAM policies
+func RenderIamPolicies(g *graph.Graph) []map[string]interface{} {
+	return renderResources(g, "iam_policy", func(gc *graph.GenericComponent) map[string]interface{} {
+		name, _ := (*gc)["name"].(string)
+		id, _ := (*gc)["iam_policy_aws_id"].(string)
+		path, _ := (*gc)["path"].(string)
 
-func renderResources(g *graph.Graph, resourceType string, f convert) (resources []map[string]string) {
+		return map[string]interface{}{
+			"name": name,
+			"id":   id,
+			"path": path,
+		}
+	})
+}
+
+// RenderIamRoles : renders IAM roles
+func RenderIamRoles(g *graph.Graph) []map[string]interface{} {
+	return renderResources(g, "iam_role", func(gc *graph.GenericComponent) map[string]interface{} {
+		name, _ := (*gc)["name"].(string)
+		id, _ := (*gc)["iam_role_aws_id"].(string)
+		path, _ := (*gc)["path"].(string)
+		policies, _ := (*gc)["policies"]
+
+		return map[string]interface{}{
+			"name":     name,
+			"id":       id,
+			"path":     path,
+			"policies": policies,
+		}
+	})
+}
+
+// RenderIamInstanceProfiles : renders IAM instance profiles
+func RenderIamInstanceProfiles(g *graph.Graph) []map[string]interface{} {
+	return renderResources(g, "iam_instance_profile", func(gc *graph.GenericComponent) map[string]interface{} {
+		name, _ := (*gc)["name"].(string)
+		id, _ := (*gc)["iam_instance_profile_aws_id"].(string)
+		path, _ := (*gc)["path"].(string)
+		roles, _ := (*gc)["roles"]
+
+		return map[string]interface{}{
+			"name":  name,
+			"id":    id,
+			"path":  path,
+			"roles": roles,
+		}
+	})
+}
+
+type convert func(*graph.GenericComponent) map[string]interface{}
+
+func renderResources(g *graph.Graph, resourceType string, f convert) (resources []map[string]interface{}) {
 	for _, n := range g.GetComponents().ByType(resourceType) {
 		gc := n.(*graph.GenericComponent)
 		resources = append(resources, f(gc))
