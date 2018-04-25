@@ -38,7 +38,7 @@
     "query",
     "validation"
   ]
-  revision = "3d23f5f81112940d1bbbaf9a86168c6c46b4144c"
+  revision = "4a33cb442dca816bee9a0168b34e864138920715"
 
 [[projects]]
   name = "github.com/ghodss/yaml"

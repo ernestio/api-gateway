@@ -1225,9 +1225,9 @@ definitions:
           $ref: '#/definitions/EnvironmentSchedule'
       builds:
         type: array
-        description: array of all associated build ids
+        description: array of all associated builds
         items:
-          type: string
+          $ref: '#/definitions/Build'
       members:
         type: array
         readOnly: true
