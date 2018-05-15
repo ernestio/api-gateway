@@ -16,11 +16,16 @@ import (
 // services for current user group
 func List(au models.User, project *string) (int, []byte) {
 	var body []byte
+	var err error
+	var r models.Role
+	var p models.Project
+	var roles []models.Role
+	var pRoles []models.Role
 
 	query := make(map[string]interface{}, 0)
 
 	if project != nil {
-		p, err := au.ProjectByName(*project)
+		p, err = au.ProjectByName(*project)
 		if err != nil {
 			h.L.Warning(err.Error())
 			return 404, models.NewJSONError("Project not found")
@@ -36,6 +41,24 @@ func List(au models.User, project *string) (int, []byte) {
 	}
 
 	for i := range envs {
+		computedRoles := make(map[string]models.Role, 0)
+
+		if err = r.FindAllByResource(envs[i].Project, p.GetType(), &pRoles); err == nil {
+			for _, v := range pRoles {
+				computedRoles[v.UserID] = v
+			}
+		}
+
+		if err = r.FindAllByResource(envs[i].GetID(), envs[i].GetType(), &roles); err == nil {
+			for _, v := range roles {
+				computedRoles[v.UserID] = v
+			}
+		}
+
+		for _, v := range computedRoles {
+			envs[i].Members = append(envs[i].Members, v)
+		}
+
 		envs[i].Project, envs[i].Name = getProjectEnv(envs[i].Name)
 	}
 
