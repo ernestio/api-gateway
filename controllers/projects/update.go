@@ -12,9 +12,11 @@ import (
 // Update : responds to PUT /projects/:id: by updating
 // an existing project
 func Update(au models.User, project string, body []byte) (int, []byte) {
+	var err error
 	var d models.Project
 	var existing models.Project
-	var err error
+	var r models.Role
+	var roles []models.Role
 
 	if d.Map(body) != nil {
 		return 400, models.NewJSONError("Invalid input")
@@ -29,6 +31,10 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, d.GetType(), d.Name); st != 200 {
 		return st, res
+	}
+
+	if err := r.FindAllByResource(existing.GetID(), existing.GetType(), &roles); err == nil {
+		existing.Members = roles
 	}
 
 	existing.Credentials = d.Credentials
