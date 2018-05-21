@@ -44,17 +44,14 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 	for _, r := range input.Members {
 		for _, er := range e.Members {
-			// create role
-			if r.ID == 0 {
-				err = r.Save()
-				if err != nil {
-					h.L.Error(err.Error())
-					return http.StatusBadRequest, models.NewJSONError(err.Error())
+			// create or update role
+			if r.ID == 0 || r.ID == er.ID && r.Role != er.Role {
+				if !au.IsAdmin() {
+					if ok := au.IsOwner(r.ResourceType, r.ResourceID); !ok {
+						return 403, models.NewJSONError("You're not authorized to perform this action")
+					}
 				}
-			}
 
-			// update role
-			if r.ID == er.ID && r.Role != er.Role {
 				err = r.Save()
 				if err != nil {
 					h.L.Error(err.Error())
@@ -75,6 +72,12 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 		// delete roles
 		if !exists {
+			if !au.IsAdmin() {
+				if ok := au.IsOwner(er.ResourceType, er.ResourceID); !ok {
+					return 403, models.NewJSONError("You're not authorized to perform this action")
+				}
+			}
+
 			err = er.Delete()
 			if err != nil {
 				h.L.Error(err.Error())
