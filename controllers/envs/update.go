@@ -43,9 +43,26 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	}
 
 	for _, r := range input.Members {
+		// create role
+		if r.ID == 0 {
+			if !au.IsAdmin() {
+				if ok := au.IsOwner(r.ResourceType, r.ResourceID); !ok {
+					return 403, models.NewJSONError("You're not authorized to perform this action")
+				}
+			}
+
+			err = r.Save()
+			if err != nil {
+				h.L.Error(err.Error())
+				return http.StatusBadRequest, models.NewJSONError(err.Error())
+			}
+
+			continue
+		}
+
 		for _, er := range e.Members {
-			// create or update role
-			if r.ID == 0 || r.ID == er.ID && r.Role != er.Role {
+			// update role
+			if r.ID == er.ID && r.Role != er.Role {
 				if !au.IsAdmin() {
 					if ok := au.IsOwner(r.ResourceType, r.ResourceID); !ok {
 						return 403, models.NewJSONError("You're not authorized to perform this action")
