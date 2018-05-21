@@ -42,6 +42,49 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 500, models.NewJSONError(err.Error())
 	}
 
+	for _, r := range input.Members {
+		for _, er := range e.Members {
+			// create role
+			if r.ID == 0 {
+				err = r.Save()
+				if err != nil {
+					h.L.Error(err.Error())
+					return http.StatusBadRequest, models.NewJSONError(err.Error())
+				}
+			}
+
+			// update role
+			if r.ID == er.ID && r.Role != er.Role {
+				err = r.Save()
+				if err != nil {
+					h.L.Error(err.Error())
+					return http.StatusBadRequest, models.NewJSONError(err.Error())
+				}
+			}
+		}
+	}
+
+	for _, er := range e.Members {
+		var exists bool
+
+		for _, r := range input.Members {
+			if r.ID == er.ID {
+				exists = true
+			}
+		}
+
+		// delete roles
+		if !exists {
+			err = er.Delete()
+			if err != nil {
+				h.L.Error(err.Error())
+				return http.StatusBadRequest, models.NewJSONError(err.Error())
+			}
+		}
+	}
+
+	e.Members = input.Members
+
 	resp, err = json.Marshal(e)
 	if err != nil {
 		h.L.Error(err.Error())
