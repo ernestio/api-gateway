@@ -43,6 +43,8 @@ func Get(au models.User, project string) (int, []byte) {
 		d.Members = roles
 	}
 
+	d.Redact()
+
 	if body, err = json.Marshal(d); err != nil {
 		return 500, models.NewJSONError("Internal server error")
 	}

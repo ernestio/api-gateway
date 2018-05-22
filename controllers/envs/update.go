@@ -75,6 +75,10 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 	for _, ir := range input.Members {
 		// create role
 		if ir.ID == 0 {
+			if strings.Contains(ir.ResourceID, "/") || ir.ResourceType != "environment" {
+				return http.StatusBadRequest, models.NewJSONError("project memberships must be modified on the project")
+			}
+
 			if !au.IsAdmin() {
 				if ok := au.IsOwner(ir.ResourceType, ir.ResourceID); !ok {
 					return 403, models.NewJSONError("You're not authorized to perform this action")
@@ -93,7 +97,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		for _, er := range e.Members {
 			// update role
 			if ir.ID == er.ID && ir.Role != er.Role {
-				if strings.Contains(er.ResourceID, "/") {
+				if strings.Contains(er.ResourceID, "/") || ir.ResourceType != "environment" {
 					return http.StatusBadRequest, models.NewJSONError("project memberships must be modified on the project")
 				}
 
@@ -123,7 +127,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 		// delete roles
 		if !exists {
-			if strings.Contains(er.ResourceID, "/") {
+			if strings.Contains(er.ResourceID, "/") || er.ResourceType != "environment" {
 				return http.StatusBadRequest, models.NewJSONError("project memberships must be removed on the project")
 			}
 
