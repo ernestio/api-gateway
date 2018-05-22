@@ -93,6 +93,10 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		for _, er := range e.Members {
 			// update role
 			if ir.ID == er.ID && ir.Role != er.Role {
+				if strings.Contains(er.ResourceID, "/") {
+					return http.StatusBadRequest, models.NewJSONError("project memberships must be modified on the project")
+				}
+
 				if !au.IsAdmin() {
 					if ok := au.IsOwner(ir.ResourceType, ir.ResourceID); !ok {
 						return 403, models.NewJSONError("You're not authorized to perform this action")
