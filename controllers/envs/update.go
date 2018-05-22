@@ -119,6 +119,10 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 		// delete roles
 		if !exists {
+			if strings.Contains(er.ResourceID, "/") {
+				return http.StatusBadRequest, models.NewJSONError("project memberships must be removed on the project")
+			}
+
 			if !au.IsAdmin() {
 				if ok := au.IsOwner(er.ResourceType, er.ResourceID); !ok {
 					return 403, models.NewJSONError("You're not authorized to perform this action")
