@@ -13,6 +13,7 @@ func Get(au models.User, u string) (int, []byte) {
 	var user models.User
 	var r models.Role
 	var roles []models.Role
+	var proles []models.Role
 
 	if !au.IsAdmin() {
 		if au.Username != u {
@@ -24,9 +25,10 @@ func Get(au models.User, u string) (int, []byte) {
 		return 404, models.NewJSONError("User not found")
 	}
 
-	if err := r.FindAllByUserAndResource(user.GetID(), "project", &roles); err == nil {
-		user.ProjectMemberships = roles
+	if err := r.FindAllByUserAndResource(user.GetID(), "project", &proles); err == nil {
+		user.ProjectMemberships = proles
 	}
+
 	if err := r.FindAllByUserAndResource(user.GetID(), "environment", &roles); err == nil {
 		user.EnvMemberships = roles
 	}
