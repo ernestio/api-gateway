@@ -72,6 +72,16 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 500, models.NewJSONError(err.Error())
 	}
 
+	if input.Members == nil {
+		resp, err = json.Marshal(e)
+		if err != nil {
+			h.L.Error(err.Error())
+			return http.StatusBadRequest, models.NewJSONError(err.Error())
+		}
+
+		return http.StatusOK, resp
+	}
+
 	for _, ir := range input.Members {
 		// create role
 		if ir.ID == 0 {

@@ -44,6 +44,14 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 		return 500, models.NewJSONError("Internal server error")
 	}
 
+	if d.Members == nil {
+		if body, err = json.Marshal(d); err != nil {
+			return 500, models.NewJSONError("Internal server error")
+		}
+
+		return http.StatusOK, body
+	}
+
 	for _, r := range d.Members {
 		if r.ID == 0 {
 			if !au.IsAdmin() {
