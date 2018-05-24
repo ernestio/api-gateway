@@ -14,6 +14,8 @@ import (
 // ForceDeletion : Deletes a service by name forcing it
 func ForceDeletion(au models.User, name string) (int, []byte) {
 	var e models.Env
+	var r models.Role
+	var roles []models.Role
 
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnvForce, e.GetType(), name); st != 200 {
 		return st, res
@@ -22,6 +24,20 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 	if err := e.DeleteByName(name); err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError(err.Error())
+	}
+
+	err := r.FindAllByResource(e.GetID(), e.GetType(), &roles)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, models.NewJSONError(err.Error())
+	}
+
+	for _, role := range roles {
+		err = role.Delete()
+		if err != nil {
+			h.L.Error(err.Error())
+			return 500, models.NewJSONError(err.Error())
+		}
 	}
 
 	return http.StatusOK, []byte(`{"status":"ok"}`)
