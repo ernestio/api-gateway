@@ -49,11 +49,9 @@ func List(au models.User, project *string) (int, []byte) {
 			var pRoles []models.Role
 
 			err = r.FindAllByResource(envs[i].GetProject(), p.GetType(), &pRoles)
-			if err != nil {
-				return 500, models.NewJSONError("Internal error")
+			if err == nil {
+				pcache[envs[i].Project] = pRoles
 			}
-
-			pcache[envs[i].Project] = pRoles
 		}
 
 		for _, v := range pcache[envs[i].Project] {
