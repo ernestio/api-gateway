@@ -7,6 +7,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -202,6 +203,11 @@ func (e *Env) resolution(au User, subject, resolution string) (string, error) {
 // GetID : ID getter
 func (e *Env) GetID() string {
 	return e.Name
+}
+
+// GetProject : returns the environment's project
+func (e *Env) GetProject() string {
+	return strings.Split(e.Name, "/")[0]
 }
 
 // GetType : Gets the resource type

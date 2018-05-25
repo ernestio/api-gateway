@@ -19,8 +19,6 @@ func List(au models.User, project *string) (int, []byte) {
 	var err error
 	var r models.Role
 	var p models.Project
-	var roles []models.Role
-	var pRoles []models.Role
 
 	query := make(map[string]interface{}, 0)
 
@@ -40,13 +38,24 @@ func List(au models.User, project *string) (int, []byte) {
 		return 404, models.NewJSONError("Environment not found")
 	}
 
+	pcache := make(map[string][]models.Role)
+
 	for i := range envs {
+		var roles []models.Role
+
 		computedRoles := make(map[string]models.Role, 0)
 
-		if err = r.FindAllByResource(envs[i].Project, p.GetType(), &pRoles); err == nil {
-			for _, v := range pRoles {
-				computedRoles[v.UserID] = v
+		if pcache[envs[i].Project] == nil {
+			var pRoles []models.Role
+
+			err = r.FindAllByResource(envs[i].GetProject(), p.GetType(), &pRoles)
+			if err == nil {
+				pcache[envs[i].Project] = pRoles
 			}
+		}
+
+		for _, v := range pcache[envs[i].Project] {
+			computedRoles[v.UserID] = v
 		}
 
 		if err = r.FindAllByResource(envs[i].GetID(), envs[i].GetType(), &roles); err == nil {
