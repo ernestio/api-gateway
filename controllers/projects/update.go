@@ -3,6 +3,7 @@ package projects
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -22,7 +23,10 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 	}
 
 	if err = existing.FindByName(project); err != nil {
-		return 404, models.NewJSONError("Project not found")
+		id, err := strconv.Atoi(project)
+		if err = existing.FindByID(id); err != nil {
+			return 404, models.NewJSONError("Project not found")
+		}
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdateProject, d.GetType(), d.Name); st != 200 {
