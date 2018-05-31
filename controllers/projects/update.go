@@ -58,6 +58,10 @@ func Update(au models.User, project string, body []byte) (int, []byte) {
 		return http.StatusOK, body
 	}
 
+	if !d.HasOwner() {
+		return http.StatusBadRequest, models.NewJSONError("Project must have at least one member as an owner")
+	}
+
 	for _, r := range d.Members {
 		if r.ID == 0 {
 			if !au.IsAdmin() {

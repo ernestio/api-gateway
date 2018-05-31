@@ -153,6 +153,17 @@ func (d *Project) Encrypt() {
 	}
 }
 
+// HasOwner : returns true if there is at least one project owner
+func (d *Project) HasOwner() bool {
+	for _, member := range d.Members {
+		if member.Role == "owner" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func decrypt(s string) (string, error) {
 	crypto := aes.New()
 	key := os.Getenv("ERNEST_CRYPTO_KEY")
