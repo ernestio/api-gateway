@@ -54,7 +54,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 500, models.NewJSONError("Internal error")
 	}
 
-	if err = r.FindAllByResource(e.Project, p.GetType(), &pRoles); err == nil {
+	if err = r.FindAllByResource(e.GetProject(), p.GetType(), &pRoles); err == nil {
 		for _, v := range pRoles {
 			computedRoles[v.UserID] = v
 		}
