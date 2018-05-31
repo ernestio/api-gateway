@@ -12,13 +12,17 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Get : responds to GET /policies/:name/revisions/revision with the policy
+// GetDocument : responds to GET /policies/:name/revisions/revision with the policy
 // details
 func GetDocument(au models.User, name, revision string) (int, []byte) {
 	var err error
 	var body []byte
 	var policy models.Policy
 	var document models.PolicyDocument
+
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Policy name contains invalid characters")
+	}
 
 	if err = policy.GetByName(name, &policy); err != nil {
 		h.L.Error(err.Error())

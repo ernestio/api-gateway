@@ -22,6 +22,10 @@ func Create(au models.User, definition *definition.Definition, raw []byte, dry s
 	var m models.Mapping
 	var validation *validation.Validation
 
+	if !models.IsAlphaNumeric(definition.FullName()) {
+		return 404, models.NewJSONError("Notification name contains invalid characters")
+	}
+
 	err := e.FindByName(definition.FullName())
 	if err != nil {
 		h.L.Error(err.Error())

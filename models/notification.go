@@ -28,6 +28,10 @@ func (n *Notification) Validate() error {
 		return errors.New("Notification must specify a name")
 	}
 
+	if !IsAlphaNumeric(n.Name) {
+		return errors.New("Notification name contains invalid characters")
+	}
+
 	if n.Type == "" {
 		return errors.New("Notification type is empty")
 	}

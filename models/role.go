@@ -28,8 +28,16 @@ func (l *Role) Validate() error {
 		return errors.New("User is empty")
 	}
 
+	if !IsAlphaNumeric(l.UserID) {
+		return errors.New("User ID contains invalid characters")
+	}
+
 	if l.ResourceID == "" {
 		return errors.New("Resource is empty")
+	}
+
+	if !IsAlphaNumeric(l.ResourceID) {
+		return errors.New("Resource ID contains invalid characters")
 	}
 
 	if l.ResourceType != "project" && l.ResourceType != "environment" && l.ResourceType != "policy" {

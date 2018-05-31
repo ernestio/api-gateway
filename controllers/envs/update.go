@@ -27,6 +27,14 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 	computedRoles := make(map[string]models.Role, 0)
 
+	if input.Map(body) != nil {
+		return 400, models.NewJSONError("Input is not valid")
+	}
+
+	if input.Name != name {
+		return 400, models.NewJSONError("Environment name does not match payload name")
+	}
+
 	if err = json.Unmarshal(body, &input); err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, []byte(err.Error())

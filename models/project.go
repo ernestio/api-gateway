@@ -31,6 +31,10 @@ func (d *Project) Validate() error {
 		return errors.New("Project name is empty")
 	}
 
+	if !IsAlphaNumeric(d.Name) {
+		return errors.New("Project Name contains invalid characters")
+	}
+
 	if strings.Contains(d.Name, EnvNameSeparator) {
 		return errors.New("Project name does not support char '" + EnvNameSeparator + "' as part of its name")
 	}

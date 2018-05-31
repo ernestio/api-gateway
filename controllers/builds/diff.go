@@ -16,6 +16,10 @@ func Diff(au models.User, env string, request *models.Diff) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
+	if !models.IsAlphaNumeric(env) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())

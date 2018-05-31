@@ -24,6 +24,10 @@ func Get(au models.User, name string) (int, []byte) {
 	var roles []models.Role
 	var pRoles []models.Role
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Project or Environment name contains invalid characters")
+	}
+
 	if err = e.FindByName(name); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return 404, models.NewJSONError("Specified environment name does not exist")
@@ -34,7 +38,7 @@ func Get(au models.User, name string) (int, []byte) {
 
 	if err = p.FindByID(e.ProjectID); err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return 404, models.NewJSONError("Specified environment name does not exist")
+			return 404, models.NewJSONError("Specified project name does not exist")
 		}
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Internal error")
@@ -45,7 +49,7 @@ func Get(au models.User, name string) (int, []byte) {
 	}
 
 	computedRoles := make(map[string]models.Role, 0)
-	if err := r.FindAllByResource(e.GetProject(), p.GetType(), &pRoles); err == nil {
+	if err := r.FindAllByResource(p.Name, p.GetType(), &pRoles); err == nil {
 		for _, v := range pRoles {
 			computedRoles[v.UserID] = v
 		}

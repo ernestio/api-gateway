@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -20,6 +21,12 @@ func Create(au models.User, body []byte) (int, []byte) {
 
 	if l.Map(body) != nil {
 		return 400, models.NewJSONError("Invalid input")
+	}
+
+	err = l.Validate()
+	if err != nil {
+		h.L.Error(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
 	}
 
 	if err = l.Save(); err != nil {

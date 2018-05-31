@@ -20,6 +20,10 @@ func List(au models.User, env string) (int, []byte) {
 	var list []models.Build
 	var body []byte
 
+	if !models.IsAlphaNumeric(env) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())

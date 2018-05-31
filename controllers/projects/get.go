@@ -19,6 +19,10 @@ func Get(au models.User, project string) (int, []byte) {
 	var body []byte
 	var err error
 
+	if !models.IsAlphaNumeric(project) {
+		return 404, models.NewJSONError("Project name contains invalid characters")
+	}
+
 	if st, res := h.IsAuthorizedToResource(&au, h.GetProject, d.GetType(), project); st != 200 {
 		return st, res
 	}

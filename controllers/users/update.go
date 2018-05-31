@@ -20,6 +20,16 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		return 400, []byte(err.Error())
 	}
 
+	err := u.Validate()
+	if err != nil {
+		h.L.Error(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
+	}
+
+	if u.Username != user {
+		return 400, models.NewJSONError("Project name does not match payload name")
+	}
+
 	// Check if authenticated user is admin or updating itself
 	if !u.CanBeChangedBy(au) {
 		err := errors.New("You're not allowed to perform this action, please contact your admin")
@@ -90,7 +100,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		u.Redact()
 	}
 
-	body, err := json.Marshal(u)
+	body, err = json.Marshal(u)
 	if err != nil {
 		return 500, models.NewJSONError("Internal server error")
 	}

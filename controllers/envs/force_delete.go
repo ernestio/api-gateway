@@ -17,6 +17,10 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 	var r models.Role
 	var roles []models.Role
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnvForce, e.GetType(), name); st != 200 {
 		return st, res
 	}

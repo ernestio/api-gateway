@@ -23,6 +23,10 @@ func List(au models.User, project *string) (int, []byte) {
 	query := make(map[string]interface{}, 0)
 
 	if project != nil {
+		if !models.IsAlphaNumeric(*project) {
+			return 404, models.NewJSONError("Project name contains invalid characters")
+		}
+
 		p, err = au.ProjectByName(*project)
 		if err != nil {
 			h.L.Warning(err.Error())

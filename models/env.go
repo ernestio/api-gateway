@@ -41,6 +41,10 @@ func (e *Env) Validate() error {
 		return errors.New("Environment name is empty")
 	}
 
+	if !IsAlphaNumeric(e.Name) {
+		return errors.New("Environment name contains invalid characters")
+	}
+
 	return nil
 }
 

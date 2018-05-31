@@ -19,6 +19,10 @@ func Get(au models.User, name string) (int, []byte) {
 	var body []byte
 	var notification models.Notification
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Notification name contains invalid characters")
+	}
+
 	if err = notification.FindByName(name, &notification); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("Notification not found")

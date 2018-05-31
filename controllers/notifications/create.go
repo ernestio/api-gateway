@@ -25,14 +25,14 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
-	err := existing.FindByName(n.Name, &existing)
-	if err == nil {
-		return 409, models.NewJSONError("Specified notifiation already exists")
-	}
-
-	err = n.Validate()
+	err := n.Validate()
 	if err != nil {
 		return 400, models.NewJSONError(err.Error())
+	}
+
+	err = existing.FindByName(n.Name, &existing)
+	if err == nil {
+		return 409, models.NewJSONError("Specified notifiation already exists")
 	}
 
 	err = p.FindAll(au, &projects)
