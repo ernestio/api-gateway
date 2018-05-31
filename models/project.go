@@ -43,7 +43,12 @@ func (d *Project) Validate() error {
 		return errors.New("Project type is empty")
 	}
 
-	return nil
+	switch d.Type {
+	case "aws", "azure", "vcloud":
+		return nil
+	default:
+		return errors.New("Project type is not one of the following: 'aws', 'azure' or 'vcloud'")
+	}
 }
 
 // Map : maps a project from a request's body and validates the input
