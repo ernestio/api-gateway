@@ -45,7 +45,7 @@ func Get(au models.User, name string) (int, []byte) {
 	}
 
 	computedRoles := make(map[string]models.Role, 0)
-	if err := r.FindAllByResource(e.Project, p.GetType(), &pRoles); err == nil {
+	if err := r.FindAllByResource(e.GetProject(), p.GetType(), &pRoles); err == nil {
 		for _, v := range pRoles {
 			computedRoles[v.UserID] = v
 		}
