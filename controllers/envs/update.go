@@ -31,7 +31,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 400, models.NewJSONError("Input is not valid")
 	}
 
-	err = e.Validate()
+	err = input.Validate()
 	if err != nil {
 		h.L.Error(err.Error())
 		return http.StatusBadRequest, models.NewJSONError(err.Error())
