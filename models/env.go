@@ -57,13 +57,6 @@ func (e *Env) Map(data []byte) error {
 		return NewError(InvalidInputCode, "Invalid input")
 	}
 
-	if err := e.Validate(); err != nil {
-		h.L.WithFields(logrus.Fields{
-			"input": string(data),
-		}).Warning("Input is not valid")
-		return NewError(InvalidInputCode, "Invalid input")
-	}
-
 	return nil
 }
 
