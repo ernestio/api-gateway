@@ -240,7 +240,7 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With a payload containing no username", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "password": "new-password"}`)
+						data := []byte(`{"id": 1, "username": "test", "password": "new-password"}`)
 						st, _ := users.Update(admin, "test", data)
 						Convey("It should update the user and return the correct set of data", func() {
 							So(st, ShouldEqual, 200)
@@ -265,18 +265,9 @@ func TestUpdateUser(t *testing.T) {
 							So(string(resp), ShouldContainSubstring, "Password can only contain the following characters: a-z 0-9 @._-")
 						})
 					})
-					Convey("With no username", func() {
-						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "password": "new-password"}`)
-						st, resp := users.Update(admin, "", data)
-						Convey("It should return an error message with a 400 repsonse", func() {
-							So(st, ShouldEqual, 404)
-							So(string(resp), ShouldContainSubstring, "Specified user not found")
-						})
-					})
 					Convey("With no password", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "admin": true}`)
+						data := []byte(`{"id": 1, "username": "test", "admin": true}`)
 						st, resp := users.Update(admin, "test", data)
 
 						Convey("It should update the user and return the correct set of data", func() {
@@ -288,7 +279,7 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With a payload enabling MFA", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "mfa": true}`)
+						data := []byte(`{"id": 1, "username": "test", "mfa": true}`)
 						st, resp := users.Update(admin, "test", data)
 
 						Convey("It should update the user and return the correct set of data", func() {
@@ -302,7 +293,7 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With a payload disabling MFA", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "mfa": false}`)
+						data := []byte(`{"id": 1, "username": "test", "mfa": false}`)
 						st, resp := users.Update(admin, "test", data)
 
 						Convey("It should update the user and return the correct set of data", func() {
@@ -342,7 +333,7 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With a payload enabling MFA", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "mfa": true}`)
+						data := []byte(`{"id": 1, "username": "test", "mfa": true}`)
 						st, resp := users.Update(admin, "test", data)
 
 						Convey("It should update the user and return the correct set of data", func() {
@@ -356,7 +347,7 @@ func TestUpdateUser(t *testing.T) {
 					})
 					Convey("With a payload disabling MFA", func() {
 						getUserSubscriber(1)
-						data := []byte(`{"id": 1, "mfa": false}`)
+						data := []byte(`{"id": 1, "username": "test", "mfa": false}`)
 						st, resp := users.Update(admin, "test", data)
 
 						Convey("It should update the user and return the correct set of data", func() {
@@ -383,7 +374,7 @@ func TestUpdateUser(t *testing.T) {
 			data := []byte(`{"id": 99, "group_id": 1, "username": "fake-user", "password": "test1234"}`)
 
 			Convey("And I update a user by calling /users/ on the api", func() {
-				st, _ := users.Update(admin, "99", data)
+				st, _ := users.Update(admin, "fake-user", data)
 
 				Convey("It should error with 404 doesn't exist", func() {
 					So(st, ShouldEqual, 404)
