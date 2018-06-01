@@ -23,7 +23,10 @@ func List(au models.User) (int, []byte) {
 		var r models.Role
 		var roles []models.Role
 
-		projects[i].Redact()
+		err = projects[i].Redact()
+		if err != nil {
+			return 500, models.NewJSONError(err.Error())
+		}
 
 		if err := r.FindAllByResource(projects[i].GetID(), projects[i].GetType(), &roles); err == nil {
 			projects[i].Members = roles

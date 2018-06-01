@@ -96,12 +96,22 @@ func (d *Project) Delete() (err error) {
 
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
-func (d *Project) Redact() {
-	for k := range d.Credentials {
-		if k != "region" && k != "vdc" && k != "username" && k != "vcloud_url" {
+func (d *Project) Redact() error {
+	for k, v := range d.Credentials {
+		switch k {
+		case "aws_access_key_id", "org", "azure_client_id", "azure_environment", "azure_subscription_id", "azure_tenant_id":
+			s, err := decrypt(v.(string))
+			if err != nil {
+				return errors.New("error decrypting provider credentials")
+			}
+			d.Credentials[k] = s
+		case "region", "vdc", "username", "vcloud_url":
+		default:
 			delete(d.Credentials, k)
 		}
 	}
+
+	return nil
 }
 
 // Improve : adds extra data to this entity
