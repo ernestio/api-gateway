@@ -44,7 +44,7 @@ func (d *Project) Validate() error {
 	}
 
 	switch d.Type {
-	case "aws", "azure", "vcloud":
+	case "aws", "azure", "vcloud", "aws-fake", "azure-fake", "vcloud-fake":
 		return nil
 	default:
 		return errors.New("Project type is not one of the following: 'aws', 'azure' or 'vcloud'")
