@@ -27,7 +27,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	}
 
 	if u.Username != user {
-		return 400, models.NewJSONError("Project name does not match payload name")
+		return 400, models.NewJSONError("Username does not match payload name")
 	}
 
 	// Check if authenticated user is admin or updating itself
