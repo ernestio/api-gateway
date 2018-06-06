@@ -58,6 +58,11 @@ func List(au models.User, project *string) (int, []byte) {
 			computedRoles[v.UserID] = v
 		}
 
+		err = envs[i].Redact()
+		if err != nil {
+			return 500, models.NewJSONError(err.Error())
+		}
+
 		if err = r.FindAllByResource(envs[i].GetID(), envs[i].GetType(), &roles); err == nil {
 			for _, v := range roles {
 				computedRoles[v.UserID] = v

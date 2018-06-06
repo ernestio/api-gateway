@@ -60,6 +60,11 @@ func Get(au models.User, name string) (int, []byte) {
 		e.Members = append(e.Members, v)
 	}
 
+	err = e.Redact()
+	if err != nil {
+		return 500, models.NewJSONError(err.Error())
+	}
+
 	if body, err = json.Marshal(e); err != nil {
 		return 500, models.NewJSONError(err.Error())
 	}
