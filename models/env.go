@@ -98,6 +98,26 @@ func (e *Env) Delete() (err error) {
 	return NewBaseModel(e.getStore()).Delete(query)
 }
 
+// Redact : removes all sensitive fields from the return
+// data before outputting to the user
+func (e *Env) Redact() error {
+	for k, v := range e.Credentials {
+		switch k {
+		case "aws_access_key_id", "org", "azure_client_id", "azure_environment", "azure_subscription_id", "azure_tenant_id":
+			s, err := decrypt(v.(string))
+			if err != nil {
+				return errors.New("error decrypting provider credentials")
+			}
+			e.Credentials[k] = s
+		case "region", "vdc", "username", "vcloud_url":
+		default:
+			delete(e.Credentials, k)
+		}
+	}
+
+	return nil
+}
+
 // DeleteByName : will delete a env by its name
 func (e *Env) DeleteByName(name string) (err error) {
 	query := make(map[string]interface{})
