@@ -53,6 +53,10 @@ type AuthResponse struct {
 
 // Authenticate verifies user credentials
 func (u *User) Authenticate() (*AuthResponse, error) {
+	if !IsAlphaNumeric(u.Username) {
+		return nil, errors.New("bad username specified")
+	}
+
 	mfa, err := u.IsMFA()
 	if err != nil {
 		return nil, err

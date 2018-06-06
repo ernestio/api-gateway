@@ -19,6 +19,10 @@ func Get(au models.User, id string) (int, []byte) {
 	var body []byte
 	var role models.Role
 
+	if !models.IsAlphaNumeric(id) {
+		return 404, models.NewJSONError("Role ID contains invalid characters")
+	}
+
 	if err = role.FindByID(id, &role); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("Role not found")

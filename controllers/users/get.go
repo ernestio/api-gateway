@@ -15,6 +15,10 @@ func Get(au models.User, u string) (int, []byte) {
 	var roles []models.Role
 	var proles []models.Role
 
+	if !models.IsAlphaNumeric(u) {
+		return 404, models.NewJSONError("Username contains invalid characters")
+	}
+
 	if !au.IsAdmin() {
 		if au.Username != u {
 			return 404, models.NewJSONError("User not found")

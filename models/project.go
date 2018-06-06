@@ -31,6 +31,10 @@ func (d *Project) Validate() error {
 		return errors.New("Project name is empty")
 	}
 
+	if !IsAlphaNumeric(d.Name) {
+		return errors.New("Project Name contains invalid characters")
+	}
+
 	if strings.Contains(d.Name, EnvNameSeparator) {
 		return errors.New("Project name does not support char '" + EnvNameSeparator + "' as part of its name")
 	}
@@ -39,7 +43,12 @@ func (d *Project) Validate() error {
 		return errors.New("Project type is empty")
 	}
 
-	return nil
+	switch d.Type {
+	case "aws", "azure", "vcloud", "aws-fake", "azure-fake", "vcloud-fake":
+		return nil
+	default:
+		return errors.New("Project type is not one of the following: 'aws', 'azure' or 'vcloud'")
+	}
 }
 
 // Map : maps a project from a request's body and validates the input
@@ -152,6 +161,17 @@ func (d *Project) Encrypt() {
 
 		d.Credentials[k], _ = crypt(xc)
 	}
+}
+
+// HasOwner : returns true if there is at least one project owner
+func (d *Project) HasOwner() bool {
+	for _, member := range d.Members {
+		if member.Role == "owner" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func decrypt(s string) (string, error) {

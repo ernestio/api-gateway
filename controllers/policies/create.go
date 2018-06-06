@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
 )
 
@@ -22,6 +23,12 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
+	err = l.Validate()
+	if err != nil {
+		h.L.Error(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
+	}
+
 	if err = l.GetByName(l.Name, &existing); err == nil {
 		return 409, models.NewJSONError("policy already exists")
 	}
@@ -30,7 +37,7 @@ func Create(au models.User, body []byte) (int, []byte) {
 		return 400, models.NewJSONError(err.Error())
 	}
 
-	if err := au.SetOwner(&l); err != nil {
+	if err = au.SetOwner(&l); err != nil {
 		return 500, models.NewJSONError("Internal server error")
 	}
 

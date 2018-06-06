@@ -12,7 +12,7 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Create : responds to POST /policies/ by creating a policy
+// CreateDocument : responds to POST /policies/:policy/revisions/ by creating a policy
 // on the data store
 func CreateDocument(au models.User, name string, body []byte) (int, []byte) {
 	var policy models.Policy
@@ -23,6 +23,12 @@ func CreateDocument(au models.User, name string, body []byte) (int, []byte) {
 		return http.StatusBadRequest, models.NewJSONError("Invalid input")
 	}
 
+	err = document.Validate()
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, models.NewJSONError(err.Error())
+	}
+
 	if err = policy.GetByName(name, &policy); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("policy not found")
@@ -30,12 +36,6 @@ func CreateDocument(au models.User, name string, body []byte) (int, []byte) {
 
 	if st, res := h.IsAuthorizedToResource(&au, h.UpdatePolicy, policy.GetType(), policy.GetID()); st != 200 {
 		return st, res
-	}
-
-	err = document.Validate()
-	if err != nil {
-		h.L.Error(err.Error())
-		return 404, models.NewJSONError(err.Error())
 	}
 
 	document.Username = au.Username

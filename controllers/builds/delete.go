@@ -16,6 +16,10 @@ func Delete(au models.User, name string) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	err := e.FindByName(name)
 	if err != nil {
 		h.L.Error(err.Error())

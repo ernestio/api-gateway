@@ -11,6 +11,7 @@ import (
 // existing role
 func Delete(au models.User, body []byte) (int, []byte) {
 	var d models.Role
+	var roles []models.Role
 
 	if d.Map(body) != nil {
 		return 400, models.NewJSONError("Input is not valid")
@@ -31,6 +32,26 @@ func Delete(au models.User, body []byte) (int, []byte) {
 	if !(err != nil || existing != nil) {
 		return 409, models.NewJSONError("Specified role does not exists")
 	}
+
+	if d.ResourceType == "project" {
+		var owner bool
+
+		err := d.FindAllByResource(d.ResourceID, d.ResourceType, &roles)
+		if err != nil {
+			return 500, models.NewJSONError(err.Error())
+		}
+
+		for _, r := range roles {
+			if r.Role == "owner" && r.UserID != d.UserID {
+				owner = true
+			}
+		}
+
+		if !owner {
+			return 400, models.NewJSONError("Cannot remove the only project owner")
+		}
+	}
+
 	if err := existing.Delete(); err != nil {
 		return 500, models.NewJSONError(err.Error())
 	}

@@ -14,6 +14,10 @@ func Delete(au models.User, project string) (int, []byte) {
 	var d models.Project
 	var err error
 
+	if !models.IsAlphaNumeric(project) {
+		return 404, models.NewJSONError("Project name contains invalid characters")
+	}
+
 	if err = d.FindByName(project); err != nil {
 		id, err := strconv.Atoi(project)
 		if err = d.FindByID(id); err != nil {

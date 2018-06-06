@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
 	"github.com/ernestio/api-gateway/models"
@@ -18,6 +19,18 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 	if err := u.Map(body); err != nil {
 		h.L.Error(err.Error())
 		return 400, []byte(err.Error())
+	}
+
+	err := u.Validate()
+	if err != nil {
+		h.L.Error(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
+	}
+
+	uid, _ := strconv.Atoi(user)
+
+	if u.Username != user && u.ID != uid {
+		return 400, models.NewJSONError("User does not match payload name")
 	}
 
 	// Check if authenticated user is admin or updating itself
@@ -90,7 +103,7 @@ func Update(au models.User, user string, body []byte) (int, []byte) {
 		u.Redact()
 	}
 
-	body, err := json.Marshal(u)
+	body, err = json.Marshal(u)
 	if err != nil {
 		return 500, models.NewJSONError("Internal server error")
 	}

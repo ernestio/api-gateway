@@ -16,6 +16,10 @@ import (
 func Review(au models.User, env string, action *models.Action) (int, []byte) {
 	var e models.Env
 
+	if !models.IsAlphaNumeric(env) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	err := e.FindByName(env)
 	if err != nil {
 		h.L.Error(err.Error())

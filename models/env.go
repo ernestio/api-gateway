@@ -41,6 +41,10 @@ func (e *Env) Validate() error {
 		return errors.New("Environment name is empty")
 	}
 
+	if !IsAlphaNumeric(e.Name) {
+		return errors.New("Environment name contains invalid characters")
+	}
+
 	return nil
 }
 
@@ -50,13 +54,6 @@ func (e *Env) Map(data []byte) error {
 		h.L.WithFields(logrus.Fields{
 			"input": string(data),
 		}).Error("Couldn't unmarshal given input")
-		return NewError(InvalidInputCode, "Invalid input")
-	}
-
-	if err := e.Validate(); err != nil {
-		h.L.WithFields(logrus.Fields{
-			"input": string(data),
-		}).Warning("Input is not valid")
 		return NewError(InvalidInputCode, "Invalid input")
 	}
 

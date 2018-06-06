@@ -19,6 +19,10 @@ func Get(au models.User, name string) (int, []byte) {
 	var body []byte
 	var policy models.Policy
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Policy name contains invalid characters")
+	}
+
 	if err = policy.GetByName(name, &policy); err != nil {
 		h.L.Error(err.Error())
 		return 404, models.NewJSONError("policy not found")

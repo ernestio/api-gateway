@@ -6,6 +6,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 
 	h "github.com/ernestio/api-gateway/helpers"
@@ -28,6 +29,19 @@ func (l *Policy) Map(data []byte) error {
 			"input": string(data),
 		}).Error("Couldn't unmarshal given input")
 		return NewError(InvalidInputCode, "Invalid input")
+	}
+
+	return nil
+}
+
+// Validate the policy
+func (l *Policy) Validate() error {
+	if l.Name == "" {
+		return errors.New("Policy name is empty")
+	}
+
+	if !IsAlphaNumeric(l.Name) {
+		return errors.New("Policy name contains invalid characters")
 	}
 
 	return nil

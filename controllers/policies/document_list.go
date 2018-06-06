@@ -12,7 +12,7 @@ import (
 	"github.com/ernestio/api-gateway/models"
 )
 
-// Get : responds to GET /policies/:name/revisions/revision with the policy
+// ListDocuments : responds to GET /policies/:name/revisions/ with the policy
 // details
 func ListDocuments(au models.User, name string) (int, []byte) {
 	var err error

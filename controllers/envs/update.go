@@ -27,9 +27,18 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 
 	computedRoles := make(map[string]models.Role, 0)
 
-	if err = json.Unmarshal(body, &input); err != nil {
+	if input.Map(body) != nil {
+		return 400, models.NewJSONError("Input is not valid")
+	}
+
+	err = input.Validate()
+	if err != nil {
 		h.L.Error(err.Error())
-		return http.StatusBadRequest, []byte(err.Error())
+		return http.StatusBadRequest, models.NewJSONError(err.Error())
+	}
+
+	if input.Name != name {
+		return 400, models.NewJSONError("Environment name does not match payload name")
 	}
 
 	// Get existing environment
@@ -45,7 +54,7 @@ func Update(au models.User, name string, body []byte) (int, []byte) {
 		return 500, models.NewJSONError("Internal error")
 	}
 
-	if err = r.FindAllByResource(e.Project, p.GetType(), &pRoles); err == nil {
+	if err = r.FindAllByResource(p.Name, p.GetType(), &pRoles); err == nil {
 		for _, v := range pRoles {
 			computedRoles[v.UserID] = v
 		}

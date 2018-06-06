@@ -19,6 +19,10 @@ func Reset(au models.User, name string, action *models.Action) (int, []byte) {
 	var b models.Build
 	var builds []models.Build
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	if st, res := h.IsAuthorizedToResource(&au, h.ResetBuild, e.GetType(), name); st != 200 {
 		return st, res
 	}

@@ -17,6 +17,10 @@ func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var existing models.Policy
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Environment name contains invalid characters")
+	}
+
 	if err = existing.GetByName(name, &existing); err != nil {
 		return 404, models.NewJSONError("policy not found")
 	}

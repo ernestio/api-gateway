@@ -16,6 +16,10 @@ func Delete(au models.User, name string) (int, []byte) {
 	var err error
 	var existing models.Notification
 
+	if !models.IsAlphaNumeric(name) {
+		return 404, models.NewJSONError("Notification name contains invalid characters")
+	}
+
 	if err = existing.FindByName(name, &existing); err != nil {
 		return 404, models.NewJSONError("Not found")
 	}
