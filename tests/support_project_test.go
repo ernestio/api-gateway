@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ernestio/api-gateway/models"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 var (

@@ -23,7 +23,7 @@
   branch = "master"
   name = "github.com/ernestio/ernest-config-client"
   packages = ["."]
-  revision = "aea8a2de96eebc5a0e34cac5aa1d16ac42c9fc56"
+  revision = "3ae64ad7b8e5b19b31ff8a8e0bedcf807989e42e"
 
 [[projects]]
   branch = "master"
@@ -38,7 +38,7 @@
     "query",
     "validation"
   ]
-  revision = "4a33cb442dca816bee9a0168b34e864138920715"
+  revision = "868fca8648f6ba6ab9aecb45d049b6e79eac457f"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -122,14 +122,14 @@
   revision = "d0303fe809921458f417bcf828397a65db30a7e4"
 
 [[projects]]
-  name = "github.com/nats-io/nats"
+  name = "github.com/nats-io/go-nats"
   packages = [
     ".",
     "encoders/builtin",
     "util"
   ]
-  revision = "61923ed1eaf8398000991fbbee2ef11ab5a5be0d"
-  version = "v1.2.2"
+  revision = "d66cb54e6b7bdd93f0b28afc8450d84c780dfb68"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/nats-io/nuid"
@@ -147,7 +147,7 @@
   branch = "master"
   name = "github.com/r3labs/akira"
   packages = ["."]
-  revision = "3b9b806a55de1ce90d9ab71e11464865860857fe"
+  revision = "8754167cb7b314671eb1e2abf2e9465f2e3d5ad4"
 
 [[projects]]
   branch = "master"
@@ -243,6 +243,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d4e07abd57a830c4e90b4e0bc6833142df4e63891bb96ab76bea553467db8db2"
+  inputs-digest = "072634dfe74dbb398e74b82ee7f6bd68a8b236a4629aaeac9cc8ebe1bb383abb"
   solver-name = "gps-cdcl"
   solver-version = 1

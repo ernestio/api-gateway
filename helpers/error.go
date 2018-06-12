@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/nats-io/nats"
+	"github.com/nats-io/go-nats"
 )
 
 // ResponseError is
