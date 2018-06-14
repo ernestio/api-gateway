@@ -103,13 +103,13 @@ func (e *Env) Delete() (err error) {
 func (e *Env) Redact() error {
 	for k, v := range e.Credentials {
 		switch k {
-		case "aws_access_key_id", "org", "azure_client_id", "azure_environment", "azure_subscription_id", "azure_tenant_id":
+		case "aws_access_key_id", "org", "azure_client_id", "azure_environment", "azure_subscription_id", "azure_tenant_id", "vdc":
 			s, err := decrypt(v.(string))
 			if err != nil {
 				return errors.New("error decrypting provider credentials")
 			}
 			e.Credentials[k] = s
-		case "region", "vdc", "username", "vcloud_url":
+		case "region", "username", "vcloud_url":
 		default:
 			delete(e.Credentials, k)
 		}
