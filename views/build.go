@@ -25,6 +25,7 @@ type BuildRender struct {
 	UserName            string                   `json:"user_name"`
 	CreatedAt           string                   `json:"created_at"`
 	UpdatedAt           string                   `json:"updated_at"`
+	Errors              []string                 `json:"errors"`
 	Vpcs                []map[string]interface{} `json:"vpcs,omitempty"`
 	Networks            []map[string]interface{} `json:"networks,omitempty"`
 	Instances           []map[string]interface{} `json:"instances,omitempty"`
@@ -51,6 +52,7 @@ func (o *BuildRender) Render(b models.Build) (err error) {
 	o.Status = b.Status
 	o.UserID = b.UserID
 	o.UserName = b.Username
+	o.Errors = b.Errors
 
 	g, err := b.GetMapping()
 	if err != nil {

@@ -267,14 +267,16 @@ func (b *Build) RequestDeletion(mapping *Mapping) error {
 
 // LoadMappingErrors : loads all errors from a build and maps them to the build model
 func (b *Build) LoadMappingErrors() error {
-	mapping, err := b.GetMapping()
+	m, err := b.GetRawMapping()
 	if err != nil {
 		return err
 	}
 
-	for _, change := range mapping.Changes {
-		c := change.(*graph.GenericComponent)
-		ce, ok := (*c)["_error"].(string)
+	changes := m["changes"].([]interface{})
+
+	for _, change := range changes {
+		c := change.(map[string]interface{})
+		ce, ok := c["error"].(string)
 		if ok {
 			b.Errors = append(b.Errors, ce)
 		}
