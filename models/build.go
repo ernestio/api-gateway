@@ -25,6 +25,7 @@ type Build struct {
 	Definition    string                 `json:"definition"`
 	Mapping       map[string]interface{} `json:"mapping"`
 	Validation    *BuildValidateResponse `json:"validation,omitempty"`
+	Errors        []string               `json:"errors,omitempty"`
 	CreatedAt     time.Time              `json:"created_at"`
 	UpdatedAt     time.Time              `json:"updated_at"`
 }
@@ -99,7 +100,17 @@ func (b *Build) FindByName(env string) (builds []Build, err error) {
 func (b *Build) FindByID(id string) (err error) {
 	query := make(map[string]interface{})
 	query["id"] = id
-	return NewBaseModel(b.getStore()).GetBy(query, b)
+
+	err = NewBaseModel(b.getStore()).GetBy(query, b)
+	if err != nil {
+		return err
+	}
+
+	if b.Status != "errored" {
+		return nil
+	}
+
+	return b.LoadMappingErrors()
 }
 
 // FindAll : Searches for all builds on the store current user
@@ -251,6 +262,24 @@ func (b *Build) RequestDeletion(mapping *Mapping) error {
 		h.L.Error(err.Error())
 		return err
 	}
+	return nil
+}
+
+// LoadMappingErrors : loads all errors from a build and maps them to the build model
+func (b *Build) LoadMappingErrors() error {
+	mapping, err := b.GetMapping()
+	if err != nil {
+		return err
+	}
+
+	for _, change := range mapping.Changes {
+		c := change.(*graph.GenericComponent)
+		ce, ok := (*c)["_error"].(string)
+		if ok {
+			b.Errors = append(b.Errors, ce)
+		}
+	}
+
 	return nil
 }
 
