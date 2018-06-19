@@ -286,45 +286,51 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 }
 
 // EnvsBy : Get authorized envs by any filter
-func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
-	var s Env
-	var p Project
-	names := make(map[string]struct{}, 0)
+func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
+	var err error
+	var e Env
+	var envs []Env
+	var uEnvs []Env
+	var r Role
+	var roles []Role
 
 	if !u.IsAdmin() && filters["id"] == nil {
-		var r Role
-		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
-			for _, id := range ids {
-				names[id] = struct{}{}
-			}
+		err = e.Find(nil, &envs)
+		if err != nil {
+			return envs, err
 		}
-		if pIDs, err := r.FindAllIDsByUserAndType(u.GetID(), p.GetType()); err == nil {
-			for _, id := range pIDs {
-				var envs []Env
-				s.FindByProjectName(id, &envs)
-				for _, env := range envs {
-					names[env.Name] = struct{}{}
+
+		err = r.FindAllByUser(u.Username, &roles)
+		if err != nil {
+			return envs, err
+		}
+
+		for _, r := range roles {
+			if r.ResourceType != "project" && r.ResourceType != "environment" {
+				continue
+			}
+
+			for _, e := range envs {
+				if r.ResourceType == "project" {
+					if r.ResourceID == strings.Split(e.Name, "/")[0] {
+						uEnvs = append(uEnvs, e)
+					}
+				} else {
+					if r.ResourceID == e.Name {
+						uEnvs = append(uEnvs, e)
+					}
 				}
 			}
-		} else {
-			log.Println(err.Error())
 		}
-		var ids []string
-		for name := range names {
-			ids = append(ids, name)
-		}
-		if len(ids) == 0 {
-			println("xoxo")
-			return ss, nil
-		}
-		filters["names"] = ids
+
+		return uEnvs, nil
 	}
 
-	if err = s.Find(filters, &ss); err != nil {
-		log.Println(err.Error())
+	if err = e.Find(filters, &uEnvs); err != nil {
+		return uEnvs, err
 	}
 
-	return ss, err
+	return uEnvs, nil
 }
 
 // CanBeChangedBy : Checks if an user has write permissions on another user
