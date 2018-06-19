@@ -287,22 +287,30 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 
 // EnvsBy : Get authorized envs by any filter
 func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
+	var uEnvs []Env
 	var err error
 	var e Env
-	var envs []Env
-	var uEnvs []Env
-	var r Role
-	var roles []Role
 
-	if !u.IsAdmin() && filters["id"] == nil {
+	if u.IsAdmin() {
+		err = e.Find(filters, &uEnvs)
+		if err != nil {
+			return nil, err
+		}
+
+		return uEnvs, err
+	} else {
+		var envs []Env
+		var r Role
+		var roles []Role
+
 		err = e.Find(nil, &envs)
 		if err != nil {
-			return envs, err
+			return nil, err
 		}
 
 		err = r.FindAllByUser(u.Username, &roles)
 		if err != nil {
-			return envs, err
+			return nil, nil
 		}
 
 		for _, r := range roles {
@@ -322,12 +330,6 @@ func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
 				}
 			}
 		}
-
-		return uEnvs, nil
-	}
-
-	if err = e.Find(filters, &uEnvs); err != nil {
-		return uEnvs, err
 	}
 
 	return uEnvs, nil
