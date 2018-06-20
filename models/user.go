@@ -290,6 +290,7 @@ func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
 	var uEnvs []Env
 	var err error
 	var e Env
+	var rEnvs []Env
 
 	if u.IsAdmin() {
 		err = e.Find(filters, &uEnvs)
@@ -321,14 +322,23 @@ func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
 			for _, e := range envs {
 				if r.ResourceType == "project" {
 					if r.ResourceID == strings.Split(e.Name, "/")[0] {
-						uEnvs = append(uEnvs, e)
+						rEnvs = append(rEnvs, e)
 					}
 				} else {
 					if r.ResourceID == e.Name {
-						uEnvs = append(uEnvs, e)
+						rEnvs = append(rEnvs, e)
 					}
 				}
 			}
+		}
+	}
+
+	m := make(map[string]bool)
+
+	for _, v := range rEnvs {
+		if _, ok := m[v.Name]; !ok {
+			uEnvs = append(uEnvs, v)
+			m[v.Name] = true
 		}
 	}
 
