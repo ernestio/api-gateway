@@ -78,6 +78,14 @@ func (l *Role) FindByID(id string, role *Role) (err error) {
 	return NewBaseModel("authorization").GetBy(query, role)
 }
 
+// FindAllByUser : Searches for all roles on the system by user
+func (l *Role) FindAllByUser(u string, roles *[]Role) (err error) {
+	query := make(map[string]interface{})
+	query["user_id"] = u
+
+	return NewBaseModel("authorization").FindBy(query, roles)
+}
+
 // FindAllByUserAndResource : Searches for all roles on the system by user and resource type
 func (l *Role) FindAllByUserAndResource(u, r string, roles *[]Role) (err error) {
 	query := make(map[string]interface{})

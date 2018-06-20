@@ -286,45 +286,63 @@ func (u *User) GetBuild(id string) (build Env, err error) {
 }
 
 // EnvsBy : Get authorized envs by any filter
-func (u *User) EnvsBy(filters map[string]interface{}) (ss []Env, err error) {
-	var s Env
-	var p Project
-	names := make(map[string]struct{}, 0)
+func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
+	var uEnvs []Env
+	var err error
+	var e Env
+	var rEnvs []Env
 
-	if !u.IsAdmin() && filters["id"] == nil {
-		var r Role
-		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), s.GetType()); err == nil {
-			for _, id := range ids {
-				names[id] = struct{}{}
-			}
+	if u.IsAdmin() {
+		err = e.Find(filters, &uEnvs)
+		if err != nil {
+			return nil, err
 		}
-		if pIDs, err := r.FindAllIDsByUserAndType(u.GetID(), p.GetType()); err == nil {
-			for _, id := range pIDs {
-				var envs []Env
-				s.FindByProjectName(id, &envs)
-				for _, env := range envs {
-					names[env.Name] = struct{}{}
+
+		return uEnvs, err
+	} else {
+		var envs []Env
+		var r Role
+		var roles []Role
+
+		err = e.Find(nil, &envs)
+		if err != nil {
+			return nil, err
+		}
+
+		err = r.FindAllByUser(u.Username, &roles)
+		if err != nil {
+			return nil, nil
+		}
+
+		for _, r := range roles {
+			if r.ResourceType != "project" && r.ResourceType != "environment" {
+				continue
+			}
+
+			for _, e := range envs {
+				if r.ResourceType == "project" {
+					if r.ResourceID == strings.Split(e.Name, "/")[0] {
+						rEnvs = append(rEnvs, e)
+					}
+				} else {
+					if r.ResourceID == e.Name {
+						rEnvs = append(rEnvs, e)
+					}
 				}
 			}
-		} else {
-			log.Println(err.Error())
 		}
-		var ids []string
-		for name := range names {
-			ids = append(ids, name)
-		}
-		if len(ids) == 0 {
-			println("xoxo")
-			return ss, nil
-		}
-		filters["names"] = ids
 	}
 
-	if err = s.Find(filters, &ss); err != nil {
-		log.Println(err.Error())
+	m := make(map[string]bool)
+
+	for _, v := range rEnvs {
+		if _, ok := m[v.Name]; !ok {
+			uEnvs = append(uEnvs, v)
+			m[v.Name] = true
+		}
 	}
 
-	return ss, err
+	return uEnvs, nil
 }
 
 // CanBeChangedBy : Checks if an user has write permissions on another user
