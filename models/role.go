@@ -144,6 +144,11 @@ func (l *Role) Get(userID, resourceID, resourceType string) (role *Role, err err
 func (l *Role) Delete() (err error) {
 	query := make(map[string]interface{})
 	query["id"] = l.ID
+	query["resource_id"] = l.ResourceID
+	query["resource_type"] = l.ResourceType
+	query["user_id"] = l.UserID
+	query["role"] = l.Role
+
 	return NewBaseModel("authorization").Delete(query)
 }
 
