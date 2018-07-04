@@ -21,6 +21,12 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 		return 404, models.NewJSONError("Environment name contains invalid characters")
 	}
 
+	err := e.FindByName(name)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 404, models.NewJSONError("Environment not found")
+	}
+
 	if st, res := h.IsAuthorizedToResource(&au, h.DeleteEnvForce, e.GetType(), name); st != 200 {
 		return st, res
 	}
@@ -30,7 +36,7 @@ func ForceDeletion(au models.User, name string) (int, []byte) {
 		return 500, models.NewJSONError(err.Error())
 	}
 
-	err := r.FindAllByResource(e.GetID(), e.GetType(), &roles)
+	err = r.FindAllByResource(e.GetID(), e.GetType(), &roles)
 	if err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError(err.Error())

@@ -251,7 +251,7 @@ func (b *Build) RequestImport(mapping *Mapping) error {
 	return nil
 }
 
-// RequestDeletion : calls builddelete with the given raw message
+// RequestDeletion : calls build.delete with the given raw message
 func (b *Build) RequestDeletion(mapping *Mapping) error {
 	data, err := json.Marshal(mapping)
 	if err != nil {

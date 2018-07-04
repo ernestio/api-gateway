@@ -15,6 +15,8 @@ import (
 func Delete(au models.User, name string) (int, []byte) {
 	var e models.Env
 	var m models.Mapping
+	var r models.Role
+	var roles []models.Role
 
 	if !models.IsAlphaNumeric(name) {
 		return 404, models.NewJSONError("Environment name contains invalid characters")
@@ -54,6 +56,20 @@ func Delete(au models.User, name string) (int, []byte) {
 	if err := b.RequestDeletion(&m); err != nil {
 		h.L.Error(err.Error())
 		return 500, models.NewJSONError("Couldn't call build.delete")
+	}
+
+	err = r.FindAllByResource(e.GetID(), e.GetType(), &roles)
+	if err != nil {
+		h.L.Error(err.Error())
+		return 500, models.NewJSONError(err.Error())
+	}
+
+	for _, role := range roles {
+		err = role.Delete()
+		if err != nil {
+			h.L.Error(err.Error())
+			return 500, models.NewJSONError(err.Error())
+		}
 	}
 
 	return http.StatusOK, []byte(`{"id":"` + b.ID + `"}`)
