@@ -38,13 +38,13 @@ func Create(au models.User, body []byte) (int, []byte) {
 	if u.MFA != nil {
 		if *u.MFA {
 			mfaSecret := u.MFASecret
-			u.Redact()
+			u.Redact(au)
 			u.MFASecret = mfaSecret
 		} else {
-			u.Redact()
+			u.Redact(au)
 		}
 	} else {
-		u.Redact()
+		u.Redact(au)
 	}
 
 	body, err = json.Marshal(u)

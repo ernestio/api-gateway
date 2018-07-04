@@ -34,14 +34,14 @@ type User struct {
 	Password           *string `json:"password,omitempty"`
 	OldPassword        *string `json:"oldpassword,omitempty"`
 	Salt               string  `json:"salt,omitempty"`
-	Admin              *bool   `json:"admin"`
-	MFA                *bool   `json:"mfa"`
-	MFASecret          string  `json:"mfa_secret"`
-	VerificationCode   string  `json:"verification_code"`
-	EnvMemberships     []Role  `json:"env_memberships"`
-	ProjectMemberships []Role  `json:"project_memberships"`
-	Type               string  `json:"type"`
-	Disabled           *bool   `json:"disabled"`
+	Admin              *bool   `json:"admin,omitempty"`
+	MFA                *bool   `json:"mfa,omitempty"`
+	MFASecret          string  `json:"mfa_secret,omitempty"`
+	VerificationCode   string  `json:"verification_code,omitempty"`
+	EnvMemberships     []Role  `json:"env_memberships,omitempty"`
+	ProjectMemberships []Role  `json:"project_memberships,omitempty"`
+	Type               string  `json:"type,omitempty"`
+	Disabled           *bool   `json:"disabled,omitempty"`
 }
 
 // AuthResponse : Describes an Authenticator service response
@@ -161,11 +161,19 @@ func (u *User) Delete(id string) (err error) {
 
 // Redact : removes all sensitive fields from the return
 // data before outputting to the user
-func (u *User) Redact() {
+func (u *User) Redact(au User) {
 	empty := ""
 	u.Password = &empty
 	u.Salt = ""
 	u.MFASecret = ""
+
+	if !au.IsAdmin() {
+		u.Admin = nil
+		u.MFA = nil
+		u.Password = nil
+		u.Disabled = nil
+		u.Type = ""
+	}
 }
 
 // Improve : adds extra data
