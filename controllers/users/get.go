@@ -37,7 +37,7 @@ func Get(au models.User, u string) (int, []byte) {
 		user.EnvMemberships = roles
 	}
 
-	user.Redact()
+	user.Redact(au)
 
 	body, err := json.Marshal(user)
 	if err != nil {
