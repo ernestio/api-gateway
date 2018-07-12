@@ -42,23 +42,23 @@ func List(au models.User, project *string) (int, []byte) {
 		return 404, models.NewJSONError("Environment not found")
 	}
 
-	pcache := make(map[string][]models.Role)
+	pcache := make(map[int][]models.Role)
 
 	for i := range envs {
 		var roles []models.Role
 
 		computedRoles := make(map[string]models.Role, 0)
 
-		if pcache[envs[i].Project] == nil {
+		if pcache[envs[i].ProjectID] == nil {
 			var pRoles []models.Role
 
 			err = r.FindAllByResource(envs[i].GetProject(), p.GetType(), &pRoles)
 			if err == nil {
-				pcache[envs[i].Project] = pRoles
+				pcache[envs[i].ProjectID] = pRoles
 			}
 		}
 
-		for _, v := range pcache[envs[i].Project] {
+		for _, v := range pcache[envs[i].ProjectID] {
 			computedRoles[v.UserID] = v
 		}
 

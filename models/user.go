@@ -312,7 +312,7 @@ func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
 		var r Role
 		var roles []Role
 
-		err = e.Find(nil, &envs)
+		err = e.Find(filters, &envs)
 		if err != nil {
 			return nil, err
 		}
