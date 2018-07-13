@@ -24,7 +24,25 @@ func Get(au models.User, project string) (int, []byte) {
 	}
 
 	if st, res := h.IsAuthorizedToResource(&au, h.GetProject, d.GetType(), project); st != 200 {
-		return st, res
+		if d.GetType() == "project" {
+			envs, err := r.FindAllIDsByUserAndType(au.Username, "environment")
+			if err != nil {
+				return 500, models.NewJSONError(err.Error())
+			}
+
+			match := false
+
+			for _, env := range envs {
+				if project == strings.Split(env, "/")[0] {
+					match = true
+					break
+				}
+			}
+
+			if !match {
+				return st, res
+			}
+		}
 	}
 
 	if err := d.FindByName(project); err != nil {

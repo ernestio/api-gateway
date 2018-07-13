@@ -231,27 +231,51 @@ func (u *User) GetPolicies() (ds []Policy, err error) {
 }
 
 // GetProjects : Gets the related user projects if any
-func (u *User) GetProjects() (ds []Project, err error) {
-	var d Project
+func (u *User) GetProjects() ([]Project, error) {
+	var projects []Project
+	var err error
+	var p Project
+	var r Role
 
 	if u.IsAdmin() {
-		err = d.FindAll(*u, &ds)
-	} else {
-		var r Role
-		if ids, err := r.FindAllIDsByUserAndType(u.GetID(), d.GetType()); err == nil {
-			if ids == nil {
-				return ds, nil
-			}
-			err = d.FindByIDs(ids, &ds)
-			if err != nil {
-				log.Println(err.Error())
-			}
+		err := p.FindAll(*u, &projects)
+		if err != nil {
+			return nil, err
+		}
+
+		return projects, nil
+	}
+
+	pidsRaw, err := r.FindAllIDsByUserAndType(u.GetID(), "project")
+	if err != nil {
+		return nil, err
+	}
+
+	if pidsRaw == nil {
+		return nil, nil
+	}
+
+	pids := make(map[string]bool)
+
+	for _, pid := range pidsRaw {
+		if strings.Contains(pid, "/") {
+			pids[strings.Split(pid, "/")[0]] = true
 		} else {
-			log.Println(err.Error())
+			pids[pid] = true
 		}
 	}
 
-	return ds, err
+	var pidList []string
+	for k, _ := range pids {
+		pidList = append(pidList, k)
+	}
+
+	err = p.FindByIDs(pidList, &projects)
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, err
 }
 
 // ProjectByName : Gets the related user projects if any
@@ -312,7 +336,7 @@ func (u *User) EnvsBy(filters map[string]interface{}) ([]Env, error) {
 		var r Role
 		var roles []Role
 
-		err = e.Find(nil, &envs)
+		err = e.Find(filters, &envs)
 		if err != nil {
 			return nil, err
 		}
